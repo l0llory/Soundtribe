@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+            prefHeight="600.0" prefWidth="800.0">
+   
+   <!-- HEADER SECTION -->
+   <top>
+      <VBox spacing="8.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+         </padding>
+         
+         <!-- Navigation Bar -->
+         <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+               <!-- Navigation Buttons -->
+               <HBox spacing="5.0" alignment="CENTER_LEFT">
+                  <children>
+                     <Button fx:id="precP2" text="◀" minWidth="40.0" minHeight="30.0"/>
+                     <Button fx:id="nextP2" text="▶" minWidth="40.0" minHeight="30.0"/>
+                     <Button fx:id="backHome1" text="🏠" minWidth="40.0" minHeight="30.0"/>
+                  </children>
+               </HBox>
+               
+               <!-- Title Section -->
+               <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+                  <children>
+                     <Label text="SoundTribe" textFill="#3969da">
+                        <font>
+                           <Font name="System Bold" size="22.0"/>
+                        </font>
+                     </Label>
+                     <Label text="Gestione collezione musicale" textFill="#908888">
+                        <font>
+                           <Font size="11.0"/>
+                        </font>
+                     </Label>
+                  </children>
+                  <HBox.margin>
+                     <Insets left="15.0"/>
+                  </HBox.margin>
+               </VBox>
+               
+               <!-- Exit Button -->
+               <Button fx:id="Exit2" text="Esci" minWidth="70.0" minHeight="30.0">
+                  <font>
+                     <Font size="13.0"/>
+                  </font>
+               </Button>
+            </children>
+         </HBox>
+         
+         <!-- Section Header -->
+         <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <padding>
+               <Insets top="8.0" bottom="5.0"/>
+            </padding>
+            <children>
+               <Label text="Gestione Utenti" textFill="#3969da">
+                  <font>
+                     <Font name="System Bold" size="18.0"/>
+                  </font>
+               </Label>
+               <HBox HBox.hgrow="ALWAYS"/>
+               <Button fx:id="invitaUtenti" text="+ Invita Utente" minWidth="130.0" minHeight="32.0">
+                  <font>
+                     <Font size="13.0"/>
+                  </font>
+               </Button>
+            </children>
+         </HBox>
+         
+         <!-- Filters Section -->
+         <HBox spacing="10.0" alignment="CENTER_LEFT">
+            <padding>
+               <Insets top="5.0"/>
+            </padding>
+            <children>
+               <TextField fx:id="barraRicerca" promptText="Cerca per nome o email..." 
+                         prefWidth="350.0" minHeight="30.0" HBox.hgrow="ALWAYS">
+                  <font>
+                     <Font size="13.0"/>
+                  </font>
+               </TextField>
+               <ComboBox fx:id="tuttiRuoli" promptText="Tutti i ruoli" prefWidth="150.0" minHeight="30.0">
+                  <padding>
+                     <Insets top="2.0" bottom="2.0"/>
+                  </padding>
+               </ComboBox>
+               <ComboBox fx:id="tuttiStati" promptText="Tutti gli stati" prefWidth="150.0" minHeight="30.0">
+                  <padding>
+                     <Insets top="2.0" bottom="2.0"/>
+                  </padding>
+               </ComboBox>
+            </children>
+         </HBox>
+      </VBox>
+   </top>
+   
+   <!-- CONTENT SECTION -->
+   <center>
+      <VBox spacing="15.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets top="10.0" right="15.0" bottom="15.0" left="15.0"/>
+         </padding>
+         
+         <!-- Pending Requests Section -->
+         <VBox spacing="5.0" VBox.vgrow="NEVER">
+            <children>
+               <Label text="Richieste in sospeso" textFill="#908888">
+                  <font>
+                     <Font size="13.0"/>
+                  </font>
+                  <VBox.margin>
+                     <Insets bottom="3.0"/>
+                  </VBox.margin>
+               </Label>
+               <ListView fx:id="richiesteSospeso" prefHeight="120.0" maxHeight="150.0"/>
+            </children>
+         </VBox>
+         
+         <!-- Users List Section -->
+         <VBox spacing="5.0" VBox.vgrow="ALWAYS">
+            <children>
+               <Label text="Tutti gli utenti" textFill="#908888">
+                  <font>
+                     <Font size="13.0"/>
+                  </font>
+                  <VBox.margin>
+                     <Insets bottom="3.0"/>
+                  </VBox.margin>
+               </Label>
+               <ListView fx:id="listaUtenti" VBox.vgrow="ALWAYS"/>
+            </children>
+         </VBox>
+      </VBox>
+   </center>
+   
+</BorderPane>
+
