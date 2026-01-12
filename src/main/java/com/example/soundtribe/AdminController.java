@@ -22,34 +22,15 @@ public class AdminController {
 
     @FXML
     public void initialize() {
-        // Inizializzazione navigazione
-        updateNavigationButtons();
 
-        precP_Admin.setOnAction(event -> {
-            String prev = NavigationManager.goBack();
-            if (prev != null) SceneManager.changeScene(event, prev, 800, 600, false);
-        });
-
-        nextP_Admin.setOnAction(event -> {
-            String next = NavigationManager.goForward();
-            if (next != null) SceneManager.changeScene(event, next, 800, 600, false);
-        });
-
-        backHome_Admin.setOnAction(event -> {
-            SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
-        });
-
-        Exit_Admin.setOnAction(event -> {
-            SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, true);
-        });
+        NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);
+        NavigationManager.navBack(precP_Admin);
+        NavigationManager.navForward(precP_Admin);
+        NavigationManager.home(backHome_Admin);
+        NavigationManager.exit(Exit_Admin);
 
         // Caricamento dati dinamici (Esempio)
         refreshStats(156, 1247, 2, "2.3 GB");
-    }
-
-    private void updateNavigationButtons() {
-        precP_Admin.setDisable(!NavigationManager.canGoBack());
-        nextP_Admin.setDisable(!NavigationManager.canGoForward());
     }
 
     public void refreshStats(int users, int comments, int reports, String storage) {

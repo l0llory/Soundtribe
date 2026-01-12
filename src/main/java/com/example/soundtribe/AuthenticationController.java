@@ -58,7 +58,7 @@ public class AuthenticationController extends Application{
             return;
         }
 
-        SceneManager.changeScene(event, "Home.fxml", 800, 600, false);
+        SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
 
         System.out.println("Tentativo di accesso per: " + email);
         // Logica di autenticazione qui e gestione Database...

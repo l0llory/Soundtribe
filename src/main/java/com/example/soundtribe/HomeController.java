@@ -25,17 +25,12 @@ public class HomeController {
 
     public void initialize(){
         // OGNI VOLTA CHE SI CAMBIA SCENA RICORDARSI DI CHIAMARE IL METODO: NavigationManager.navigateTo("nome file fxml in cui mi sto spostando")
-        updateNavigationButtons();
-        precP.setOnAction(event -> {
-            String prevScene = NavigationManager.goBack();
-            if(prevScene != null){
-                SceneManager.changeScene(event, prevScene, 800, 500, false );
-            }
-        });
-        Exit.setOnAction(event -> {
-                SceneManager.changeScene(event, "Autenticazione.fxml", 800, 500, true);
+        NavigationManager.updateNavigationButtons(precP, nextP);
 
-        });
+        NavigationManager.navBack(precP);
+
+        NavigationManager.exit(Exit);
+
         handleBraniMusicali.setOnAction(event -> {
             SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true);
 
@@ -61,8 +56,4 @@ public class HomeController {
 
     }
 
-    private void updateNavigationButtons() {
-        precP.setDisable(!NavigationManager.canGoBack());
-        nextP.setDisable(!NavigationManager.canGoForward());
-    }
 }

@@ -1,5 +1,7 @@
 package com.example.soundtribe;
 
+import javafx.scene.control.Button;
+
 import java.util.Stack;
 
 public class NavigationManager {
@@ -38,4 +40,36 @@ public class NavigationManager {
     public static boolean canGoForward(){
         return !forwardStack.isEmpty();
     }
+
+    public static void updateNavigationButtons(Button p, Button n) {
+        p.setDisable(!NavigationManager.canGoBack());
+        n.setDisable(!NavigationManager.canGoForward());
+    }
+
+    public static void navBack(Button button) {
+        button.setOnAction(event -> {
+            String prevScene = goBack();
+            if(prevScene != null) {
+                SceneManager.changeScene(event, prevScene, 800, 600, false);
+            }
+        });
+    }
+    public static void navForward(Button button){
+        //Loo disabilito se non si può andare avanti
+        button.setDisable(!canGoForward());
+
+        button.setOnAction(event ->{
+            String nextScene = goForward();
+            if(nextScene != null){
+                SceneManager.changeScene(event, nextScene, 800, 600, false);
+            }
+        });
+    }
+    public static void exit(Button button){
+        button.setOnAction(event -> {SceneManager.changeScene(event, "Autenticazione.fxml", 800, 500, false);});
+    }
+    public static void home(Button button){
+        button.setOnAction(event -> {SceneManager.changeScene(event, "Home.fxml", 800, 600, true);});
+    }
+
 }
