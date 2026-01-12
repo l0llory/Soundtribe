@@ -14,7 +14,7 @@ import javafx.event.ActionEvent;
 
 import java.io.IOException;
 
-public class AuthenticationController extends Application {
+public class AuthenticationController extends Application{
 
     @FXML
     private TextField emailField;
@@ -34,7 +34,6 @@ public class AuthenticationController extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(AuthenticationController.class.getResource("Autenticazione.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 500);
-        stage.setTitle("SoundTribe - Accedi");
         stage.setScene(scene);
         stage.show();
     }
