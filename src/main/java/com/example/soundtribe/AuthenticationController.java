@@ -59,42 +59,14 @@ public class AuthenticationController extends Application {
             return;
         }
 
-        try {
-            System.out.println("Navigazione verso la home...");
-            FXMLLoader fxmlLoaderReg = new FXMLLoader(AuthenticationController.class.getResource("Home.fxml"));
-            Scene scene = new Scene(fxmlLoaderReg.load(), 600, 600);
-
-            // Recupera la finestra (Stage) corrente
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-            stage.setTitle("SoundTribe - Home");
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            AlertUtil.mostra("Errore", "Errore di caricamento", "Impossibile caricare la schermata di home.", AlertType.ERROR);
-        }
+        SceneManager.changeScene(event, "Home.fxml", 800, 600, false);
 
         System.out.println("Tentativo di accesso per: " + email);
         // Logica di autenticazione qui e gestione Database...
     }
     // Gestisce il reindirizzamento verso la schermata di registrazione
     private void handleGoToRegistration(ActionEvent event) {
-        try {
-            System.out.println("Navigazione verso la registrazione...");
-            FXMLLoader fxmlLoaderReg = new FXMLLoader(AuthenticationController.class.getResource("Registrazione.fxml"));
-            Scene scene = new Scene(fxmlLoaderReg.load(), 600, 600);
-
-            // Recupera la finestra (Stage) corrente
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-            stage.setTitle("SoundTribe - Registrati");
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            AlertUtil.mostra("Errore", "Errore di caricamento", "Impossibile caricare la schermata di registrazione.", AlertType.ERROR);
-        }
+        SceneManager.changeScene(event, "Registrazione.fxml", 600, 600, false);
     }
 
 }

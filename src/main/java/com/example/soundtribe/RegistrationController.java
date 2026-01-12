@@ -38,29 +38,13 @@ public class RegistrationController {
         }
 
         if(backToAuthentication != null){
-            backToAuthentication.setOnAction(actionEvent -> handleBackToRegistration(actionEvent));
+            backToAuthentication.setOnAction(event -> handleBackToRegistration(event));
         }
     }
 
     //Gestisce il ritorno alla schermata di autenticazione
-    private void handleBackToRegistration(ActionEvent actionEvent) {
-        try {
-            System.out.println("Navigazione verso la schermata di autenticazione...");
-            FXMLLoader fxmlLoaderBackAuth = new FXMLLoader(RegistrationController.class.getResource("Autenticazione.fxml"));
-            Scene scene = new Scene(fxmlLoaderBackAuth.load(), 600, 600);
-
-            // Recupera la finestra (Stage) corrente
-            Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-
-            stage.setTitle("SoundTribe - Home");
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            AlertUtil.mostra("Errore", "Errore di caricamento", "Impossibile caricare la schermata di autenticazione.", Alert.AlertType.ERROR);
-        }
-
-
+    private void handleBackToRegistration(ActionEvent event) {
+       SceneManager.changeScene(event, "Autenticazione.fxml", 600, 600, false);
     }
 
     //Gestisce i campi di testo: se non vengono riempiti lancia un avviso
@@ -76,21 +60,7 @@ public class RegistrationController {
                     " inserisci sia l'email che la password.", Alert.AlertType.WARNING);
             return;
         }
-        try {
-            System.out.println("Navigazione verso la home...");
-            FXMLLoader fxmlLoaderHome = new FXMLLoader(RegistrationController.class.getResource("Home.fxml"));
-            Scene scene = new Scene(fxmlLoaderHome.load(), 800, 600);
-
-            // Recupera la finestra (Stage) corrente
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-            stage.setTitle("SoundTribe - Home");
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            AlertUtil.mostra("Errore", "Errore di caricamento", "Impossibile caricare la schermata home.", Alert.AlertType.ERROR);
-        }
+        SceneManager.changeScene(event, "Home.fxml", 800, 600, false);
 
     }
 
