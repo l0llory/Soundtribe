@@ -14,5 +14,14 @@ public class UsersController {
     @FXML
     public Button Exit2;
 
+    public void initialize(){
+
+        NavigationManager.updateNavigationButtons(precP2, nextP2);
+        NavigationManager.navBack(precP2);
+        NavigationManager.navForward(nextP2);
+        NavigationManager.home(backHome1);
+        NavigationManager.exit(Exit2);
+    }
+
 
 }
