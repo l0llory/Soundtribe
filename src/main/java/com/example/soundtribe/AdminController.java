@@ -39,4 +39,5 @@ public class AdminController {
         lblTotalReports.setText(String.valueOf(reports));
         lblStorageUsed.setText(storage);
     }
+    
 }

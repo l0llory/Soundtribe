@@ -33,7 +33,6 @@ public class HomeController {
 
         handleBraniMusicali.setOnAction(event -> {
             SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true);
-
         });
         handleUtenti.setOnAction(event -> {
             SceneManager.changeScene(event, "gestioneUtenti.fxml", 800, 600, true);

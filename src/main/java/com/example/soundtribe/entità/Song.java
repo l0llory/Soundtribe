@@ -1,4 +1,4 @@
-package com.example.soundtribe;
+package com.example.soundtribe.entità;
 
 public class Song {
     private int id;

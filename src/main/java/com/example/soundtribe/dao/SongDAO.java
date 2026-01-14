@@ -1,6 +1,6 @@
 package com.example.soundtribe.dao;
 
-import com.example.soundtribe.Song;
+import com.example.soundtribe.entità.Song;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

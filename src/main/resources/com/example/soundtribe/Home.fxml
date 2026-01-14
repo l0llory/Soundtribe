@@ -114,7 +114,7 @@
                </font>
             </Button>
             
-            <Button fx:id="handleCommentiNote" text="Commenti e note" 
+            <Button fx:id="handleCommentiNote" text="Commenti"
                     maxWidth="Infinity" maxHeight="Infinity"
                     GridPane.columnIndex="2" GridPane.rowIndex="0">
                <font>

@@ -1,6 +1,7 @@
 package com.example.soundtribe;
 
 import com.example.soundtribe.dao.SongDAO;
+import com.example.soundtribe.entità.Song;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -21,6 +22,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SongsController {
 
@@ -34,10 +37,21 @@ public class SongsController {
     @FXML public ListView<Song> listaBrani;
 
     private SongDAO songDAO;
+    // Manteniamo una lista master di tutti i brani per evitare troppe chiamate al DB durante il filtro
+    private List<Song> allSongsMasterList;
 
     @FXML
     public void initialize() {
         songDAO = new SongDAO();
+
+        // 1. POPOLAMENTO MENU GENERI
+        generiFilter.getItems().add("Tutti i generi");
+        generiFilter.getItems().addAll(
+                "Afro", "Blues", "Folk", "Indie", "Jazz", "Musica classica",
+                "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap"
+        );
+        // Seleziona di default "Tutti i generi"
+        generiFilter.getSelectionModel().selectFirst();
 
         NavigationManager.updateNavigationButtons(precP_Songs, nextP_Songs);
         NavigationManager.navBack(precP_Songs);
@@ -45,7 +59,46 @@ public class SongsController {
         NavigationManager.home(backHome_Songs);
         NavigationManager.exit(Exit_Songs);
 
-        // Custom Cell Factory per lo stile Figma
+        setupCellFactory();
+
+        // Carichiamo tutti i brani una volta sola all'avvio
+        allSongsMasterList = songDAO.getAllSongs();
+        applyFilters(); // Applica i filtri (che all'inizio sono vuoti -> mostra tutto)
+
+        aggiungiBrano.setOnAction(event -> SceneManager.changeScene(event, "aggiungiBrano.fxml", 800, 600, true));
+
+        // 2. LISTENERS: Ogni volta che cambia il testo O il genere, ri-applichiamo i filtri
+        searchBarSongs.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+        generiFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+    }
+
+    // Metodo unico per gestire sia ricerca testuale che filtro genere
+    private void applyFilters() {
+        String query = searchBarSongs.getText().toLowerCase().trim();
+        String selectedGenre = generiFilter.getValue();
+
+        List<Song> filteredList = allSongsMasterList.stream()
+                .filter(song -> {
+                    // Controllo Ricerca Testuale (Titolo o Artista)
+                    boolean matchesText = query.isEmpty() ||
+                            song.getTitle().toLowerCase().contains(query) ||
+                            song.getArtist().toLowerCase().contains(query);
+
+                    // Controllo Genere
+                    boolean matchesGenre = selectedGenre == null ||
+                            selectedGenre.equals("Tutti i generi") ||
+                            song.getGenre().equalsIgnoreCase(selectedGenre);
+
+                    // Il brano deve soddisfare ENTRAMBI i criteri
+                    return matchesText && matchesGenre;
+                })
+                .sorted(Comparator.comparing(Song::getTitle, String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
+
+        listaBrani.setItems(FXCollections.observableArrayList(filteredList));
+    }
+
+    private void setupCellFactory() {
         listaBrani.setCellFactory(param -> new ListCell<Song>() {
             @Override
             protected void updateItem(Song song, boolean empty) {
@@ -55,46 +108,32 @@ public class SongsController {
                     setGraphic(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
-                    // Contenitore principale della Card
                     VBox card = new VBox(10);
                     card.setPadding(new Insets(15));
                     card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #3969da; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
 
-                    // --- HEADER: Immagine/Icona + Titolo + Genere ---
-                    HBox header = new HBox(15); // Aumentato spazio tra icona e testo
+                    HBox header = new HBox(15);
                     header.setAlignment(Pos.CENTER_LEFT);
 
-                    // 1. Gestione Icona o Immagine di Copertina
                     Node visualElement;
-
-                    // SE L'UTENTE CHE HA CARICO IL BRANO MUSICALE HA DECISO DI CARICARE ANCHE UNA IMMAGINE DI COPERTINA
-                    // ALLORA NELLA LISTVIEW APPARIRÀ L'IMMAGINE CARICATA, SENNÒ APPARIRÀ LA COPERTINA STANDARD DEI BRANI MUSICALI
-
                     if (song.getCoverPath() != null && !song.getCoverPath().isEmpty()) {
-                        // Tenta di caricare l'immagine
                         try {
                             ImageView coverImg = new ImageView(new Image(song.getCoverPath()));
                             coverImg.setFitWidth(50);
                             coverImg.setFitHeight(50);
-                            coverImg.setPreserveRatio(true); // O false se vuoi forzare il quadrato
-
-                            // Arrotondiamo gli angoli dell'immagine per stile
+                            coverImg.setPreserveRatio(true);
                             Rectangle clip = new Rectangle(50, 50);
                             clip.setArcWidth(10);
                             clip.setArcHeight(10);
                             coverImg.setClip(clip);
-
                             visualElement = coverImg;
                         } catch (Exception e) {
-                            // Se l'immagine non si carica (file spostato/perso), torna all'icona
                             visualElement = createDefaultIcon();
                         }
                     } else {
-                        // Nessuna copertina: usa icona standard
                         visualElement = createDefaultIcon();
                     }
 
-                    // 2. Info Testuali (Titolo e Genere)
                     Label titleLabel = new Label(song.getTitle());
                     titleLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
                     titleLabel.setTextFill(javafx.scene.paint.Color.web("#3969da"));
@@ -103,19 +142,15 @@ public class SongsController {
                     genreTag.setStyle("-fx-background-color: #f0f4ff; -fx-text-fill: #3969da; -fx-padding: 2 10; -fx-background-radius: 15; -fx-border-color: #3969da; -fx-border-radius: 15;");
                     genreTag.setFont(Font.font(10));
 
-                    // Raggruppo Titolo e Genere per allinearli meglio vicino alla foto
                     HBox titleGroup = new HBox(10, titleLabel, genreTag);
                     titleGroup.setAlignment(Pos.CENTER_LEFT);
 
                     header.getChildren().addAll(visualElement, titleGroup);
 
-                    // --- DETTAGLI AUTORE ---
                     Label authorLabel = new Label("Autore: " + song.getArtist());
                     authorLabel.setTextFill(javafx.scene.paint.Color.web("#908888"));
-                    // Aggiustiamo il padding per allinearlo visivamente al testo sopra (50px img + 15px gap)
                     authorLabel.setPadding(new Insets(0, 0, 0, 65));
 
-                    // --- BOTTONI ---
                     HBox actionBox = new HBox(10);
                     actionBox.setPadding(new Insets(5, 0, 0, 65));
 
@@ -126,7 +161,6 @@ public class SongsController {
 
                     if (song.getYoutubeUrl() != null && !song.getYoutubeUrl().isEmpty()) {
                         Button ytBtn = createStyledLink("📺 YouTube");
-                        // FIX PER LINUX: Usiamo Launcher invece di Desktop
                         ytBtn.setOnAction(e -> openUrlSafe(song.getYoutubeUrl()));
                         actionBox.getChildren().add(ytBtn);
                     }
@@ -137,12 +171,11 @@ public class SongsController {
                 }
             }
 
-            // Metodo helper per creare l'icona musicale standard
             private Label createDefaultIcon() {
                 Label musicIcon = new Label("♫");
                 musicIcon.setTextFill(javafx.scene.paint.Color.web("#3969da"));
-                musicIcon.setFont(Font.font("System", FontWeight.BOLD, 24)); // Un po' più grande
-                musicIcon.setMinWidth(50); // Mantiene lo spazio riservato come se fosse una foto
+                musicIcon.setFont(Font.font("System", FontWeight.BOLD, 24));
+                musicIcon.setMinWidth(50);
                 musicIcon.setAlignment(Pos.CENTER);
                 return musicIcon;
             }
@@ -155,11 +188,6 @@ public class SongsController {
                 return btn;
             }
         });
-
-        loadSongs();
-
-        aggiungiBrano.setOnAction(event -> SceneManager.changeScene(event, "aggiungiBrano.fxml", 800, 600, true));
-        searchBarSongs.textProperty().addListener((observable, oldValue, newValue) -> filterSongs(newValue));
     }
 
     private void openSongDetails(Song song, Button sourceButton) {
@@ -176,19 +204,6 @@ public class SongsController {
         }
     }
 
-    private void loadSongs() {
-        ObservableList<Song> items = FXCollections.observableArrayList(songDAO.getAllSongs());
-        items.sort(Comparator.comparing(Song::getTitle, String.CASE_INSENSITIVE_ORDER));
-        listaBrani.setItems(items);
-    }
-
-    private void filterSongs(String query) {
-        ObservableList<Song> filteredItems = FXCollections.observableArrayList(songDAO.searchSongs(query));
-        filteredItems.sort(Comparator.comparing(Song::getTitle, String.CASE_INSENSITIVE_ORDER));
-        listaBrani.setItems(filteredItems);
-    }
-
-    // Metodo sicuro per aprire URL su Linux
     private void openUrlSafe(String url) {
         try {
             Launcher.getInstance().openDocument(url);

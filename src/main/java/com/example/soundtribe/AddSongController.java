@@ -1,6 +1,7 @@
 package com.example.soundtribe;
 
 import com.example.soundtribe.dao.SongDAO;
+import com.example.soundtribe.entità.Song;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -48,7 +49,7 @@ public class AddSongController {
         backBtn.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, false));
         homeBtn.setOnAction(e -> SceneManager.changeScene(e, "Home.fxml", 800, 600, true));
         annullaBtn.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, false));
-        exitBtn.setOnAction(e -> SceneManager.changeScene(e, "Autenticazione.fxml", 600, 500, true));
+        exitBtn.setOnAction(e -> SceneManager.changeScene(e, "Autenticazione.fxml", 600, 500, false));
 
         // --- GESTIONE COPERTINA ---
         uploadCoverBtn.setOnAction(e -> {
