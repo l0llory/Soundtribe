@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import java.io.File;
 
-public class addSongController {
+public class AddSongController {
 
     @FXML public Button backBtn;
     @FXML public Button homeBtn;

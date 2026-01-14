@@ -6,9 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import java.awt.Desktop;
 import java.io.File;
-import java.net.URI;
 
 public class RiproduciBranoController {
 
@@ -36,21 +34,18 @@ public class RiproduciBranoController {
         NavigationManager.home(backHome_Riproduci);
         NavigationManager.exit(Exit_Riproduci);
 
-        // Il tasto "Torna alla lista" ricarica semplicemente la scena dei brani
-        backToListBtn.setOnAction(event -> SceneManager.changeScene(event, "songs.fxml", 800, 600, true));
+        // Il tasto "Torna alla lista" ricarica la scena dei brani
+        // Assicurati che il nome del file FXML sia corretto (braniMusicali.fxml o songs.fxml)
+        backToListBtn.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true));
     }
 
-    // Metodo fondamentale chiamato da SongsController per passare i dati
     public void setSong(Song song) {
         this.currentSong = song;
 
-        // Popolamento UI
         titoloBranoLabel.setText(song.getTitle());
         autoreBranoLabel.setText("Autore: " + song.getArtist());
         genereBranoLabel.setText(song.getGenre().toUpperCase());
-        // Se hai un campo anno nella classe Song usa quello, altrimenti stringa vuota
-        // annoBranoLabel.setText(song.getYear() != null ? song.getYear().toString() : "");
-        annoBranoLabel.setText(""); // Placeholder se non hai l'anno
+        annoBranoLabel.setText("");
 
         loadAttachedFiles();
     }
@@ -59,7 +54,7 @@ public class RiproduciBranoController {
         filesContainer.getChildren().clear();
         boolean hasFiles = false;
 
-        // Gestione PDF (Spartiti/Testi)
+        // Gestione PDF
         if (currentSong.getPdfSheetPath() != null && !currentSong.getPdfSheetPath().isEmpty()) {
             addFileButton("📄 Visualizza Spartito/Testo (PDF)", currentSong.getPdfSheetPath(), false);
             hasFiles = true;
@@ -77,14 +72,12 @@ public class RiproduciBranoController {
             hasFiles = true;
         }
 
-        // Gestione visualizzazione messaggio "nessun file"
         if (!hasFiles) {
             noFilesLabel.setVisible(true);
             filesContainer.getChildren().add(noFilesLabel);
         }
     }
 
-    // Crea dinamicamente una "Card" per ogni file
     private void addFileButton(String labelText, String pathOrUrl, boolean isUrl) {
         HBox fileRow = new HBox(15);
         fileRow.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8; -fx-border-color: #dddddd; -fx-border-radius: 8;");
@@ -94,31 +87,46 @@ public class RiproduciBranoController {
         descLabel.setFont(new Font(14));
         descLabel.setStyle("-fx-text-fill: #333333;");
 
-        // Spaziatore per spingere il bottone a destra
         HBox spacer = new HBox();
         javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
         Button actionBtn = new Button(isUrl ? "Apri Link" : "Apri File");
         actionBtn.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;");
+
+        // MODIFICA: Utilizziamo il Launcher per aprire i documenti in modo sicuro su Linux
         actionBtn.setOnAction(e -> {
-            if (isUrl) openUrl(pathOrUrl);
-            else openFile(pathOrUrl);
+            if (isUrl) {
+                handleOpenUrl(pathOrUrl);
+            } else {
+                handleOpenFile(pathOrUrl);
+            }
         });
 
         fileRow.getChildren().addAll(descLabel, spacer, actionBtn);
         filesContainer.getChildren().add(fileRow);
     }
 
-    private void openFile(String path) {
+    // Metodi di supporto che usano HostServices tramite il Launcher
+    private void handleOpenFile(String path) {
         try {
             File file = new File(path);
-            if (file.exists()) Desktop.getDesktop().open(file);
-        } catch (Exception e) { e.printStackTrace(); }
+            if (file.exists()) {
+                // Trasformiamo il percorso del file in un URI (es: file:/home/user/musica.mp3)
+                Launcher.getInstance().openDocument(file.toURI().toString());
+            } else {
+                System.err.println("File non trovato: " + path);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private void openUrl(String url) {
+    public static void handleOpenUrl(String url) {
         try {
-            Desktop.getDesktop().browse(new URI(url));
-        } catch (Exception e) { e.printStackTrace(); }
+            // HostServices gestisce automaticamente l'apertura del browser predefinito
+            Launcher.getInstance().openDocument(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
