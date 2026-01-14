@@ -4,158 +4,152 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.soundtribe.addSongController"
             prefHeight="600.0" prefWidth="800.0">
 
-    <!-- HEADER SECTION -->
     <top>
         <VBox spacing="8.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+                <Insets bottom="10.0" left="15.0" right="15.0" top="15.0" />
             </padding>
-
-            <!-- Navigation Bar -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
-                    <!-- Navigation Buttons -->
-                    <HBox spacing="5.0" alignment="CENTER_LEFT">
+                    <HBox alignment="CENTER_LEFT" spacing="5.0">
                         <children>
-                            <Button fx:id="backBtn" text="◀" minWidth="40.0" minHeight="30.0"/>
-                            <Button fx:id="forwardBtn" text="▶" minWidth="40.0" minHeight="30.0"/>
-                            <Button fx:id="homeBtn" text="🏠" minWidth="40.0" minHeight="30.0"/>
+                            <Button fx:id="backBtn" minHeight="30.0" minWidth="40.0" text="◀" />
+                            <Button fx:id="forwardBtn" minHeight="30.0" minWidth="40.0" text="▶" />
+                            <Button fx:id="homeBtn" minHeight="30.0" minWidth="40.0" text="🏠" />
                         </children>
                     </HBox>
-
-                    <!-- Title Section -->
                     <VBox spacing="3.0" HBox.hgrow="ALWAYS">
                         <children>
                             <Label text="SoundTribe" textFill="#3969da">
                                 <font>
-                                    <Font name="System Bold" size="22.0"/>
+                                    <Font name="System Bold" size="22.0" />
                                 </font>
                             </Label>
                             <Label text="Gestione collezione musicale" textFill="#908888">
                                 <font>
-                                    <Font size="11.0"/>
+                                    <Font size="11.0" />
                                 </font>
                             </Label>
                         </children>
                         <HBox.margin>
-                            <Insets left="15.0"/>
+                            <Insets left="15.0" />
                         </HBox.margin>
                     </VBox>
-
-                    <!-- Exit Button -->
-                    <Button fx:id="exitBtn" text="Esci" minWidth="70.0" minHeight="30.0">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
+                    <Button fx:id="exitBtn" minHeight="30.0" minWidth="70.0" text="Esci" />
                 </children>
             </HBox>
-
-            <!-- Section Header -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <padding>
-                    <Insets top="8.0" bottom="5.0"/>
+                    <Insets bottom="5.0" top="8.0" />
                 </padding>
                 <children>
                     <Label text="Aggiungi Nuovo Brano" textFill="#3969da">
                         <font>
-                            <Font name="System Bold" size="18.0"/>
+                            <Font name="System Bold" size="18.0" />
                         </font>
                     </Label>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="annullaBtn" text="Annulla" minWidth="100.0" minHeight="32.0">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="annullaBtn" minHeight="32.0" minWidth="100.0" text="Annulla" />
                 </children>
             </HBox>
         </VBox>
     </top>
 
-    <!-- CONTENT SECTION -->
     <center>
-        <VBox spacing="20.0" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="10.0" right="40.0" bottom="20.0" left="40.0"/>
-            </padding>
-            <children>
-                <GridPane hgap="20.0" vgap="15.0">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <children>
-                        <!-- Titolo -->
-                        <VBox spacing="5.0" GridPane.columnIndex="0">
-                            <children>
-                                <Label text="Titolo" textFill="#908888" />
-                                <TextField fx:id="titoloField" promptText="Titolo del brano" prefHeight="35.0" />
-                            </children>
-                        </VBox>
-                        <!-- Anno -->
-                        <VBox spacing="5.0" GridPane.columnIndex="1">
-                            <children>
-                                <Label text="Anno" textFill="#908888" />
-                                <TextField fx:id="annoField" promptText="Anno di composizione" prefHeight="35.0" />
-                            </children>
-                        </VBox>
-                        <!-- Autori -->
-                        <VBox spacing="5.0" GridPane.rowIndex="1" GridPane.columnSpan="2">
-                            <children>
-                                <Label text="Autori" textFill="#908888" />
-                                <TextField fx:id="autoriField" promptText="Separati da virgola" prefHeight="35.0" />
-                            </children>
-                        </VBox>
-                        <!-- Genere -->
-                        <VBox spacing="5.0" GridPane.rowIndex="2" GridPane.columnSpan="2">
-                            <children>
-                                <Label text="Genere" textFill="#908888" />
-                                <ComboBox fx:id="genereCombo" maxWidth="1.7976931348623157E308" promptText="Seleziona genere" prefHeight="35.0" />
-                            </children>
-                        </VBox>
-                        <!-- YouTube URL -->
-                        <VBox spacing="5.0" GridPane.rowIndex="3" GridPane.columnSpan="2">
-                            <children>
-                                <Label text="YouTube URL" textFill="#908888" />
-                                <TextField fx:id="youtubeField" promptText="Inserisci link opzionale" prefHeight="35.0" />
-                            </children>
-                        </VBox>
-                    </children>
-                </GridPane>
-
-                <HBox spacing="15.0" alignment="CENTER_LEFT">
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <content>
+                <VBox spacing="20.0">
                     <padding>
-                        <Insets top="10.0" />
+                        <Insets bottom="20.0" left="30.0" right="30.0" top="10.0" />
                     </padding>
                     <children>
-                        <Button fx:id="salvaBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0"
-                                style="-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-weight: bold;" text="Salva Brano" />
-                        <Button fx:id="aggiungiDocBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="180.0"
-                                text="Aggiungi Documenti" />
+
+                        <HBox spacing="30.0">
+                            <children>
+                                <VBox alignment="TOP_CENTER" spacing="10.0">
+                                    <children>
+                                        <Label text="Copertina" textFill="#908888" />
+                                        <VBox alignment="CENTER" maxHeight="180.0" maxWidth="180.0" minHeight="180.0" minWidth="180.0" style="-fx-border-color: #3969da; -fx-border-style: dashed; -fx-border-radius: 10; -fx-background-color: #f8f9fa;">
+                                            <children>
+                                                <ImageView fx:id="coverPreview" fitHeight="170.0" fitWidth="170.0" pickOnBounds="true" preserveRatio="true" />
+                                            </children>
+                                        </VBox>
+                                        <Button fx:id="uploadCoverBtn" text="Carica Foto" style="-fx-background-color: transparent; -fx-border-color: #3969da; -fx-text-fill: #3969da; -fx-border-radius: 5;" />
+                                    </children>
+                                </VBox>
+
+                                <VBox HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <GridPane hgap="20.0" vgap="15.0">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                            <children>
+                                                <VBox spacing="5.0" GridPane.columnIndex="0">
+                                                    <Label text="Titolo *" textFill="#908888" />
+                                                    <TextField fx:id="titoloField" prefHeight="35.0" promptText="Titolo del brano" />
+                                                </VBox>
+                                                <VBox spacing="5.0" GridPane.columnIndex="1">
+                                                    <Label text="Anno" textFill="#908888" />
+                                                    <TextField fx:id="annoField" prefHeight="35.0" promptText="Anno" />
+                                                </VBox>
+                                                <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                                    <Label text="Autori *" textFill="#908888" />
+                                                    <TextField fx:id="autoriField" prefHeight="35.0" promptText="Separati da virgola" />
+                                                </VBox>
+                                                <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                                                    <Label text="Genere" textFill="#908888" />
+                                                    <ComboBox fx:id="genereCombo" maxWidth="Infinity" prefHeight="35.0" promptText="Seleziona genere" />
+                                                </VBox>
+                                                <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="3">
+                                                    <Label text="YouTube URL" textFill="#908888" />
+                                                    <TextField fx:id="youtubeField" prefHeight="35.0" promptText="Inserisci link" />
+                                                </VBox>
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                            <children>
+                                <Button fx:id="salvaBtn" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-weight: bold;" text="Salva Brano" />
+                                <Button fx:id="aggiungiDocBtn" prefHeight="40.0" prefWidth="180.0" text="+ Aggiungi Documenti" />
+                            </children>
+                        </HBox>
+
+                        <VBox spacing="5.0">
+                            <Label text="File caricati per questo brano:" textFill="#908888" style="-fx-font-size: 13px;"/>
+                            <VBox fx:id="attachmentsList" spacing="8.0" />
+                        </VBox>
+
                     </children>
-                </HBox>
-            </children>
-        </VBox>
+                </VBox>
+            </content>
+        </ScrollPane>
     </center>
 </BorderPane>

@@ -8,10 +8,11 @@ public class Song {
     private String pdfSheetPath;
     private String audioPath;
     private String youtubeUrl;
+    private String coverPath; // Nuovo campo per l'immagine
 
     public Song() {}
 
-    public Song(int id, String title, String artist, String genre, String pdfSheetPath, String audioPath, String youtubeUrl) {
+    public Song(int id, String title, String artist, String genre, String pdfSheetPath, String audioPath, String youtubeUrl, String coverPath) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -19,6 +20,7 @@ public class Song {
         this.pdfSheetPath = pdfSheetPath;
         this.audioPath = audioPath;
         this.youtubeUrl = youtubeUrl;
+        this.coverPath = coverPath;
     }
 
     public int getId() { return id; }
@@ -41,6 +43,9 @@ public class Song {
 
     public String getYoutubeUrl() { return youtubeUrl; }
     public void setYoutubeUrl(String youtubeUrl) { this.youtubeUrl = youtubeUrl; }
+
+    public String getCoverPath() { return coverPath; }
+    public void setCoverPath(String coverPath) { this.coverPath = coverPath; }
 
     @Override
     public String toString() {

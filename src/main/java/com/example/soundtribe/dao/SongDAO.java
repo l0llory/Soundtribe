@@ -7,19 +7,24 @@ import java.util.List;
 
 public class SongDAO {
     private String dbUrl;
+    private String user;
+    private String password;
 
     public SongDAO() {
-
-            this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
+        // Assicurati che le credenziali siano corrette per il tuo DB locale
+        this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
+        this.user = "postgres";
+        this.password = "AppSoundtribe14";
 
         initTable();
     }
 
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dbUrl);
+        return DriverManager.getConnection(dbUrl, user, password);
     }
 
     private void initTable() {
+        // Creazione tabella base
         String sql = "CREATE TABLE IF NOT EXISTS songs (" +
                 "id SERIAL PRIMARY KEY, " +
                 "title TEXT NOT NULL, " +
@@ -27,17 +32,19 @@ public class SongDAO {
                 "genre TEXT, " +
                 "pdf_sheet_path TEXT, " +
                 "audio_path TEXT, " +
-                "youtube_url TEXT" +
+                "youtube_url TEXT, " +
+                "cover_path TEXT" + // Aggiunto nella creazione
                 ")";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
 
-            // Migration for existing table without new columns
+            // Migrazione: se la tabella esisteva già senza colonne specifiche, le aggiunge
             try {
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS pdf_sheet_path TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS audio_path TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS youtube_url TEXT");
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS cover_path TEXT");
             } catch (SQLException ignore) {}
 
         } catch (SQLException e) {
@@ -53,7 +60,8 @@ public class SongDAO {
                 rs.getString("genre"),
                 rs.getString("pdf_sheet_path"),
                 rs.getString("audio_path"),
-                rs.getString("youtube_url")
+                rs.getString("youtube_url"),
+                rs.getString("cover_path") // Mapping del nuovo campo
         );
     }
 
@@ -92,7 +100,7 @@ public class SongDAO {
     }
 
     public void addSong(Song song) {
-        String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url, cover_path) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, song.getTitle());
@@ -101,6 +109,7 @@ public class SongDAO {
             pstmt.setString(4, song.getPdfSheetPath());
             pstmt.setString(5, song.getAudioPath());
             pstmt.setString(6, song.getYoutubeUrl());
+            pstmt.setString(7, song.getCoverPath()); // Inserimento copertina
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Errore nell'aggiunta del brano: " + e.getMessage());
