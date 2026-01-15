@@ -10,32 +10,30 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.soundtribe.HomeController"
             prefHeight="600.0" prefWidth="800.0">
 
-   <!-- HEADER SECTION -->
    <top>
       <VBox spacing="8.0" BorderPane.alignment="CENTER">
          <padding>
             <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
          </padding>
-         
-         <!-- Navigation Bar -->
+
          <HBox alignment="CENTER_LEFT" spacing="10.0">
             <children>
-               <!-- Navigation Buttons -->
                <HBox spacing="5.0" alignment="CENTER_LEFT">
                   <children>
                      <Button fx:id="precP" text="◀" minWidth="40.0" minHeight="30.0"/>
                      <Button fx:id="nextP" text="▶" minWidth="40.0" minHeight="30.0"/>
                   </children>
                </HBox>
-               
-               <!-- Title Section -->
-               <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+
+               <VBox spacing="3.0">
                   <children>
                      <Label text="SoundTribe" textFill="#3969da">
                         <font>
@@ -52,17 +50,16 @@
                      <Insets left="15.0"/>
                   </HBox.margin>
                </VBox>
-               
-               <!-- Exit Button -->
-               <Button fx:id="Exit" text="Esci" minWidth="70.0" minHeight="30.0">
-                  <font>
-                     <Font size="13.0"/>
-                  </font>
+
+               <Region HBox.hgrow="ALWAYS" />
+
+               <Button fx:id="profileButton" minWidth="50.0" minHeight="50.0" maxWidth="50.0" maxHeight="50.0"
+                       style="-fx-background-radius: 50%; -fx-background-color: #f0f4ff; -fx-border-color: #3969da; -fx-border-radius: 50%; -fx-cursor: hand;">
                </Button>
+
             </children>
          </HBox>
-         
-         <!-- Welcome Message -->
+
          <HBox alignment="CENTER_LEFT">
             <padding>
                <Insets top="8.0" bottom="5.0"/>
@@ -78,14 +75,12 @@
       </VBox>
    </top>
 
-   <!-- MAIN CONTENT SECTION -->
    <center>
       <VBox spacing="15.0" BorderPane.alignment="CENTER">
          <padding>
             <Insets top="10.0" right="15.0" bottom="10.0" left="15.0"/>
          </padding>
-         
-         <!-- Menu Grid -->
+
          <GridPane alignment="CENTER" hgap="15.0" vgap="15.0" VBox.vgrow="SOMETIMES">
             <columnConstraints>
                <ColumnConstraints hgrow="SOMETIMES" minWidth="150.0" prefWidth="200.0"/>
@@ -96,73 +91,23 @@
                <RowConstraints minHeight="60.0" prefHeight="80.0" vgrow="SOMETIMES"/>
                <RowConstraints minHeight="60.0" prefHeight="80.0" vgrow="SOMETIMES"/>
             </rowConstraints>
-            
-            <!-- Row 1 -->
-            <Button fx:id="handleBraniMusicali" text="Brani musicali" 
-                    maxWidth="Infinity" maxHeight="Infinity" 
-                    GridPane.columnIndex="0" GridPane.rowIndex="0">
-               <font>
-                  <Font size="14.0"/>
-               </font>
-            </Button>
-            
-            <Button fx:id="handleUtenti" text="Utenti" 
-                    maxWidth="Infinity" maxHeight="Infinity"
-                    GridPane.columnIndex="1" GridPane.rowIndex="0">
-               <font>
-                  <Font size="14.0"/>
-               </font>
-            </Button>
-            
-            <Button fx:id="handleCommentiNote" text="Commenti"
-                    maxWidth="Infinity" maxHeight="Infinity"
-                    GridPane.columnIndex="2" GridPane.rowIndex="0">
-               <font>
-                  <Font size="14.0"/>
-               </font>
-            </Button>
-            
-            <!-- Row 2 -->
-            <Button fx:id="handleRicerca" text="Ricerca" 
-                    maxWidth="Infinity" maxHeight="Infinity"
-                    GridPane.columnIndex="0" GridPane.rowIndex="1">
-               <font>
-                  <Font size="14.0"/>
-               </font>
-            </Button>
-            
-            <Button fx:id="handleCaricaMateriale" text="Carica materiale" 
-                    maxWidth="Infinity" maxHeight="Infinity"
-                    GridPane.columnIndex="1" GridPane.rowIndex="1">
-               <font>
-                  <Font size="14.0"/>
-               </font>
-            </Button>
-            
-            <Button fx:id="handleAmministrazione" text="Amministrazione" 
-                    maxWidth="Infinity" maxHeight="Infinity"
-                    GridPane.columnIndex="2" GridPane.rowIndex="1">
-               <font>
-                  <Font size="14.0"/>
-               </font>
-            </Button>
+
+            <Button fx:id="handleBraniMusicali" text="Brani musicali" maxWidth="Infinity" maxHeight="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Button fx:id="handleUtenti" text="Utenti" maxWidth="Infinity" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <Button fx:id="handleCommentiNote" text="Commenti" maxWidth="Infinity" maxHeight="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+            <Button fx:id="handleRicerca" text="Ricerca" maxWidth="Infinity" maxHeight="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <Button fx:id="handleCaricaMateriale" text="Carica materiale" maxWidth="Infinity" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <Button fx:id="handleAmministrazione" text="Amministrazione" maxWidth="Infinity" maxHeight="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
          </GridPane>
-         
-         <!-- Recent Activities Section -->
+
          <VBox spacing="5.0" VBox.vgrow="ALWAYS">
             <children>
                <Label text="Attività recenti" textFill="#908888">
-                  <font>
-                     <Font size="13.0"/>
-                  </font>
-                  <VBox.margin>
-                     <Insets bottom="3.0"/>
-                  </VBox.margin>
+                  <font><Font size="13.0"/></font>
                </Label>
                <ListView fx:id="lastActivities" VBox.vgrow="ALWAYS" minHeight="150.0"/>
             </children>
          </VBox>
       </VBox>
    </center>
-
 </BorderPane>

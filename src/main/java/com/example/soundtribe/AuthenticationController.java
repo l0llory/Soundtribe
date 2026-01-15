@@ -1,5 +1,7 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.dao.UserDAO;
+import com.example.soundtribe.entità.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -33,9 +35,18 @@ public class AuthenticationController {
                     "Per favore, inserisci sia l'email che la password.", AlertType.WARNING);
             return;
         }
+        UserDAO userDAO = new UserDAO();
+        User loggedUser = userDAO.login(email, password);
 
-        System.out.println("Tentativo di accesso per: " + email);
-        SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
+        if (loggedUser != null) {
+            // SALVARE LA SESSIONE (Importante per poi caricare brani a nome suo)
+            UserSession.getInstance().setUserId(loggedUser.getId());
+            UserSession.getInstance().setIsAdmin(loggedUser.isAdmin());
+            SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
+        } else {
+            AlertUtil.mostra("Errore Login", "Credenziali errate", "Email o password non valide", AlertType.ERROR);
+        }
+
     }
 
     private void handleGoToRegistration(ActionEvent event) {
