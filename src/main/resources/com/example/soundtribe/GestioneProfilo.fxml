@@ -6,15 +6,14 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.shape.Circle?>
 
 <BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.soundtribe.ProfileController"
@@ -22,14 +21,20 @@
 
     <top>
         <VBox spacing="8.0">
-            <padding><Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/></padding>
+            <padding>
+                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+            </padding>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <Button fx:id="backBtn" text="◀" minWidth="40.0"/>
                 <Button fx:id="homeBtn" text="🏠" minWidth="40.0"/>
 
                 <Label text="Il Tuo Profilo" textFill="#3969da">
-                    <font><Font name="System Bold" size="22.0"/></font>
-                    <HBox.margin><Insets left="15.0"/></HBox.margin>
+                    <font>
+                        <Font name="System Bold" size="22.0"/>
+                    </font>
+                    <HBox.margin>
+                        <Insets left="15.0"/>
+                    </HBox.margin>
                 </Label>
 
                 <Region HBox.hgrow="ALWAYS"/>
@@ -40,12 +45,13 @@
 
     <center>
         <VBox spacing="20.0" alignment="TOP_CENTER">
-            <padding><Insets top="20.0" right="50.0" bottom="20.0" left="50.0"/></padding>
+            <padding>
+                <Insets top="20.0" right="50.0" bottom="20.0" left="50.0"/>
+            </padding>
 
             <VBox alignment="CENTER" spacing="10.0">
-                <VBox alignment="CENTER" maxHeight="150.0" maxWidth="150.0" style="-fx-border-color: #3969da; -fx-border-radius: 100; -fx-border-width: 2;">
-                    <ImageView fx:id="profileImageView" fitHeight="140.0" fitWidth="140.0" preserveRatio="true"/>
-                </VBox>
+                <Circle fx:id="profileCircle" radius="70.0" stroke="#3969da" strokeWidth="2.0" fill="TRANSPARENT"/>
+
                 <Button fx:id="changePicBtn" text="Cambia Immagine Profilo"/>
             </VBox>
 

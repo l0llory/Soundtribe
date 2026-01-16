@@ -8,11 +8,18 @@ public class Song {
     private String pdfSheetPath;
     private String audioPath;
     private String youtubeUrl;
-    private String coverPath; // Nuovo campo per l'immagine
+    private String coverPath;
+
+    private int uploadedBy;      // ID dell'utente che carica
+    private String uploaderName; // Nome di chi carica (cache per visualizzazione veloce)
+    private String uploaderSurname; // Cognome di chi carica
+    private String description;  // Descrizione testuale del brano
 
     public Song() {}
 
-    public Song(int id, String title, String artist, String genre, String pdfSheetPath, String audioPath, String youtubeUrl, String coverPath) {
+    public Song(int id, String title, String artist, String genre, String pdfSheetPath,
+                String audioPath, String youtubeUrl, String coverPath,
+                int uploadedBy, String uploaderName, String uploaderSurname, String description) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -21,8 +28,13 @@ public class Song {
         this.audioPath = audioPath;
         this.youtubeUrl = youtubeUrl;
         this.coverPath = coverPath;
+        this.uploadedBy = uploadedBy;
+        this.uploaderName = uploaderName;
+        this.uploaderSurname = uploaderSurname;
+        this.description = description;
     }
 
+    // Getters e Setters standard
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -46,6 +58,19 @@ public class Song {
 
     public String getCoverPath() { return coverPath; }
     public void setCoverPath(String coverPath) { this.coverPath = coverPath; }
+
+    // Nuovi Getters e Setters
+    public int getUploadedBy() { return uploadedBy; }
+    public void setUploadedBy(int uploadedBy) { this.uploadedBy = uploadedBy; }
+
+    public String getUploaderName() { return uploaderName; }
+    public void setUploaderName(String uploaderName) { this.uploaderName = uploaderName; }
+
+    public String getUploaderSurname() { return uploaderSurname; }
+    public void setUploaderSurname(String uploaderSurname) { this.uploaderSurname = uploaderSurname; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     @Override
     public String toString() {

@@ -23,6 +23,8 @@ public class RiproduciBranoController {
     @FXML public Label annoBranoLabel;
     @FXML public VBox filesContainer;
     @FXML public Label noFilesLabel;
+    @FXML public Label uploaderLabel;
+    @FXML public Label descrizioneLabel;
 
     private Song currentSong;
 
@@ -47,6 +49,23 @@ public class RiproduciBranoController {
         autoreBranoLabel.setText("Autore: " + song.getArtist());
         genereBranoLabel.setText(song.getGenre().toUpperCase());
         annoBranoLabel.setText("");
+        titoloBranoLabel.setText(song.getTitle());
+        autoreBranoLabel.setText("Autore: " + song.getArtist());
+        genereBranoLabel.setText(song.getGenre().toUpperCase());
+
+
+        if (song.getUploaderName() != null && !song.getUploaderName().isEmpty()) {
+            uploaderLabel.setText("Caricato da: " + song.getUploaderName() + " " + song.getUploaderSurname());
+        } else {
+            uploaderLabel.setText("Caricato da: Utente sconosciuto");
+        }
+
+        // Impostiamo la descrizione
+        if (song.getDescription() != null && !song.getDescription().isEmpty()) {
+            descrizioneLabel.setText(song.getDescription());
+        } else {
+            descrizioneLabel.setText("Nessuna descrizione disponibile per questo brano.");
+        }
 
         loadAttachedFiles();
     }

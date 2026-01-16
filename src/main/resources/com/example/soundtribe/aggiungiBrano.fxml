@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -30,7 +31,6 @@
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                         <children>
                             <Button fx:id="backBtn" minHeight="30.0" minWidth="40.0" text="◀" />
-                            <Button fx:id="forwardBtn" minHeight="30.0" minWidth="40.0" text="▶" />
                             <Button fx:id="homeBtn" minHeight="30.0" minWidth="40.0" text="🏠" />
                         </children>
                     </HBox>
@@ -106,7 +106,7 @@
                                                 <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
                                                 <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
                                                 <RowConstraints minHeight="40.0" vgrow="SOMETIMES" />
-                                            </rowConstraints>
+                                                <RowConstraints minHeight="80.0" vgrow="SOMETIMES" /> </rowConstraints>
                                             <children>
                                                 <VBox spacing="5.0" GridPane.columnIndex="0">
                                                     <Label text="Titolo *" textFill="#908888" />
@@ -116,17 +116,25 @@
                                                     <Label text="Anno" textFill="#908888" />
                                                     <TextField fx:id="annoField" prefHeight="35.0" promptText="Anno" />
                                                 </VBox>
+
                                                 <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
                                                     <Label text="Autori *" textFill="#908888" />
                                                     <TextField fx:id="autoriField" prefHeight="35.0" promptText="Separati da virgola" />
                                                 </VBox>
+
                                                 <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="2">
                                                     <Label text="Genere" textFill="#908888" />
                                                     <ComboBox fx:id="genereCombo" maxWidth="Infinity" prefHeight="35.0" promptText="Seleziona genere" />
                                                 </VBox>
+
                                                 <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="3">
                                                     <Label text="YouTube URL" textFill="#908888" />
                                                     <TextField fx:id="youtubeField" prefHeight="35.0" promptText="Inserisci link" />
+                                                </VBox>
+
+                                                <VBox spacing="5.0" GridPane.columnSpan="2" GridPane.rowIndex="4">
+                                                    <Label text="Descrizione del Brano" textFill="#908888" />
+                                                    <TextArea fx:id="descriptionField" prefHeight="80.0" promptText="Aggiungi dettagli, curiosità o note su questa versione..." wrapText="true"/>
                                                 </VBox>
                                             </children>
                                         </GridPane>

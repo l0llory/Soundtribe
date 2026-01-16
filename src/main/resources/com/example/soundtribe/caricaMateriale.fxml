@@ -2,11 +2,19 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -14,17 +22,13 @@
             fx:controller="com.example.soundtribe.UploadController"
             prefHeight="600.0" prefWidth="800.0">
 
-    <!-- HEADER SECTION -->
     <top>
         <VBox spacing="8.0" BorderPane.alignment="CENTER">
             <padding>
                 <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
             </padding>
-
-            <!-- Navigation Bar -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
-                    <!-- Navigation Buttons -->
                     <HBox spacing="5.0" alignment="CENTER_LEFT">
                         <children>
                             <Button fx:id="precP_Upload" text="◀" minWidth="40.0" minHeight="30.0"/>
@@ -32,126 +36,120 @@
                             <Button fx:id="backHome_Upload" text="🏠" minWidth="40.0" minHeight="30.0"/>
                         </children>
                     </HBox>
-
-                    <!-- Title Section -->
                     <VBox spacing="3.0" HBox.hgrow="ALWAYS">
                         <children>
                             <Label text="SoundTribe" textFill="#3969da">
-                                <font>
-                                    <Font name="System Bold" size="22.0"/>
-                                </font>
+                                <font><Font name="System Bold" size="22.0"/></font>
                             </Label>
                             <Label text="Gestione collezione musicale" textFill="#908888">
-                                <font>
-                                    <Font size="11.0"/>
-                                </font>
+                                <font><Font size="11.0"/></font>
                             </Label>
                         </children>
-                        <HBox.margin>
-                            <Insets left="15.0"/>
-                        </HBox.margin>
+                        <HBox.margin><Insets left="15.0"/></HBox.margin>
                     </VBox>
-
-                    <!-- Exit Button -->
-                    <Button fx:id="Exit_Upload" text="Esci" minWidth="70.0" minHeight="30.0">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
+                    <Button fx:id="Exit_Upload" text="Esci" minWidth="70.0" minHeight="30.0"/>
                 </children>
             </HBox>
-
-            <!-- Section Header -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <padding>
-                    <Insets top="8.0" bottom="5.0"/>
-                </padding>
+                <padding><Insets top="8.0" bottom="5.0"/></padding>
                 <children>
                     <Label text="Carica Materiale" textFill="#3969da">
-                        <font>
-                            <Font name="System Bold" size="18.0"/>
-                        </font>
+                        <font><Font name="System Bold" size="18.0"/></font>
                     </Label>
-                    <HBox HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="nuovoBrano_Upload" text="+ Nuovo Brano" minWidth="130.0" minHeight="32.0">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
                 </children>
             </HBox>
         </VBox>
     </top>
 
-    <!-- CONTENT SECTION -->
     <center>
-        <VBox spacing="15.0" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="10.0" right="15.0" bottom="15.0" left="15.0"/>
-            </padding>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <content>
+                <VBox spacing="20.0">
+                    <padding><Insets top="10.0" right="30.0" bottom="30.0" left="30.0"/></padding>
+                    <children>
 
-            <!-- Seleziona Brano Box -->
-            <VBox spacing="10.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f9f9f9;">
-                <padding>
-                    <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
-                </padding>
-                <children>
-                    <Label text="Seleziona Brano" textFill="#908888">
-                        <font>
-                            <Font name="System Bold" size="14.0"/>
-                        </font>
-                    </Label>
-                    <ComboBox fx:id="comboSelezionaBrano" promptText="Scegli il brano a cui associare i file" maxWidth="Infinity" minHeight="35.0"/>
-                </children>
-            </VBox>
-
-            <!-- Carica File Box -->
-            <VBox spacing="15.0" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-background-color: #f9f9f9;" VBox.vgrow="ALWAYS">
-                <padding>
-                    <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
-                </padding>
-                <children>
-                    <Label text="Carica File" textFill="#908888">
-                        <font>
-                            <Font name="System Bold" size="14.0"/>
-                        </font>
-                    </Label>
-
-                    <!-- Drop Area -->
-                    <VBox alignment="CENTER" spacing="10.0" style="-fx-border-color: #908888; -fx-border-style: dashed; -fx-border-radius: 5;" minHeight="150.0" VBox.vgrow="ALWAYS">
-                        <children>
-                            <Label text="⬆" textFill="#908888">
-                                <font>
-                                    <Font size="30.0"/>
-                                </font>
+                        <VBox spacing="10.0" style="-fx-background-color: #f9f9f9; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #e0e0e0; -fx-border-radius: 5;">
+                            <Label text="1. Associa a un Brano" textFill="#3969da">
+                                <font><Font name="System Bold" size="14.0"/></font>
                             </Label>
-                            <Label text="Trascina i file qui o clicca per selezionare" textFill="#908888"/>
-                            <Label text="Supportati: PDF, MP3, MP4, TXT, DOC, MusicXML, MIDI e altri" textFill="#908888" scaleX="0.8" scaleY="0.8"/>
-                            <Button fx:id="btnSelezionaFile" text="Seleziona File" minHeight="30.0" minWidth="120.0"/>
-                        </children>
-                    </VBox>
+                            <HBox spacing="15.0" alignment="CENTER_LEFT">
+                                <ComboBox fx:id="comboSelezionaBrano" promptText="Seleziona Brano Esistente..." HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="35.0"/>
+                                <Button fx:id="nuovoBrano_Upload" text="+ Crea Nuovo Brano" minWidth="130.0" prefHeight="35.0" style="-fx-background-color: white; -fx-border-color: #3969da; -fx-text-fill: #3969da;"/>
+                            </HBox>
+                        </VBox>
 
-                    <!-- Category Selection Row -->
-                    <HBox spacing="10.0" alignment="CENTER">
-                        <children>
-                            <Button text="📄 Spartito" HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="40.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
-                            <Button text="📝 Testi/Accordi" HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="40.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
-                            <Button text="🎵 File Audio" HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="40.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
-                            <Button text="📹 File Video" HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="40.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
-                            <Button text="📎 Altri File" HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="40.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
-                        </children>
-                    </HBox>
+                        <VBox spacing="10.0" style="-fx-background-color: #f9f9f9; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #e0e0e0; -fx-border-radius: 5;">
+                            <Label text="2. Sorgente Materiale" textFill="#3969da">
+                                <font><Font name="System Bold" size="14.0"/></font>
+                            </Label>
 
-                    <!-- YouTube Link Row -->
-                    <HBox spacing="10.0" alignment="CENTER_LEFT">
-                        <children>
-                            <TextField fx:id="youtubeLinkField" promptText="Inserisci link YouTube..." HBox.hgrow="ALWAYS" minHeight="35.0"/>
-                            <Button fx:id="btnAggiungiLink" text="➕ Aggiungi" minHeight="35.0" style="-fx-background-color: #3969da; -fx-text-fill: white;"/>
-                        </children>
-                    </HBox>
-                </children>
-            </VBox>
-        </VBox>
+                            <HBox spacing="0.0">
+                                <Button fx:id="tabFile" text="Carica File Locale" prefWidth="150.0" style="-fx-background-color: #3969da; -fx-text-fill: white; -fx-background-radius: 5 0 0 5;"/>
+                                <Button fx:id="tabYoutube" text="Link YouTube" prefWidth="150.0" style="-fx-background-color: white; -fx-border-color: #3969da; -fx-text-fill: #3969da; -fx-background-radius: 0 5 5 0;"/>
+                            </HBox>
+
+                            <VBox fx:id="fileUploadArea" spacing="10.0" alignment="CENTER" style="-fx-border-color: #908888; -fx-border-style: dashed; -fx-border-radius: 5;" minHeight="100.0">
+                                <Label text="Trascina qui il file (PDF, MP3, MP4, MIDI...)" textFill="#908888"/>
+                                <Button fx:id="btnSelezionaFile" text="Scegli File" />
+                                <Label fx:id="lblSelectedFile" text="Nessun file selezionato" textFill="#333333" style="-fx-font-style: italic;"/>
+                            </VBox>
+
+                            <VBox fx:id="youtubeUploadArea" spacing="5.0" visible="false" managed="false">
+                                <Label text="Incolla Link YouTube" textFill="#908888"/>
+                                <TextField fx:id="youtubeLinkField" promptText="https://www.youtube.com/watch?v=..." prefHeight="35.0"/>
+                                <CheckBox fx:id="chkConcertoIntero" text="È il video di un intero concerto?" textFill="#555555"/>
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="15.0" style="-fx-background-color: #fff; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #e0e0e0; -fx-border-radius: 5;">
+                            <Label text="3. Dettagli Esecuzione" textFill="#3969da">
+                                <font><Font name="System Bold" size="14.0"/></font>
+                            </Label>
+
+                            <HBox spacing="15.0" alignment="CENTER_LEFT">
+                                <Label text="Tipo Documento:" minWidth="100.0"/>
+                                <ComboBox fx:id="comboTipoFile" promptText="Seleziona Tipo..." prefWidth="200.0"/>
+                            </HBox>
+
+                            <Separator/>
+
+                            <GridPane fx:id="metadataGrid" hgap="15.0" vgap="15.0">
+                                <columnConstraints>
+                                    <ColumnConstraints minWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" />
+                                </columnConstraints>
+
+                                <CheckBox fx:id="chkSelfPerformer" text="Sono io l'interprete/autore di questa esecuzione" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0">
+                                    <font><Font name="System Bold" size="12.0"/></font>
+                                </CheckBox>
+
+                                <Label text="Esecutori:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                <TextField fx:id="esecutoriField" promptText="Nomi degli esecutori (es. Mario Rossi, The Band)" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                <Label text="Strumenti:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                <TextField fx:id="strumentiField" promptText="Es. Chitarra acustica, Pianoforte" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                                <Label text="Durata:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                <TextField fx:id="durataField" promptText="mm:ss" maxWidth="100.0" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                                <CheckBox fx:id="chkLiveRecording" text="È una registrazione dal VIVO (Live)?" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="4"/>
+
+                                <Label text="Data Reg.:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                                <DatePicker fx:id="dataRegistrazione" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                                <Label text="Luogo:" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                                <TextField fx:id="luogoField" promptText="Città, Teatro, Studio..." GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+                            </GridPane>
+                        </VBox>
+
+                        <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                            <Button text="Annulla" style="-fx-background-color: transparent; -fx-text-fill: #555;"/>
+                            <Button fx:id="btnConfermaUpload" text="Carica Materiale" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
     </center>
-
 </BorderPane>

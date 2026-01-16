@@ -24,7 +24,7 @@ public class SongDAO {
     }
 
     private void initTable() {
-        // Creazione tabella base
+        // Creazione tabella base con TUTTI i nuovi campi
         String sql = "CREATE TABLE IF NOT EXISTS songs (" +
                 "id SERIAL PRIMARY KEY, " +
                 "title TEXT NOT NULL, " +
@@ -33,7 +33,11 @@ public class SongDAO {
                 "pdf_sheet_path TEXT, " +
                 "audio_path TEXT, " +
                 "youtube_url TEXT, " +
-                "cover_path TEXT" + // Aggiunto nella creazione
+                "cover_path TEXT, " +
+                "uploaded_by INT, " +          // ID utente
+                "uploader_name TEXT, " +       // Nome utente (cache)
+                "uploader_surname TEXT, " +    // Cognome utente (cache)
+                "description TEXT" +           // Descrizione brano
                 ")";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
@@ -45,7 +49,15 @@ public class SongDAO {
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS audio_path TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS youtube_url TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS cover_path TEXT");
-            } catch (SQLException ignore) {}
+
+                // Nuove colonne per utente e descrizione
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS uploaded_by INT");
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS uploader_name TEXT");
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS uploader_surname TEXT");
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS description TEXT");
+            } catch (SQLException ignore) {
+                // Ignoriamo errori se le colonne esistono già
+            }
 
         } catch (SQLException e) {
             System.err.println("Errore durante la creazione/aggiornamento della tabella: " + e.getMessage());
@@ -53,6 +65,7 @@ public class SongDAO {
     }
 
     private Song mapRow(ResultSet rs) throws SQLException {
+        // Mappiamo tutti i campi, inclusi i nuovi, nel costruttore aggiornato di Song
         return new Song(
                 rs.getInt("id"),
                 rs.getString("title"),
@@ -61,7 +74,11 @@ public class SongDAO {
                 rs.getString("pdf_sheet_path"),
                 rs.getString("audio_path"),
                 rs.getString("youtube_url"),
-                rs.getString("cover_path") // Mapping del nuovo campo
+                rs.getString("cover_path"),
+                rs.getInt("uploaded_by"),
+                rs.getString("uploader_name"),
+                rs.getString("uploader_surname"),
+                rs.getString("description")
         );
     }
 
@@ -100,16 +117,32 @@ public class SongDAO {
     }
 
     public void addSong(Song song) {
-        String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url, cover_path) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // Query aggiornata con 11 parametri
+        String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url, cover_path, uploaded_by, uploader_name, uploader_surname, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Dati base
             pstmt.setString(1, song.getTitle());
             pstmt.setString(2, song.getArtist());
             pstmt.setString(3, song.getGenre());
             pstmt.setString(4, song.getPdfSheetPath());
             pstmt.setString(5, song.getAudioPath());
             pstmt.setString(6, song.getYoutubeUrl());
-            pstmt.setString(7, song.getCoverPath()); // Inserimento copertina
+            pstmt.setString(7, song.getCoverPath());
+
+            // Nuovi dati (Utente e Descrizione)
+            if (song.getUploadedBy() > 0) {
+                pstmt.setInt(8, song.getUploadedBy());
+            } else {
+                pstmt.setNull(8, Types.INTEGER);
+            }
+
+            pstmt.setString(9, song.getUploaderName());
+            pstmt.setString(10, song.getUploaderSurname());
+            pstmt.setString(11, song.getDescription());
+
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Errore nell'aggiunta del brano: " + e.getMessage());

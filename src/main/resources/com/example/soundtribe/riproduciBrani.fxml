@@ -79,11 +79,19 @@
                                     <Font name="System Bold" size="28.0"/>
                                 </font>
                             </Label>
+
                             <Label fx:id="autoreBranoLabel" text="Autore: Nome Autore" textFill="#555555">
                                 <font>
                                     <Font size="18.0"/>
                                 </font>
                             </Label>
+
+                            <Label fx:id="uploaderLabel" text="Caricato da: ..." textFill="#908888">
+                                <font>
+                                    <Font size="13.0" name="System Italic"/>
+                                </font>
+                            </Label>
+
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
                                 <Label fx:id="genereBranoLabel" text="GENERE"
                                        style="-fx-background-color: #3969da; -fx-text-fill: white; -fx-padding: 3 10; -fx-background-radius: 15;">
@@ -91,7 +99,7 @@
                                         <Font name="System Bold" size="12.0"/>
                                     </font>
                                 </Label>
-                                <Label fx:id="annoBranoLabel" text="2024" textFill="#908888">
+                                <Label fx:id="annoBranoLabel" text="" textFill="#908888">
                                     <font>
                                         <Font size="14.0"/>
                                     </font>
@@ -104,6 +112,15 @@
                     </HBox>
 
                     <Separator />
+
+                    <VBox spacing="5.0" style="-fx-background-color: #f9f9f9; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #eeeeee; -fx-border-radius: 5;">
+                        <Label text="Descrizione" textFill="#3969da">
+                            <font><Font name="System Bold" size="14.0"/></font>
+                        </Label>
+                        <Label fx:id="descrizioneLabel" text="..." wrapText="true" textFill="#333333">
+                            <font><Font size="13.0"/></font>
+                        </Label>
+                    </VBox>
 
                     <Label text="File Allegati e Risorse" textFill="#3969da">
                         <font>
