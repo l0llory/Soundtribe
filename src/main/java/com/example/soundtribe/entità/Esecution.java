@@ -2,7 +2,7 @@ package com.example.soundtribe.entità;
 
 import java.sql.Date;
 
-public class MediaFile {
+public class Esecution {
     private int id;
     private int songId;        // Collegamento alla canzone (Foreign Key)
     private String filePath;   // Dove si trova il file o l'URL
@@ -18,9 +18,9 @@ public class MediaFile {
     private boolean isConcert;
     private boolean isSelfPerformer; // Se l'utente è l'interprete
 
-    public MediaFile() {}
+    public Esecution() {}
 
-    public MediaFile(int id, int songId, String filePath, String fileType, String executors,
+    public Esecution(int id, int songId, String filePath, String fileType, String executors,
                      String instruments, String duration, boolean isLive, Date recordingDate,
                      String recordingPlace, boolean isConcert, boolean isSelfPerformer) {
         this.id = id;

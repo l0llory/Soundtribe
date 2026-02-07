@@ -27,7 +27,6 @@ public class Launcher extends Application {
         stage.show();
     }
 
-    // Metodo magico per Linux: apre URL e File senza bloccare l'app
     public void openDocument(String uri) {
         getHostServices().showDocument(uri);
     }

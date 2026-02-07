@@ -23,7 +23,6 @@ public class AdminController {
     @FXML
     public void initialize() {
 
-        NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);
         NavigationManager.navBack(precP_Admin);
         NavigationManager.navForward(precP_Admin);
         NavigationManager.home(backHome_Admin);

@@ -1,9 +1,9 @@
 package com.example.soundtribe;
 
-import com.example.soundtribe.dao.MediaDAO;
+import com.example.soundtribe.dao.EsecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.MediaFile;
+import com.example.soundtribe.entità.Esecution;
 import com.example.soundtribe.entità.Song;
 import com.example.soundtribe.entità.User;
 import javafx.fxml.FXML;
@@ -176,7 +176,7 @@ public class UploadController {
         }
 
 
-        MediaFile newMedia = new MediaFile(
+        Esecution newMedia = new Esecution(
                 0,
                 songId,
 
@@ -193,7 +193,7 @@ public class UploadController {
         );
 
 
-        MediaDAO mediaDAO = new MediaDAO();
+        EsecutionDAO mediaDAO = new EsecutionDAO();
         mediaDAO.addMedia(newMedia);
 
         // Qui implementerai la logica di salvataggio nel DB (nuova tabella 'documents' o simile)

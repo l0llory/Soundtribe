@@ -1,16 +1,16 @@
 package com.example.soundtribe.dao;
 
-import com.example.soundtribe.entità.MediaFile;
+import com.example.soundtribe.entità.Esecution;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MediaDAO {
+public class EsecutionDAO {
     private String dbUrl;
     private String user;
     private String password;
 
-    public MediaDAO() {
+    public EsecutionDAO() {
         this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
         this.user = "postgres";
         this.password = "AppSoundtribe14";
@@ -49,7 +49,7 @@ public class MediaDAO {
     }
 
     // Aggiungi un nuovo file multimediale
-    public void addMedia(MediaFile media) {
+    public void addMedia(Esecution media) {
         String sql = "INSERT INTO media_files (song_id, file_path, file_type, executors, instruments, duration, is_live, recording_date, recording_place, is_concert, is_self_performer) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -78,8 +78,8 @@ public class MediaDAO {
     }
 
     // Recupera tutti i file associati a una specifica canzone
-    public List<MediaFile> getMediaBySongId(int songId) {
-        List<MediaFile> mediaList = new ArrayList<>();
+    public List<Esecution> getMediaBySongId(int songId) {
+        List<Esecution> mediaList = new ArrayList<>();
         String sql = "SELECT * FROM media_files WHERE song_id = ?";
 
         try (Connection conn = getConnection();
@@ -98,8 +98,8 @@ public class MediaDAO {
         return mediaList;
     }
 
-    private MediaFile mapRow(ResultSet rs) throws SQLException {
-        return new MediaFile(
+    private Esecution mapRow(ResultSet rs) throws SQLException {
+        return new Esecution(
                 rs.getInt("id"),
                 rs.getInt("song_id"),
                 rs.getString("file_path"),

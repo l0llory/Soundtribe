@@ -79,11 +79,11 @@ public class ProfileController {
             } else {
                 setAnonymousImage();
             }
-            // Non serve più chiamare centerImage()
+
         }
     }
 
-    // --- MODIFICA 4: Aggiorna l'immagine di default ---
+
     private void setAnonymousImage() {
         try {
             URL imageUrl = getClass().getResource("/com/example/soundtribe/img/user.png");
@@ -98,11 +98,9 @@ public class ProfileController {
         }
     }
 
-    // --- MODIFICA 5: Rimuovi il metodo centerImage() ---
-    // private void centerImage() { ... }  <- RIMOSSO
 
     private void saveChanges(ActionEvent event) {
-        // ... (questo metodo rimane invariato) ...
+
         if (currentUser == null) return;
 
         currentUser.setName(usernameField.getText());

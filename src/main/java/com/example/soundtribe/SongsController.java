@@ -12,7 +12,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.shape.Rectangle;
@@ -37,7 +36,6 @@ public class SongsController {
     @FXML public ListView<Song> listaBrani;
 
     private SongDAO songDAO;
-    // Manteniamo una lista master di tutti i brani per evitare troppe chiamate al DB durante il filtro
     private List<Song> allSongsMasterList;
 
     @FXML
@@ -50,7 +48,6 @@ public class SongsController {
                 "Afro", "Blues", "Folk", "Indie", "Jazz", "Musica classica",
                 "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap"
         );
-        // Seleziona di default "Tutti i generi"
         generiFilter.getSelectionModel().selectFirst();
 
         NavigationManager.updateNavigationButtons(precP_Songs, nextP_Songs);
@@ -61,35 +58,40 @@ public class SongsController {
 
         setupCellFactory();
 
-        // Carichiamo tutti i brani una volta sola all'avvio
+        // 2. Carichiamo tutti i brani
         allSongsMasterList = songDAO.getAllSongs();
-        applyFilters(); // Applica i filtri (che all'inizio sono vuoti -> mostra tutto)
+        applyFilters(); // Mostra tutto all'inizio
 
         aggiungiBrano.setOnAction(event -> SceneManager.changeScene(event, "aggiungiBrano.fxml", 800, 600, true));
 
-        // 2. LISTENERS: Ogni volta che cambia il testo O il genere, ri-applichiamo i filtri
+        // 3. LISTENERS: Aggiornano la lista in tempo reale
         searchBarSongs.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         generiFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        // 4. GESTIONE RICERCA DALLA HOME
+        String pendingSearch = UserSession.getInstance().getLastSearchQuery();
+        if (pendingSearch != null && !pendingSearch.isEmpty()) {
+            searchBarSongs.setText(pendingSearch); // Questo triggera automaticamente il listener sopra!
+            UserSession.getInstance().setLastSearchQuery(null); // Pulisci sessione
+        }
     }
 
-    // Metodo unico per gestire sia ricerca testuale che filtro genere
     private void applyFilters() {
+        if (allSongsMasterList == null) return;
+
         String query = searchBarSongs.getText().toLowerCase().trim();
         String selectedGenre = generiFilter.getValue();
 
         List<Song> filteredList = allSongsMasterList.stream()
                 .filter(song -> {
-                    // Controllo Ricerca Testuale (Titolo o Artista)
                     boolean matchesText = query.isEmpty() ||
                             song.getTitle().toLowerCase().contains(query) ||
                             song.getArtist().toLowerCase().contains(query);
 
-                    // Controllo Genere
                     boolean matchesGenre = selectedGenre == null ||
                             selectedGenre.equals("Tutti i generi") ||
                             song.getGenre().equalsIgnoreCase(selectedGenre);
 
-                    // Il brano deve soddisfare ENTRAMBI i criteri
                     return matchesText && matchesGenre;
                 })
                 .sorted(Comparator.comparing(Song::getTitle, String.CASE_INSENSITIVE_ORDER))
@@ -154,7 +156,7 @@ public class SongsController {
                     HBox actionBox = new HBox(10);
                     actionBox.setPadding(new Insets(5, 0, 0, 65));
 
-                    Button playBtn = new Button("▶ Riproduci Brano");
+                    Button playBtn = new Button("▶ Esplora");
                     playBtn.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;");
                     playBtn.setOnAction(e -> openSongDetails(song, playBtn));
                     actionBox.getChildren().add(playBtn);
@@ -192,9 +194,9 @@ public class SongsController {
 
     private void openSongDetails(Song song, Button sourceButton) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("riproduciBrani.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraBrani.fxml"));
             Parent root = loader.load();
-            RiproduciBranoController controller = loader.getController();
+            ExploreSongController controller = loader.getController();
             controller.setSong(song);
             Stage stage = (Stage) sourceButton.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));

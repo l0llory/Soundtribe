@@ -1,0 +1,131 @@
+
+/* 1. Impostazioni Globali (Root) */
+.root {
+    -fx-background-color: #121212; /* Sfondo quasi nero (migliore per gli occhi del nero puro) */
+    -fx-font-family: "System";
+    -fx-font-size: 13px;
+    /* Variabili di colore per riutilizzarle */
+    -fx-base: #121212;
+    -fx-control-inner-background: #121212;
+    -fx-focus-color: #3969da;
+}
+
+/* 2. Etichette (Labels) */
+.label {
+    -fx-text-fill: #e0e0e0; /* Bianco leggermente sporco per leggibilità */
+}
+
+/* Classe specifica per il Titolo "SoundTribe" (per mantenerlo blu) */
+.label-title {
+    -fx-text-fill: #3969da;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+/* Classe per sottotitoli grigi */
+.label-subtitle {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+/* 3. Bottoni (Buttons) */
+.button {
+    -fx-background-color: #0d47a1; /* Blu Scuro */
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+/* Effetto quando passi il mouse sopra (Hover) */
+.button:hover {
+    -fx-background-color: #1565c0; /* Blu leggermente più chiaro */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0, 0, 2);
+}
+
+/* Effetto quando clicchi (Pressed) */
+.button:pressed {
+    -fx-background-color: #002171; /* Blu molto scuro */
+}
+
+/* Bottoni di Navigazione (Indietro, Avanti, Home) - Stile più neutro */
+.button-nav {
+    -fx-background-color: #333333; /* Grigio scuro */
+    -fx-text-fill: white;
+}
+.button-nav:hover {
+    -fx-background-color: #444444;
+}
+
+/* Bottone Profilo (Tondo) */
+.button-profile {
+    -fx-background-color: #1e1e1e;
+    -fx-background-radius: 50%;
+    -fx-border-color: #3969da;
+    -fx-border-radius: 50%;
+    -fx-min-width: 50px;
+    -fx-min-height: 50px;
+    -fx-max-width: 50px;
+    -fx-max-height: 50px;
+}
+
+/* 4. Campi di Testo (TextField / TextArea) */
+.text-field, .text-area {
+    -fx-background-color: #2c2c2c; /* Grigio scuro */
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #888888;
+    -fx-background-radius: 5;
+    -fx-border-color: #444444;
+    -fx-border-radius: 5;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-border-color: #3969da; /* Bordo blu quando scrivi */
+}
+
+/* Barra di ricerca arrotondata (override specifico) */
+.search-field {
+    -fx-background-radius: 20 0 0 20;
+    -fx-border-radius: 20 0 0 20;
+    -fx-background-color: #2c2c2c;
+}
+.search-button {
+    -fx-background-radius: 0 20 20 0;
+    -fx-border-radius: 0 20 20 0;
+    -fx-background-color: #333333;
+    -fx-border-color: #444444;
+}
+
+/* 5. Liste (ListView) */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+}
+
+.list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+    -fx-padding: 5px;
+}
+
+/* Cella selezionata o hover */
+.list-cell:filled:selected, .list-cell:filled:hover {
+    -fx-background-color: #333333;
+    -fx-background-radius: 5;
+}
+
+/* 6. ScrollPane (Barre di scorrimento) */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.scroll-bar .thumb {
+    -fx-background-color: #444444;
+    -fx-background-radius: 5;
+}

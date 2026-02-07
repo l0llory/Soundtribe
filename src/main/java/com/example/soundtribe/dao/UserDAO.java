@@ -103,6 +103,31 @@ public class UserDAO {
         }
     }
 
+    //Metodo per la ricerca degli Utenti
+    public java.util.List<User> searchUsers(String query) {
+        java.util.List<User> users = new java.util.ArrayList<>();
+        // Cerca per Nome, Cognome o Email (case insensitive)
+        String sql = "SELECT * FROM users WHERE name ILIKE ? OR surname ILIKE ? OR email ILIKE ?";
+
+        try (java.sql.Connection conn = getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            String pattern = "%" + query + "%";
+            pstmt.setString(1, pattern);
+            pstmt.setString(2, pattern);
+            pstmt.setString(3, pattern);
+
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapRow(rs));
+                }
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
     // Metodo per il Login
     public User login(String email, String password) {
         String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
