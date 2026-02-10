@@ -638,3 +638,107 @@
 .st-form-container {
     -fx-padding: 0 0 0 20; /* Spazio a sinistra per separare dalla copertina */
 }
+
+/* ========================================
+   DIZIONARI – STILI SPECIFICI
+======================================== */
+
+/* TabPane */
+.st-tab-pane {
+    -fx-background-color: transparent;
+}
+
+.st-tab-pane .tab-header-area {
+    -fx-background-color: transparent;
+}
+
+.st-tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-text-muted;
+    -fx-padding: 10 18;
+    -fx-background-radius: 6;
+}
+
+.st-tab-pane .tab:hover {
+    -fx-background-color: rgba(255,255,255,0.05);
+    -fx-text-fill: -st-text-main;
+}
+
+.st-tab-pane .tab:selected {
+    -fx-background-color: -st-blue-primary;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+}
+
+/* Card per input */
+.st-card {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 15;
+}
+
+/* ListView */
+.st-list-view {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.st-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-text-main;
+}
+
+.st-list-view .list-cell:hover {
+    -fx-background-color: -st-dark-tertiary;
+}
+
+.st-list-view .list-cell:selected {
+    -fx-background-color: rgba(59,130,246,0.25);
+    -fx-text-fill: -st-blue-primary;
+}
+
+/* Separator */
+.st-separator .line {
+    -fx-border-color: -st-dark-tertiary;
+}
+
+/* Titoli */
+.st-label-title {
+    -fx-text-fill: -st-text-main;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.st-label-subtitle {
+    -fx-text-fill: -st-text-muted;
+    -fx-font-size: 13px;
+}
+
+.st-label-blue {
+    -fx-text-fill: -st-blue-primary;
+    -fx-font-weight: bold;
+}
+/* ========================================
+   FIX TABPANE (Rimuove il bianco di default)
+======================================== */
+
+.st-tab-pane {
+    -fx-background-color: -st-dark; /* Sfondo principale */
+}
+
+.st-tab-pane .tab-header-area {
+    -fx-background-color: -st-dark; /* Barra superiore */
+}
+
+.st-tab-pane .tab-header-background {
+    -fx-background-color: -st-dark; /* Fix per alcune versioni JavaFX */
+}
+
+.st-tab-pane .tab-content-area {
+    -fx-background-color: -st-dark; /* Area interna delle tab */
+}
+

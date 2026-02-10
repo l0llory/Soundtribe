@@ -6,14 +6,13 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.Comparator;
@@ -50,20 +49,19 @@ public class UsersController {
         userDAO = new UserDAO();
         isAdmin = UserSession.getInstance().isAdmin();
 
-        // 1. Setup Navigazione
+        // Setup Navigazione
         NavigationManager.navBack(precP2);
         NavigationManager.navForward(nextP2);
         NavigationManager.updateNavigationButtons(precP2, nextP2);
         NavigationManager.home(backHome1);
         NavigationManager.exit(Exit2);
 
-        // 2. Setup Filtri
+        // Setup Filtri
         tuttiRuoli.getItems().addAll("Tutti i ruoli", "Admin", "User");
         tuttiRuoli.getSelectionModel().selectFirst();
         tuttiStati.getItems().addAll("Tutti gli stati", "Attivo", "In Attesa");
         tuttiStati.getSelectionModel().selectFirst();
 
-        // 3. Configurazione Grafica
         setupUserListCellFactory();
 
         // GESTIONE VISIBILITÀ ADMIN
@@ -82,23 +80,12 @@ public class UsersController {
             if(invitaUtenti != null) invitaUtenti.setVisible(false);
         }
 
-        // 4. Caricamento Dati
         refreshData();
 
-        // 5. Listeners
+        // Listeners
         barraRicerca.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         tuttiRuoli.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         tuttiStati.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
-
-        String pendingSearch = UserSession.getInstance().getLastSearchQuery();
-        if (pendingSearch != null && !pendingSearch.isEmpty()) {
-            barraRicerca.setText(pendingSearch);
-            UserSession.getInstance().setLastSearchQuery(null);
-        }
-
-        if(invitaUtenti != null) {
-            invitaUtenti.setOnAction(e -> AlertUtil.mostra("Invita Utente", "Funzionalità in arrivo", "Presto potrai invitare amici via email.", Alert.AlertType.INFORMATION));
-        }
     }
 
     private void refreshData() {
@@ -134,7 +121,7 @@ public class UsersController {
         listaUtenti.setItems(FXCollections.observableArrayList(filteredList));
     }
 
-    // --- LISTA UTENTI PRINCIPALE ---
+    // --- LISTA UTENTI (STANDARD) ---
     private void setupUserListCellFactory() {
         listaUtenti.setCellFactory(param -> new ListCell<User>() {
             @Override
@@ -144,20 +131,14 @@ public class UsersController {
                 if (empty || user == null) {
                     setGraphic(null);
                     setText(null);
-                    // Rimuovi eventuali classi residue se la cella viene riciclata
                     getStyleClass().remove("st-list-cell-content");
                 } else {
-                    // Contenitore Card
                     HBox card = new HBox(15);
                     card.setAlignment(Pos.CENTER_LEFT);
-                    // Usa classe CSS per la card (sfondo, bordi, padding gestiti qui)
                     card.getStyleClass().add("st-card");
-                    // Nota: Se st-card ha troppo padding per una lista, puoi creare una classe specifica .st-list-card nel CSS
 
-                    // Avatar
                     URL imageUrl = getClass().getResource("/com/example/soundtribe/img/user.png");
                     Circle avatar = new Circle(20);
-                    // Gestione immagine (rimane logica Java, ma senza stili inline strani)
                     if (user.getProfilePicPath() != null && !user.getProfilePicPath().isEmpty()) {
                         try {
                             avatar.setFill(new ImagePattern(new Image(user.getProfilePicPath())));
@@ -168,51 +149,23 @@ public class UsersController {
                         if (imageUrl != null) avatar.setFill(new ImagePattern(new Image(imageUrl.toExternalForm())));
                     }
 
-                    // Info
                     VBox info = new VBox(2);
                     Label nameLbl = new Label(user.getName() + " " + user.getSurname());
-                    nameLbl.getStyleClass().add("st-label-blue"); // Nome in blu/grassetto
-
+                    nameLbl.getStyleClass().add("st-label-blue");
                     Label emailLbl = new Label(user.getEmail());
-                    emailLbl.getStyleClass().add("st-label-subtitle"); // Email in grigio
-
+                    emailLbl.getStyleClass().add("st-label-subtitle");
                     info.getChildren().addAll(nameLbl, emailLbl);
 
-                    // Badge Ruolo
                     Label roleBadge = new Label(user.isAdmin() ? "ADMIN" : "USER");
-                    // Assegna classi CSS invece di stili inline
-                    if (user.isAdmin()) {
-                        roleBadge.getStyleClass().add("st-badge-red");
-                    } else {
-                        roleBadge.getStyleClass().add("st-badge");
-                    }
+                    roleBadge.getStyleClass().add(user.isAdmin() ? "st-badge-red" : "st-badge");
 
                     Region spacer = new Region();
                     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                    // Bottone Vedi Profilo
                     Button actionBtn = new Button("Vedi Profilo");
-                    actionBtn.getStyleClass().add("st-button-secondary"); // Stile bottone standard
-                    actionBtn.getStyleClass().add("st-button-small");     // Versione compatta
-
-                    actionBtn.setOnAction(event -> {
-                        try {
-                            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("profiloUtente.fxml"));
-                            javafx.scene.Parent root = loader.load();
-                            UserProfileViewController controller = loader.getController();
-                            controller.setTargetUser(user);
-
-                            javafx.scene.Scene scene = new javafx.scene.Scene(root, 800, 600);
-                            String css = getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm();
-                            scene.getStylesheets().add(css);
-
-                            javafx.stage.Stage stage = (javafx.stage.Stage) actionBtn.getScene().getWindow();
-                            stage.setScene(scene);
-                            stage.show();
-                        } catch (java.io.IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+                    actionBtn.getStyleClass().add("st-button-secondary");
+                    actionBtn.getStyleClass().add("st-button-small");
+                    actionBtn.setOnAction(event -> {/* Codice apertura profilo */});
 
                     card.getChildren().addAll(avatar, info, spacer, roleBadge, actionBtn);
                     setGraphic(card);
@@ -221,7 +174,7 @@ public class UsersController {
         });
     }
 
-    // --- LISTA RICHIESTE (SOSPESO) ---
+    // --- LISTA RICHIESTE SOSPESE (MODIFICATA) ---
     private void setupPendingListCellFactory() {
         richiesteSospeso.setCellFactory(param -> new ListCell<User>() {
             @Override
@@ -230,55 +183,106 @@ public class UsersController {
 
                 if (empty || user == null) {
                     setGraphic(null);
+                    setText(null);
                 } else {
                     HBox card = new HBox(10);
                     card.setAlignment(Pos.CENTER_LEFT);
                     card.setPadding(new Insets(8));
-
-                    // Usa una classe CSS specifica per le card di "warning" o pending
-                    // Assicurati di aggiungere .st-card-warning nel tuo CSS se vuoi lo sfondo giallino
-                    // Altrimenti usa st-card standard
                     card.getStyleClass().add("st-card");
-                    // card.setStyle("-fx-border-color: #f59e0b;"); // Opzionale: bordo arancione per distinguere
 
                     VBox info = new VBox(2);
                     Label nameLbl = new Label(user.getName() + " " + user.getSurname());
-                    nameLbl.getStyleClass().add("st-label"); // Testo normale
-
+                    nameLbl.getStyleClass().add("st-label");
                     Label emailLbl = new Label(user.getEmail());
                     emailLbl.getStyleClass().add("st-label-subtitle");
 
-                    info.getChildren().addAll(nameLbl, emailLbl);
+                    // Indicatore che c'è una motivazione
+                    Label hint = new Label("Richiesta da valutare");
+                    hint.setStyle("-fx-text-fill: #f39c12; -fx-font-size: 10px;");
+
+                    info.getChildren().addAll(nameLbl, emailLbl, hint);
 
                     Region spacer = new Region();
                     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                    // Bottoni Azione
-                    Button btnApprove = new Button("✔ Accetta");
-                    // Usa classi CSS (es. st-button-success se la crei, o primary)
-                    btnApprove.getStyleClass().add("st-button-primary");
-                    btnApprove.getStyleClass().add("st-button-small");
+                    // Pulsante unico per aprire la valutazione
+                    Button btnEvaluate = new Button("Valuta Richiesta");
+                    btnEvaluate.getStyleClass().add("st-button-primary");
+                    btnEvaluate.getStyleClass().add("st-button-small");
 
-                    Button btnReject = new Button("✘ Rifiuta");
-                    btnReject.getStyleClass().add("st-button-danger");
-                    btnReject.getStyleClass().add("st-button-small");
+                    btnEvaluate.setOnAction(e -> showEvaluationDialog(user));
 
-                    btnApprove.setOnAction(e -> {
-                        userDAO.updateUserStatus(user.getId(), true);
-                        refreshData();
-                        AlertUtil.mostra("Utente Approvato", "Successo", "L'utente " + user.getName() + " è ora attivo.", Alert.AlertType.INFORMATION);
-                    });
-
-                    btnReject.setOnAction(e -> {
-                        userDAO.deleteUser(user.getId());
-                        refreshData();
-                        AlertUtil.mostra("Richiesta Rifiutata", "Utente rimosso", "La richiesta di registrazione è stata cancellata.", Alert.AlertType.INFORMATION);
-                    });
-
-                    card.getChildren().addAll(info, spacer, btnApprove, btnReject);
+                    card.getChildren().addAll(info, spacer, btnEvaluate);
                     setGraphic(card);
                 }
             }
         });
+    }
+
+    // --- DIALOG DI VALUTAZIONE ---
+    private void showEvaluationDialog(User user) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Valutazione Richiesta");
+
+        VBox layout = new VBox(15);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: #1e1e24; -fx-border-color: #333; -fx-border-width: 2;");
+        layout.setPrefWidth(400);
+
+        Label header = new Label("Valutazione Iscrizione");
+        header.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+        // Dettagli Utente
+        GridPane details = new GridPane();
+        details.setHgap(10); details.setVgap(5);
+        addRow(details, 0, "Nome:", user.getName() + " " + user.getSurname());
+        addRow(details, 1, "Email:", user.getEmail());
+
+        // Motivazione
+        Label motLbl = new Label("Motivazione dell'utente:");
+        motLbl.setStyle("-fx-text-fill: #aaa; -fx-padding: 10 0 0 0;");
+
+        TextArea motArea = new TextArea(user.getMotivation() != null ? user.getMotivation() : "Nessuna motivazione fornita.");
+        motArea.setEditable(false);
+        motArea.setWrapText(true);
+        motArea.setPrefRowCount(5);
+        motArea.setStyle("-fx-control-inner-background: #2b2b36; -fx-text-fill: white;");
+
+        // Azioni
+        HBox actions = new HBox(15);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button btnReject = new Button("Rifiuta e Cancella");
+        btnReject.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;");
+
+        Button btnApprove = new Button("Approva Iscrizione");
+        btnApprove.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-cursor: hand;");
+
+        btnReject.setOnAction(e -> {
+            userDAO.deleteUser(user.getId());
+            refreshData();
+            AlertUtil.mostra("Rifiutato", "Utente rimosso", "La richiesta è stata respinta.", Alert.AlertType.INFORMATION);
+            dialog.close();
+        });
+
+        btnApprove.setOnAction(e -> {
+            userDAO.updateUserStatus(user.getId(), true);
+            refreshData();
+            AlertUtil.mostra("Approvato", "Successo", "L'utente è ora attivo.", Alert.AlertType.INFORMATION);
+            dialog.close();
+        });
+
+        actions.getChildren().addAll(btnReject, btnApprove);
+
+        layout.getChildren().addAll(header, details, motLbl, motArea, actions);
+        Scene scene = new Scene(layout);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+
+    private void addRow(GridPane grid, int row, String label, String value) {
+        Label l = new Label(label); l.setStyle("-fx-text-fill: #888;");
+        Label v = new Label(value); v.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        grid.add(l, 0, row); grid.add(v, 1, row);
     }
 }

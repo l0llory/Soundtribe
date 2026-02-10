@@ -1,9 +1,12 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.dao.ConcertDAO;
 import com.example.soundtribe.dao.EsecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
 import com.example.soundtribe.dao.UserDAO;
+import com.example.soundtribe.entità.Concert;
 import com.example.soundtribe.entità.Esecution;
+import com.example.soundtribe.entità.Instrument;
 import com.example.soundtribe.entità.Song;
 import com.example.soundtribe.entità.User;
 import javafx.fxml.FXML;
@@ -12,66 +15,269 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UploadController {
     // Navigazione
-    @FXML public Button precP_Upload;
-    @FXML public Button nextP_Upload;
-    @FXML public Button backHome_Upload;
-    @FXML public Button Exit_Upload;
+    @FXML public Button precP_Upload, nextP_Upload, backHome_Upload, Exit_Upload;
 
-    // Sezione 1: Titolo (NUOVO)
+    // --- TOGGLE MODALITÀ ---
+    @FXML public Button btnModeExecution, btnModeConcert;
+    @FXML public VBox formEsecuzione, formConcerto;
+
+    // --- CAMPI ESECUZIONE ---
     @FXML public TextField titoloEsecuzioneField;
-
-    // Sezione 2: Brano
     @FXML public ComboBox<Song> comboSelezionaBrano;
     @FXML public Button nuovoBrano_Upload;
-
-    // Sezione 3: Sorgente
-    @FXML public Button tabFile;
-    @FXML public Button tabYoutube;
-    @FXML public VBox fileUploadArea;
-    @FXML public VBox youtubeUploadArea;
+    @FXML public Button tabFile, tabYoutube;
+    @FXML public VBox fileUploadArea, youtubeUploadArea;
     @FXML public Button btnSelezionaFile;
     @FXML public Label lblSelectedFile;
     @FXML public TextField youtubeLinkField;
-    @FXML public CheckBox chkConcertoIntero;
-
-    // Sezione 4: Metadati
     @FXML public ComboBox<String> comboTipoFile;
     @FXML public GridPane metadataGrid;
-    @FXML public CheckBox chkSelfPerformer;
+    @FXML public CheckBox chkSelfPerformer, chkLiveRecording;
+
     @FXML public TextField esecutoriField;
-    @FXML public TextField strumentiField;
+
+    // --- NUOVA GESTIONE STRUMENTI MULTIPLI ---
+    @FXML public MenuButton menuStrumenti;
+
     @FXML public TextField durataField;
-    @FXML public CheckBox chkLiveRecording;
-    @FXML public DatePicker dataRegistrazione;
     @FXML public TextField luogoField;
+    @FXML public DatePicker dataRegistrazione;
+
+    // --- CAMPI CONCERTO ---
+    @FXML public TextField concertTitleField, concertArtistField, concertYoutubeField, concertLocationField;
+    @FXML public DatePicker concertDateField;
+    @FXML public TextArea concertDescField;
 
     @FXML public Button btnConfermaUpload;
 
     private File selectedFile;
     private boolean isYoutubeMode = false;
+    private boolean isConcertMode = false;
 
     public void initialize(){
         setupNavigation();
         loadSongsIntoCombo();
         setupTabs();
         setupMetadataLogic();
+        setupModeToggle();
+        setupInstrumentMenu(); // Setup del MenuButton
 
-        // Tipi di file supportati
-        comboTipoFile.getItems().addAll("Spartito (PDF)", "Testo/Accordi", "Audio (MP3/WAV)", "Video (MP4)", "MIDI", "Altro");
+        // FIX CONTRASTO: Forziamo il testo bianco all'avvio
+        menuStrumenti.setStyle("-fx-text-fill: #FFFFFF; -fx-mark-color: #FFFFFF;");
 
-        // Action selezione file
+        comboTipoFile.getItems().addAll("Spartito (PDF)", "Audio (MP3)", "Video (MP4)", "Altro");
         btnSelezionaFile.setOnAction(e -> pickFile());
-
-        // Action Nuovo Brano
         nuovoBrano_Upload.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
-
-        // Conferma Upload
         btnConfermaUpload.setOnAction(e -> handleUpload());
+    }
 
-        // FEATURE OPZIONALE: Se seleziono un brano esistente, suggerisco un titolo se il campo è vuoto
+    private void setupInstrumentMenu() {
+        EsecutionDAO dao = new EsecutionDAO();
+        List<Instrument> allInstruments = dao.getAllInstruments();
+
+        menuStrumenti.getItems().clear();
+
+        // 1. Aggiungi gli strumenti esistenti come CheckBox
+        for (Instrument inst : allInstruments) {
+            addCheckItemToMenu(inst.getName());
+        }
+
+        // 2. Aggiungi separatore
+        menuStrumenti.getItems().add(new SeparatorMenuItem());
+
+        // 3. Aggiungi campo di testo per "Nuovo Strumento"
+        TextField txtNew = new TextField();
+        txtNew.setPromptText("Aggiungi altro...");
+        // Stile per il campo di testo interno (testo scuro su sfondo chiaro o viceversa, per leggibilità)
+        txtNew.setStyle("-fx-text-fill: black;");
+
+        CustomMenuItem customItem = new CustomMenuItem(txtNew);
+        customItem.setHideOnClick(false); // Non chiudere il menu quando si clicca sul campo
+
+        txtNew.setOnAction(e -> {
+            String newVal = txtNew.getText().trim();
+            if (!newVal.isEmpty()) {
+                // Aggiungi il nuovo strumento in cima alla lista e selezionalo
+                addCheckItemToMenu(newVal);
+                txtNew.clear();
+                updateMenuLabel(); // Aggiorna etichetta
+            }
+        });
+
+        menuStrumenti.getItems().add(customItem);
+    }
+
+    private void addCheckItemToMenu(String name) {
+        CheckMenuItem item = new CheckMenuItem(name);
+        // Quando cambia lo stato, aggiorna l'etichetta del bottone
+        item.selectedProperty().addListener((obs, oldVal, newVal) -> updateMenuLabel());
+
+        // Inserisci prima del separatore
+        int size = menuStrumenti.getItems().size();
+        int index = size > 2 ? size - 2 : 0;
+        menuStrumenti.getItems().add(index, item);
+    }
+
+    private void updateMenuLabel() {
+        String selected = getSelectedInstrumentsString();
+        if (selected.isEmpty()) {
+            menuStrumenti.setText("Seleziona Strumenti...");
+        } else {
+            // Tronca il testo se troppo lungo per estetica
+            if (selected.length() > 30) {
+                menuStrumenti.setText(selected.substring(0, 27) + "...");
+            } else {
+                menuStrumenti.setText(selected);
+            }
+        }
+        // FIX CONTRASTO: Riapplichiamo lo stile ogni volta che il testo cambia per sicurezza
+        menuStrumenti.setStyle("-fx-text-fill: #FFFFFF; -fx-mark-color: #FFFFFF;");
+    }
+
+    // Helper per ottenere la stringa finale da salvare nel DB
+    private String getSelectedInstrumentsString() {
+        List<String> selected = new ArrayList<>();
+        for (MenuItem item : menuStrumenti.getItems()) {
+            if (item instanceof CheckMenuItem) {
+                CheckMenuItem checkItem = (CheckMenuItem) item;
+                if (checkItem.isSelected()) {
+                    selected.add(checkItem.getText());
+                }
+            }
+        }
+        return String.join(", ", selected);
+    }
+
+    private void setupModeToggle() {
+        btnModeExecution.setOnAction(e -> switchMode(false));
+        btnModeConcert.setOnAction(e -> switchMode(true));
+    }
+
+    private void switchMode(boolean concertMode) {
+        this.isConcertMode = concertMode;
+        formEsecuzione.setVisible(!concertMode);
+        formEsecuzione.setManaged(!concertMode);
+        formConcerto.setVisible(concertMode);
+        formConcerto.setManaged(concertMode);
+
+        if (concertMode) {
+            btnModeConcert.getStyleClass().add("st-segment-button-active");
+            btnModeExecution.getStyleClass().remove("st-segment-button-active");
+        } else {
+            btnModeExecution.getStyleClass().add("st-segment-button-active");
+            btnModeConcert.getStyleClass().remove("st-segment-button-active");
+        }
+    }
+
+    private void handleUpload() {
+        if (isConcertMode) {
+            handleConcertUpload();
+        } else {
+            handleExecutionUpload();
+        }
+    }
+
+    private void handleConcertUpload() {
+        if (concertTitleField.getText().isEmpty() || concertYoutubeField.getText().isEmpty()) {
+            AlertUtil.mostra("Errore", "Dati Mancanti", "Titolo e Link YouTube sono obbligatori per il concerto.", Alert.AlertType.WARNING);
+            return;
+        }
+
+        int userId = UserSession.getInstance().getUserId();
+        java.sql.Date sqlDate = (concertDateField.getValue() != null) ? java.sql.Date.valueOf(concertDateField.getValue()) : null;
+
+        Concert newConcert = new Concert(
+                0,
+                concertTitleField.getText(),
+                concertArtistField.getText(),
+                concertYoutubeField.getText(),
+                sqlDate,
+                concertLocationField.getText(),
+                concertDescField.getText(),
+                userId
+        );
+
+        ConcertDAO dao = new ConcertDAO();
+        dao.addConcert(newConcert);
+
+        AlertUtil.mostra("Successo", "Concerto Caricato", "Il concerto è stato salvato correttamente.", Alert.AlertType.INFORMATION);
+        resetConcertFields();
+    }
+
+    private void handleExecutionUpload() {
+        if (titoloEsecuzioneField.getText() == null || titoloEsecuzioneField.getText().trim().isEmpty()) {
+            AlertUtil.mostra("Errore", "Titolo Mancante", "Inserisci un titolo per questa esecuzione.", Alert.AlertType.WARNING);
+            return;
+        }
+
+        if (isYoutubeMode) {
+            if (youtubeLinkField.getText().isEmpty()) { AlertUtil.mostra("Errore", "Link Mancante", "Youtube Link mancante", Alert.AlertType.WARNING); return; }
+        } else {
+            if (selectedFile == null) { AlertUtil.mostra("Errore", "File Mancante", "File locale mancante", Alert.AlertType.WARNING); return; }
+        }
+
+        int songId = 0;
+        if (comboSelezionaBrano.getValue() != null) songId = comboSelezionaBrano.getValue().getId();
+
+        java.sql.Date sqlDate = (dataRegistrazione.getValue() != null) ? java.sql.Date.valueOf(dataRegistrazione.getValue()) : null;
+        int userId = UserSession.getInstance().getUserId();
+
+        // Recupera gli strumenti selezionati dal MenuButton
+        String instrumentsString = getSelectedInstrumentsString();
+
+        Esecution newMedia = new Esecution(
+                0, songId, titoloEsecuzioneField.getText(),
+                isYoutubeMode ? youtubeLinkField.getText() : selectedFile.getAbsolutePath(),
+                comboTipoFile.getValue(), esecutoriField.getText(),
+                instrumentsString, // Passiamo la stringa concatenata
+                durataField.getText(), chkLiveRecording.isSelected(), sqlDate,
+                luogoField.getText(), false, chkSelfPerformer.isSelected(), userId
+        );
+
+        EsecutionDAO mediaDAO = new EsecutionDAO();
+        mediaDAO.addMedia(newMedia);
+
+        AlertUtil.mostra("Successo", "Caricamento Completato", "Esecuzione caricata correttamente.", Alert.AlertType.INFORMATION);
+        resetExecutionFields();
+    }
+
+    private void resetConcertFields() {
+        concertTitleField.clear(); concertArtistField.clear(); concertYoutubeField.clear();
+        concertLocationField.clear(); concertDescField.clear(); concertDateField.setValue(null);
+    }
+
+    private void resetExecutionFields() {
+        titoloEsecuzioneField.clear(); comboSelezionaBrano.getSelectionModel().clearSelection();
+        youtubeLinkField.clear(); selectedFile = null; lblSelectedFile.setText("Nessun file");
+        esecutoriField.clear();
+
+        // Reset Strumenti
+        for(MenuItem item : menuStrumenti.getItems()) {
+            if(item instanceof CheckMenuItem) ((CheckMenuItem) item).setSelected(false);
+        }
+        menuStrumenti.setText("Seleziona Strumenti...");
+        // FIX CONTRASTO: Reimposta lo stile dopo il reset
+        menuStrumenti.setStyle("-fx-text-fill: #FFFFFF; -fx-mark-color: #FFFFFF;");
+
+        durataField.clear();
+        chkLiveRecording.setSelected(false); chkSelfPerformer.setSelected(false);
+    }
+
+    private void setupNavigation() {
+        NavigationManager.navBack(precP_Upload); NavigationManager.navForward(nextP_Upload);
+        NavigationManager.updateNavigationButtons(precP_Upload, nextP_Upload);
+        NavigationManager.home(backHome_Upload); NavigationManager.exit(Exit_Upload);
+    }
+
+    private void loadSongsIntoCombo() {
+        SongDAO songDAO = new SongDAO();
+        comboSelezionaBrano.getItems().addAll(songDAO.getAllSongs());
         comboSelezionaBrano.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && (titoloEsecuzioneField.getText() == null || titoloEsecuzioneField.getText().isEmpty())) {
                 titoloEsecuzioneField.setText(newVal.getTitle() + " (Cover)");
@@ -79,44 +285,17 @@ public class UploadController {
         });
     }
 
-    private void setupNavigation() {
-        NavigationManager.navBack(precP_Upload);
-        NavigationManager.navForward(nextP_Upload);
-        NavigationManager.updateNavigationButtons(precP_Upload, nextP_Upload);
-        NavigationManager.home(backHome_Upload);
-        NavigationManager.exit(Exit_Upload);
-    }
-
-    private void loadSongsIntoCombo() {
-        SongDAO songDAO = new SongDAO();
-        comboSelezionaBrano.getItems().addAll(songDAO.getAllSongs());
-    }
-
     private void setupTabs() {
-        // Toggle Logica
         tabFile.setOnAction(e -> {
-            isYoutubeMode = false;
-            fileUploadArea.setVisible(true);
-            fileUploadArea.setManaged(true);
-            youtubeUploadArea.setVisible(false);
-            youtubeUploadArea.setManaged(false);
-
-            if (!tabFile.getStyleClass().contains("st-segment-button-active")) {
-                tabFile.getStyleClass().add("st-segment-button-active");
-            }
+            isYoutubeMode = false; fileUploadArea.setVisible(true); fileUploadArea.setManaged(true);
+            youtubeUploadArea.setVisible(false); youtubeUploadArea.setManaged(false);
+            if (!tabFile.getStyleClass().contains("st-segment-button-active")) tabFile.getStyleClass().add("st-segment-button-active");
             tabYoutube.getStyleClass().remove("st-segment-button-active");
         });
-
         tabYoutube.setOnAction(e -> {
-            isYoutubeMode = true;
-            fileUploadArea.setVisible(false);
-            fileUploadArea.setManaged(false);
-            youtubeUploadArea.setVisible(true);
-            youtubeUploadArea.setManaged(true);
-
-            if (!tabYoutube.getStyleClass().contains("st-segment-button-active")) {
-                tabYoutube.getStyleClass().add("st-segment-button-active");
-            }
+            isYoutubeMode = true; fileUploadArea.setVisible(false); fileUploadArea.setManaged(false);
+            youtubeUploadArea.setVisible(true); youtubeUploadArea.setManaged(true);
+            if (!tabYoutube.getStyleClass().contains("st-segment-button-active")) tabYoutube.getStyleClass().add("st-segment-button-active");
             tabFile.getStyleClass().remove("st-segment-button-active");
         });
     }
@@ -127,119 +306,16 @@ public class UploadController {
                 int userId = UserSession.getInstance().getUserId();
                 UserDAO dao = new UserDAO();
                 User me = dao.getUserById(userId);
-                if (me != null) {
-                    esecutoriField.setText(me.getName() + " " + me.getSurname());
-                    esecutoriField.setDisable(true);
-                }
-            } else {
-                esecutoriField.setDisable(false);
-                esecutoriField.clear();
-            }
+                if (me != null) { esecutoriField.setText(me.getName() + " " + me.getSurname()); esecutoriField.setDisable(true); }
+            } else { esecutoriField.setDisable(false); esecutoriField.clear(); }
         });
-
-        dataRegistrazione.setDisable(true);
-        luogoField.setDisable(true);
-
-        chkLiveRecording.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            dataRegistrazione.setDisable(!newVal);
-            luogoField.setDisable(!newVal);
-        });
-
-        comboTipoFile.valueProperty().addListener((obs, oldVal, newVal) -> {
-            boolean isAudioVideo = newVal != null;
-            metadataGrid.setVisible(isAudioVideo);
-            metadataGrid.setManaged(isAudioVideo);
-        });
+        dataRegistrazione.setDisable(true); luogoField.setDisable(true);
+        chkLiveRecording.selectedProperty().addListener((obs, oldVal, newVal) -> { dataRegistrazione.setDisable(!newVal); luogoField.setDisable(!newVal); });
+        comboTipoFile.valueProperty().addListener((obs, oldVal, newVal) -> { boolean isAV = newVal != null; metadataGrid.setVisible(isAV); metadataGrid.setManaged(isAV); });
     }
 
     private void pickFile() {
-        FileChooser fc = new FileChooser();
-        selectedFile = fc.showOpenDialog(null);
-        if (selectedFile != null) {
-            lblSelectedFile.setText(selectedFile.getName());
-        }
-    }
-
-    private void handleUpload() {
-        // 1. VALIDAZIONE: Titolo obbligatorio
-        if (titoloEsecuzioneField.getText() == null || titoloEsecuzioneField.getText().trim().isEmpty()) {
-            AlertUtil.mostra("Errore", "Titolo Mancante", "Inserisci un titolo per questa esecuzione.", Alert.AlertType.WARNING);
-            return;
-        }
-
-        // VALIDAZIONE: Sorgente
-        if (isYoutubeMode) {
-            if (youtubeLinkField.getText() == null || youtubeLinkField.getText().trim().isEmpty()) {
-                AlertUtil.mostra("Errore", "Link Mancante", "Inserisci un link YouTube valido.", Alert.AlertType.WARNING);
-                return;
-            }
-        } else {
-            if (selectedFile == null) {
-                AlertUtil.mostra("Errore", "File Mancante", "Seleziona un file locale da caricare.", Alert.AlertType.WARNING);
-                return;
-            }
-        }
-
-        // VALIDAZIONE: Live
-        if (chkLiveRecording.isSelected()) {
-            if (dataRegistrazione.getValue() == null || luogoField.getText().isEmpty()) {
-                AlertUtil.mostra("Dati Mancanti", "Live Recording", "Per le registrazioni dal vivo, Data e Luogo sono obbligatori.", Alert.AlertType.ERROR);
-                return;
-            }
-        }
-
-        // 2. RECUPERO DATI
-        int songId = 0;
-        Song selectedSong = comboSelezionaBrano.getValue();
-        if (selectedSong != null) {
-            songId = selectedSong.getId();
-        }
-
-        java.sql.Date sqlDate = null;
-        if (dataRegistrazione.getValue() != null) {
-            sqlDate = java.sql.Date.valueOf(dataRegistrazione.getValue());
-        }
-
-        int currentUserId = UserSession.getInstance().getUserId();
-
-        // 3. CREAZIONE OGGETTO ESECUTION (Aggiornato col TITOLO)
-        Esecution newMedia = new Esecution(
-                0, // ID auto-increment
-                songId,
-                titoloEsecuzioneField.getText(), // <--- TITOLO
-                isYoutubeMode ? youtubeLinkField.getText() : selectedFile.getAbsolutePath(),
-                comboTipoFile.getValue(),
-                esecutoriField.getText(),
-                strumentiField.getText(),
-                durataField.getText(),
-                chkLiveRecording.isSelected(),
-                sqlDate,
-                luogoField.getText(),
-                chkConcertoIntero.isSelected(),
-                chkSelfPerformer.isSelected(),
-                currentUserId
-        );
-
-        // 4. SALVATAGGIO
-        EsecutionDAO mediaDAO = new EsecutionDAO();
-        mediaDAO.addMedia(newMedia);
-
-        AlertUtil.mostra("Successo", "Caricamento Completato", "Il materiale è stato caricato correttamente.", Alert.AlertType.INFORMATION);
-
-        resetFields();
-    }
-
-    private void resetFields() {
-        titoloEsecuzioneField.clear(); // Resetta il titolo
-        comboSelezionaBrano.getSelectionModel().clearSelection();
-        youtubeLinkField.clear();
-        selectedFile = null;
-        lblSelectedFile.setText("Nessun file selezionato");
-        esecutoriField.clear();
-        strumentiField.clear();
-        durataField.clear();
-        chkLiveRecording.setSelected(false);
-        chkConcertoIntero.setSelected(false);
-        chkSelfPerformer.setSelected(false);
+        FileChooser fc = new FileChooser(); selectedFile = fc.showOpenDialog(null);
+        if (selectedFile != null) lblSelectedFile.setText(selectedFile.getName());
     }
 }

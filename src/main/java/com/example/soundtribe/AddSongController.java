@@ -127,6 +127,7 @@ public class AddSongController {
             songDAO.addSong(newSong);
             SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, false);
         });
+
     }
 
     private void addVisualFileRow(String type, String fileName) {
@@ -141,4 +142,5 @@ public class AddSongController {
         fileRow.getChildren().addAll(typeLabel, nameLabel);
         attachmentsList.getChildren().add(fileRow);
     }
+
 }

@@ -52,6 +52,12 @@
 
             <Region HBox.hgrow="ALWAYS"/>
 
+            <Button fx:id="handleMyComments" text="I miei commenti" styleClass="st-button-outline" style="-fx-border-color: transparent;">
+               <graphic>
+                  <Label text="💬" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>
+               </graphic>
+            </Button>
+
             <Button fx:id="profileButton" text="Il mio Profilo" styleClass="st-button-outline" style="-fx-border-color: transparent;">
                <graphic>
                   <Label text="👤" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>

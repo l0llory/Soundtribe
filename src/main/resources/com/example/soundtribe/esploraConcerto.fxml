@@ -13,7 +13,7 @@
 <?import javafx.scene.text.Font?>
 
 <BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.soundtribe.ExploreExecutionController"
+            fx:controller="com.example.soundtribe.ExploreConcertController"
             stylesheets="@css/style.css"
             prefHeight="600.0" prefWidth="800.0">
 
@@ -26,9 +26,9 @@
                 <children>
                     <HBox spacing="5.0" alignment="CENTER_LEFT">
                         <children>
-                            <Button fx:id="precP_Exec" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="nextP_Exec" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="backHome_Exec" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                            <Button fx:id="precP_Concert" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                            <Button fx:id="nextP_Concert" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                            <Button fx:id="backHome_Concert" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
                         </children>
                     </HBox>
                     <VBox spacing="3.0" HBox.hgrow="ALWAYS">
@@ -36,13 +36,13 @@
                             <Label text="SoundTribe" styleClass="st-label-title">
                                 <font><Font name="System Bold" size="22.0"/></font>
                             </Label>
-                            <Label text="Dettaglio Esecuzione" styleClass="st-label-subtitle">
+                            <Label text="Dettaglio Concerto" styleClass="st-label-subtitle">
                                 <font><Font size="11.0"/></font>
                             </Label>
                         </children>
                         <HBox.margin><Insets left="15.0"/></HBox.margin>
                     </VBox>
-                    <Button fx:id="Exit_Exec" text="Esci" minWidth="70.0" minHeight="30.0" styleClass="st-button-outline"/>
+                    <Button fx:id="Exit_Concert" text="Esci" minWidth="70.0" minHeight="30.0" styleClass="st-button-outline"/>
                 </children>
             </HBox>
             <Separator styleClass="st-separator"/>
@@ -60,20 +60,20 @@
                     <HBox spacing="20.0" alignment="CENTER_LEFT">
 
                         <VBox alignment="CENTER" prefHeight="100.0" prefWidth="100.0" minWidth="100.0" minHeight="100.0"
-                              style="-fx-background-color: -st-blue-light; -fx-background-radius: 10; -fx-border-color: -st-blue-primary; -fx-border-radius: 10;">
+                              style="-fx-background-color: #f3e5f5; -fx-background-radius: 10; -fx-border-color: #8a2be2; -fx-border-radius: 10;">
                             <children>
-                                <Label text="🎤" textFill="#2f5fd3">
+                                <Label text="🎸" textFill="#8a2be2">
                                     <font><Font size="48.0"/></font>
                                 </Label>
                             </children>
                         </VBox>
 
                         <VBox spacing="5.0" HBox.hgrow="ALWAYS">
-                            <Label fx:id="titleLabel" text="Titolo Esecuzione" styleClass="st-label-blue" wrapText="true">
+                            <Label fx:id="concertTitleLabel" text="Titolo del Concerto" styleClass="st-label-blue" wrapText="true">
                                 <font><Font name="System Bold" size="28.0"/></font>
                             </Label>
 
-                            <Label fx:id="executorsLabel" text="Esecutori: ..." styleClass="st-label">
+                            <Label fx:id="concertArtistLabel" text="Artista Principale: ..." styleClass="st-label">
                                 <font><Font size="18.0"/></font>
                             </Label>
 
@@ -82,12 +82,12 @@
                             </Label>
 
                             <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 5 0 0 0;">
-                                <Label fx:id="typeLabel" text="TIPO" styleClass="st-badge"/>
-                                <Label fx:id="dateLabel" text="YYYY-MM-DD" styleClass="st-label-subtitle">
+                                <Label text="EVENTO LIVE" style="-fx-background-color: #8a2be2; -fx-text-fill: white; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                                <Label fx:id="concertDateLabel" text="YYYY-MM-DD" styleClass="st-label-subtitle">
                                     <font><Font size="14.0"/></font>
                                 </Label>
                                 <Label text="|" styleClass="st-label-subtitle"/>
-                                <Label fx:id="placeLabel" text="Luogo" styleClass="st-label-subtitle"/>
+                                <Label fx:id="concertLocationLabel" text="Luogo" styleClass="st-label-subtitle"/>
                             </HBox>
                         </VBox>
                     </HBox>
@@ -95,43 +95,45 @@
                     <Separator styleClass="st-separator"/>
 
                     <VBox spacing="5.0" styleClass="st-card">
-                        <Label text="Dettagli Tecnici" styleClass="st-label-blue">
+                        <Label text="Scaletta e Note" styleClass="st-label-blue">
                             <font><Font name="System Bold" size="14.0"/></font>
                         </Label>
-                        <HBox spacing="20.0">
-                            <VBox spacing="2.0">
-                                <Label text="Strumenti:" styleClass="st-label-subtitle"/>
-                                <Label fx:id="instrumentsLabel" text="..." styleClass="st-label"/>
-                            </VBox>
-                        </HBox>
+                        <TextArea fx:id="descriptionArea" editable="false" wrapText="true" prefRowCount="6"
+                                  styleClass="st-text-area" style="-fx-background-color: transparent;"/>
                     </VBox>
 
-                    <Label text="File Allegati e Risorse" styleClass="st-label-blue">
+                    <Label text="Video del Concerto" styleClass="st-label-blue">
                         <font><Font name="System Bold" size="18.0"/></font>
                     </Label>
 
-                    <VBox fx:id="filesContainer" spacing="10.0">
-                        <Label text="Nessun file allegato." styleClass="st-label-subtitle" visible="false" fx:id="noFilesLabel"/>
+                    <VBox fx:id="linkContainer" spacing="10.0" styleClass="st-card">
+                        <HBox spacing="15.0" alignment="CENTER_LEFT">
+                            <Label text="📺" style="-fx-font-size: 24px;"/>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label text="Guarda su YouTube" styleClass="st-label"/>
+                                <Label fx:id="linkLabel" text="https://youtube.com/..." styleClass="st-label-subtitle" style="-fx-font-size: 10px;"/>
+                            </VBox>
+                            <Button fx:id="openLinkBtn" text="Apri Video" styleClass="st-button-primary"/>
+                        </HBox>
                     </VBox>
 
                     <Separator styleClass="st-separator"/>
 
                     <VBox spacing="10.0">
                         <HBox alignment="CENTER_LEFT">
-                            <Label text="Commenti in Evidenza" styleClass="st-label-blue">
+                            <Label text="Commenti" styleClass="st-label-blue">
                                 <font><Font name="System Bold" size="18.0"/></font>
                             </Label>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Button text="Vedi tutti i commenti..." styleClass="st-button-outline" style="-fx-border-color: transparent; -fx-underline: true;"/>
                         </HBox>
 
                         <HBox spacing="10.0" alignment="TOP_CENTER">
-                            <TextArea fx:id="newCommentArea" promptText="Scrivi un commento..."
+                            <TextArea fx:id="newCommentArea" promptText="Scrivi un commento sul concerto..."
                                       prefRowCount="2" wrapText="true" HBox.hgrow="ALWAYS" styleClass="st-text-area"/>
                             <Button fx:id="btnPostComment" text="Invia" minHeight="50.0" minWidth="60.0" styleClass="st-button-primary"/>
                         </HBox>
 
                         <VBox fx:id="commentsContainer" spacing="15.0">
+                            <Label text="Funzionalità commenti per concerti in arrivo..." styleClass="st-label-subtitle" style="-fx-font-style: italic;"/>
                         </VBox>
                     </VBox>
 

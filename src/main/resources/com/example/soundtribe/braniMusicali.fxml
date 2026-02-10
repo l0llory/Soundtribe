@@ -70,6 +70,13 @@
                         </font>
                     </Label>
                     <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="btnDizionari" text="📚 Dizionari" minWidth="100.0" minHeight="32.0" styleClass="st-button-secondary">
+                        <font>
+                            <Font size="13.0"/>
+                        </font>
+                    </Button>
+
                     <Button fx:id="aggiungiBrano" text="+ Aggiungi Brano" minWidth="130.0" minHeight="32.0" styleClass="st-button-primary">
                         <font>
                             <Font size="13.0"/>

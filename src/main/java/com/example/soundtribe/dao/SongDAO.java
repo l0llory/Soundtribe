@@ -11,7 +11,6 @@ public class SongDAO {
     private String password;
 
     public SongDAO() {
-        // Assicurati che le credenziali siano corrette per il tuo DB locale
         this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
         this.user = "postgres";
         this.password = "AppSoundtribe14";
@@ -140,7 +139,6 @@ public class SongDAO {
         }
     }
 
-
     public Song getSongById(int songId) {
         Song song = null;
         String sql = "SELECT * FROM songs WHERE id = ?";
@@ -152,7 +150,6 @@ public class SongDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    // Utilizza il metodo helper esistente per mappare i dati
                     song = mapRow(rs);
                 }
             }
@@ -162,4 +159,66 @@ public class SongDAO {
         }
         return song;
     }
+
+    public List<Song> getSongsCommentedByUser(int userId) {
+        List<Song> songs = new ArrayList<>();
+        String sql = "SELECT DISTINCT s.* FROM songs s " +
+                "JOIN comments c ON s.id = c.song_id " +
+                "WHERE c.user_id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    songs.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore recupero brani commentati: " + e.getMessage());
+        }
+        return songs;
+    }
+
+
+    // 1. Dizionario AUTORI (Artisti)
+    public List<String> getDistinctAuthors() {
+        List<String> authors = new ArrayList<>();
+        // Seleziona i valori unici e non nulli, ordinati alfabeticamente
+        String sql = "SELECT DISTINCT artist FROM songs WHERE artist IS NOT NULL AND artist <> '' ORDER BY artist";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                authors.add(rs.getString("artist"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore recupero autori: " + e.getMessage());
+        }
+        return authors;
+    }
+
+    // 2. Dizionario GENERI
+    public List<String> getDistinctGenres() {
+        List<String> genres = new ArrayList<>();
+        String sql = "SELECT DISTINCT genre FROM songs WHERE genre IS NOT NULL AND genre <> '' ORDER BY genre";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                genres.add(rs.getString("genre"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore recupero generi: " + e.getMessage());
+        }
+        return genres;
+    }
+
+
 }

@@ -9,7 +9,7 @@ public class Esecution {
     private String filePath;
     private String fileType;
     private String executors;
-    private String instruments;
+    private String instruments; // Manteniamo String per compatibilità DB (es. "Chitarra, Voce")
     private String duration;
     private boolean isLive;
     private Date recordingDate;
@@ -20,7 +20,6 @@ public class Esecution {
 
     public Esecution() {}
 
-    // Costruttore aggiornato
     public Esecution(int id, int songId, String title, String filePath, String fileType, String executors,
                      String instruments, String duration, boolean isLive, Date recordingDate,
                      String recordingPlace, boolean isConcert, boolean isSelfPerformer, int uploaderId) {
@@ -40,35 +39,51 @@ public class Esecution {
         this.uploaderId = uploaderId;
     }
 
-    // Getter e Setter per il titolo
+    // Metodo helper per ottenere l'oggetto Instrument (se è singolo)
+    public Instrument getInstrumentObject() {
+        return new Instrument(this.instruments);
+    }
+
+    // Getters e Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public int getSongId() { return songId; }
+    public void setSongId(int songId) { this.songId = songId; }
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
-    // ... (altri getter e setter invariati) ...
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public int getSongId() { return songId; }
-    public void setSongId(int songId) { this.songId = songId; }
     public String getFilePath() { return filePath; }
     public void setFilePath(String filePath) { this.filePath = filePath; }
+
     public String getFileType() { return fileType; }
     public void setFileType(String fileType) { this.fileType = fileType; }
+
     public String getExecutors() { return executors; }
     public void setExecutors(String executors) { this.executors = executors; }
+
     public String getInstruments() { return instruments; }
     public void setInstruments(String instruments) { this.instruments = instruments; }
+
     public String getDuration() { return duration; }
     public void setDuration(String duration) { this.duration = duration; }
+
     public boolean isLive() { return isLive; }
     public void setLive(boolean live) { isLive = live; }
+
     public Date getRecordingDate() { return recordingDate; }
     public void setRecordingDate(Date recordingDate) { this.recordingDate = recordingDate; }
+
     public String getRecordingPlace() { return recordingPlace; }
     public void setRecordingPlace(String recordingPlace) { this.recordingPlace = recordingPlace; }
+
     public boolean isConcert() { return isConcert; }
     public void setConcert(boolean concert) { isConcert = concert; }
+
     public boolean isSelfPerformer() { return isSelfPerformer; }
     public void setSelfPerformer(boolean selfPerformer) { isSelfPerformer = selfPerformer; }
+
     public int getUploaderId() { return uploaderId; }
     public void setUploaderId(int uploaderId) { this.uploaderId = uploaderId; }
 }

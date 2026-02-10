@@ -1,14 +1,33 @@
 package com.example.soundtribe.dao;
 
 import com.example.soundtribe.entità.Esecution;
+import com.example.soundtribe.entità.Instrument;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EsecutionDAO {
     private String dbUrl;
     private String user;
     private String password;
+
+    // LISTA STRUMENTI PREDEFINITI
+    private static final List<String> PRESET_STRUMENTI = Arrays.asList(
+            "Armonica",
+            "Basso",
+            "Batteria",
+            "Chitarra acustica",
+            "Chitarra classica",
+            "Chitarra elettrica",
+            "Contrabbasso",
+            "Flauto dolce",
+            "Flauto traverso",
+            "Pianoforte",
+            "Pianola",
+            "Sax",
+            "Violino",
+            "Violoncello"
+    );
 
     public EsecutionDAO() {
         this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
@@ -43,22 +62,13 @@ public class EsecutionDAO {
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
 
-            // 1. Crea la tabella se non esiste
             stmt.execute(sql);
 
-            // 2. MIGRAZIONE COLONNE (Se mancano, le aggiunge)
             try {
                 stmt.execute("ALTER TABLE media_files ADD COLUMN IF NOT EXISTS title TEXT");
                 stmt.execute("ALTER TABLE media_files ADD COLUMN IF NOT EXISTS uploader_id INT");
-            } catch (SQLException ignore) {}
-
-            // 3. MIGRAZIONE CONSTRAINT (SOLUZIONE AL TUO ERRORE)
-            // Rimuove l'obbligo di NOT NULL su song_id se presente
-            try {
                 stmt.execute("ALTER TABLE media_files ALTER COLUMN song_id DROP NOT NULL");
-            } catch (SQLException e) {
-                System.out.println("Nota: Impossibile rimuovere NOT NULL da song_id (forse è già nullable): " + e.getMessage());
-            }
+            } catch (SQLException ignore) {}
 
         } catch (SQLException e) {
             System.err.println("Errore tabella media_files: " + e.getMessage());
@@ -66,7 +76,6 @@ public class EsecutionDAO {
     }
 
     public void addMedia(Esecution media) {
-        // Aggiunto il campo 'title' alla query
         String sql = "INSERT INTO media_files (song_id, title, file_path, file_type, executors, instruments, duration, is_live, recording_date, recording_place, is_concert, is_self_performer, uploader_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -128,7 +137,7 @@ public class EsecutionDAO {
         return new Esecution(
                 rs.getInt("id"),
                 rs.getInt("song_id"),
-                rs.getString("title"), // <--- LEGGI TITOLO
+                rs.getString("title"),
                 rs.getString("file_path"),
                 rs.getString("file_type"),
                 rs.getString("executors"),
@@ -145,24 +154,69 @@ public class EsecutionDAO {
 
     public List<Esecution> searchExecutions(String query) {
         List<Esecution> results = new ArrayList<>();
-        // Cerca nel titolo oppure, opzionalmente, negli esecutori
         String sql = "SELECT * FROM media_files WHERE title ILIKE ? OR executors ILIKE ?";
-
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             String searchPattern = "%" + query + "%";
             pstmt.setString(1, searchPattern);
             pstmt.setString(2, searchPattern);
-
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(mapRow(rs));
-                }
+                while (rs.next()) results.add(mapRow(rs));
             }
         } catch (SQLException e) {
             System.err.println("Errore ricerca esecuzioni: " + e.getMessage());
         }
         return results;
+    }
+
+    // --- GESTIONE DIZIONARIO STRUMENTI ---
+
+    // Metodo per ottenere la lista di stringhe (usato da alcune parti legacy o per debug)
+    public List<String> getDistinctInstruments() {
+        // Usiamo getAllInstruments per logica unificata e poi estraiamo i nomi
+        return getAllInstruments().stream()
+                .map(Instrument::getName)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Recupera tutti gli strumenti disponibili.
+     * Unisce la lista PRESET (statica) con quella presente nel Database.
+     * @return Lista ordinata di oggetti Instrument
+     */
+    public List<Instrument> getAllInstruments() {
+        // 1. Usiamo un TreeSet con un comparatore Case-Insensitive per evitare duplicati e ordinare
+        Set<String> uniqueInstruments = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+        // 2. Aggiungi i PRESET
+        uniqueInstruments.addAll(PRESET_STRUMENTI);
+
+        // 3. Aggiungi quelli esistenti nel DB (aggiunti dagli utenti)
+        String sql = "SELECT DISTINCT instruments FROM media_files WHERE instruments IS NOT NULL AND instruments <> ''";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                String dbInst = rs.getString("instruments");
+                // Separiamo eventuali liste separate da virgola nel DB per pulizia
+                if (dbInst.contains(",")) {
+                    String[] parts = dbInst.split(",");
+                    for (String part : parts) {
+                        uniqueInstruments.add(part.trim());
+                    }
+                } else {
+                    uniqueInstruments.add(dbInst.trim());
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore recupero strumenti dal DB: " + e.getMessage());
+        }
+
+        // 4. Converti il Set di stringhe in una List di oggetti Instrument
+        return uniqueInstruments.stream()
+                .map(Instrument::new)
+                .collect(Collectors.toList());
     }
 }

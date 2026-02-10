@@ -16,6 +16,9 @@ public class User {
     private String profilePicPath;
     private String favoriteGenre;
 
+    // NUOVO CAMPO: Motivazione iscrizione
+    private String motivation;
+
     // 1. Costruttore Vuoto (Necessario per alcune operazioni)
     public User() {}
 
@@ -28,11 +31,12 @@ public class User {
         this.favoriteGenre = favoriteGenre;
         this.isAdmin = false;
         this.isApproved = false;
+        this.motivation = ""; // Default vuoto
     }
 
     // 3. Costruttore Completo (Usato dal DAO quando legge dal DB)
     public User(int id, String name, String surname, String email, String password,
-                boolean isAdmin, boolean isApproved, String profilePicPath, String favoriteGenre) {
+                boolean isAdmin, boolean isApproved, String profilePicPath, String favoriteGenre, String motivation) {
         this.id = id;
         this.name = name;
         this.surname = surname;
@@ -42,6 +46,7 @@ public class User {
         this.isApproved = isApproved;
         this.profilePicPath = profilePicPath;
         this.favoriteGenre = favoriteGenre;
+        this.motivation = motivation;
     }
 
     // --- GETTERS E SETTERS ---
@@ -74,6 +79,9 @@ public class User {
     public String getFavoriteGenre() { return favoriteGenre; }
     public void setFavoriteGenre(String favoriteGenre) { this.favoriteGenre = favoriteGenre; }
 
+    public String getMotivation() { return motivation; }
+    public void setMotivation(String motivation) { this.motivation = motivation; }
+
     // --- METODI STANDARD (Override) ---
 
     @Override
@@ -94,5 +102,4 @@ public class User {
     public int hashCode() {
         return Objects.hash(id, email);
     }
-
 }

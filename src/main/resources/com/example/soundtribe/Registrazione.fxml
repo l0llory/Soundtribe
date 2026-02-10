@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -15,31 +16,31 @@
 <BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.soundtribe.RegistrationController"
             stylesheets="@css/style.css"
-            prefHeight="600.0" prefWidth="600.0">
+            prefHeight="650.0" prefWidth="600.0">
 
    <top>
       <VBox spacing="8.0" BorderPane.alignment="CENTER">
          <padding>
-            <Insets top="30.0" right="15.0" bottom="20.0" left="15.0"/>
+            <Insets top="20.0" right="15.0" bottom="10.0" left="15.0"/>
          </padding>
 
          <VBox alignment="CENTER" spacing="5.0">
             <children>
-               <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+               <ImageView fitHeight="70.0" fitWidth="70.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                      <Image url="@img/soundtribe-logo.png" />
                   </image>
                   <VBox.margin>
-                     <Insets bottom="10.0" />
+                     <Insets bottom="5.0" />
                   </VBox.margin>
                </ImageView>
 
                <Label text="SoundTribe" styleClass="st-label-title">
                   <font>
-                     <Font name="System Bold" size="32.0"/>
+                     <Font name="System Bold" size="28.0"/>
                   </font>
                </Label>
-               <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
+               <Label text="Unisciti alla community" styleClass="st-label-subtitle">
                   <font>
                      <Font size="14.0"/>
                   </font>
@@ -55,73 +56,49 @@
             <Insets bottom="20.0" />
          </padding>
 
-         <VBox spacing="15.0" maxWidth="400.0" styleClass="st-card">
+         <VBox spacing="12.0" maxWidth="420.0" styleClass="st-card">
             <padding>
-               <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
+               <Insets top="25.0" right="30.0" bottom="25.0" left="30.0"/>
             </padding>
 
             <children>
                <VBox alignment="CENTER">
                   <Label text="Crea il tuo account" styleClass="st-label-blue">
                      <font>
-                        <Font name="System Bold" size="20.0" />
+                        <Font name="System Bold" size="18.0" />
                      </font>
-                     <VBox.margin>
-                        <Insets bottom="5.0" />
-                     </VBox.margin>
                   </Label>
-                  <Label text="Inserisci i tuoi dati per iniziare" styleClass="st-label-subtitle" />
                </VBox>
 
-               <VBox spacing="5.0">
-                  <children>
-                     <Label text="Nome" styleClass="st-label-subtitle">
-                        <font>
-                           <Font size="13.0" />
-                        </font>
-                     </Label>
-                     <TextField fx:id="nameField" promptText="Il tuo nome" minHeight="40.0" styleClass="st-text-field"/>
-                  </children>
+               <HBox spacing="10.0">
+                  <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+                     <Label text="Nome" styleClass="st-label-subtitle"/>
+                     <TextField fx:id="nameField" promptText="Mario" styleClass="st-text-field"/>
+                  </VBox>
+                  <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+                     <Label text="Cognome" styleClass="st-label-subtitle"/>
+                     <TextField fx:id="surnameField" promptText="Rossi" styleClass="st-text-field"/>
+                  </VBox>
+               </HBox>
+
+               <VBox spacing="2.0">
+                  <Label text="Email" styleClass="st-label-subtitle"/>
+                  <TextField fx:id="emailField2" promptText="nome@esempio.com" styleClass="st-text-field"/>
                </VBox>
 
-               <VBox spacing="5.0">
-                  <children>
-                     <Label text="Cognome" styleClass="st-label-subtitle">
-                        <font>
-                           <Font size="13.0" />
-                        </font>
-                     </Label>
-                     <TextField fx:id="surnameField" promptText="Il tuo cognome" minHeight="40.0" styleClass="st-text-field"/>
-                  </children>
+               <VBox spacing="2.0">
+                  <Label text="Password" styleClass="st-label-subtitle"/>
+                  <PasswordField fx:id="passwordField2" promptText="••••••••" styleClass="st-text-field"/>
                </VBox>
 
-               <VBox spacing="5.0">
-                  <children>
-                     <Label text="Email" styleClass="st-label-subtitle">
-                        <font>
-                           <Font size="13.0" />
-                        </font>
-                     </Label>
-                     <TextField fx:id="emailField2" promptText="nome@esempio.com" minHeight="40.0" styleClass="st-text-field"/>
-                  </children>
+               <VBox spacing="2.0">
+                  <Label text="Perché vuoi iscriverti?" styleClass="st-label-subtitle"/>
+                  <TextArea fx:id="motivationField" promptText="Sono un musicista, vorrei condividere i miei live..."
+                            prefRowCount="3" wrapText="true" styleClass="st-text-area"/>
                </VBox>
 
-               <VBox spacing="5.0">
-                  <children>
-                     <Label text="Password" styleClass="st-label-subtitle">
-                        <font>
-                           <Font size="13.0" />
-                        </font>
-                     </Label>
-                     <PasswordField fx:id="passwordField2" promptText="Scegli una password sicura" minHeight="40.0" styleClass="st-text-field"/>
-                  </children>
-                  <VBox.margin>
-                     <Insets bottom="10.0" />
-                  </VBox.margin>
-               </VBox>
-
-               <Button fx:id="handleAccessByRegistration" mnemonicParsing="false" text="Registrati"
-                       maxWidth="Infinity" minHeight="45.0" styleClass="st-button-primary">
+               <Button fx:id="handleAccessByRegistration" mnemonicParsing="false" text="Invia Richiesta"
+                       maxWidth="Infinity" minHeight="40.0" styleClass="st-button-primary">
                   <font>
                      <Font name="System Bold" size="14.0" />
                   </font>
@@ -150,20 +127,5 @@
          </VBox>
       </VBox>
    </center>
-
-   <bottom>
-      <VBox alignment="CENTER">
-         <padding>
-            <Insets top="20.0" right="20.0" bottom="20.0" left="20.0" />
-         </padding>
-         <children>
-            <Label text="© 2026 SoundTribe" styleClass="st-label-subtitle">
-               <font>
-                  <Font size="11.0" />
-               </font>
-            </Label>
-         </children>
-      </VBox>
-   </bottom>
 
 </BorderPane>

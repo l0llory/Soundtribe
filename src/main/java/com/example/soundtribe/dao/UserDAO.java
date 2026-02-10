@@ -29,7 +29,8 @@ public class UserDAO {
                 "is_admin BOOLEAN DEFAULT FALSE, " +
                 "is_approved BOOLEAN DEFAULT FALSE, " + // Colonna Approvazione
                 "profile_pic_path TEXT, " +
-                "favorite_genre TEXT" +
+                "favorite_genre TEXT, " +
+                "motivation TEXT" + // NUOVA COLONNA
                 ")";
 
         try (Connection conn = getConnection();
@@ -43,6 +44,7 @@ public class UserDAO {
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic_path TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_genre TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE");
+                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS motivation TEXT"); // Migrazione Motivazione
             } catch (SQLException ignore) {
                 // Colonne già presenti
             }
@@ -57,7 +59,7 @@ public class UserDAO {
     // 1. REGISTRAZIONE (Create)
     public boolean registerUser(User user) {
         // Inseriamo anche i nuovi campi. is_approved sarà FALSE per default.
-        String sql = "INSERT INTO users (name, surname, email, password, is_admin, is_approved, favorite_genre, profile_pic_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, surname, email, password, is_admin, is_approved, favorite_genre, profile_pic_path, motivation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -70,6 +72,7 @@ public class UserDAO {
             pstmt.setBoolean(6, user.isApproved());   // false (da costruttore)
             pstmt.setString(7, user.getFavoriteGenre());
             pstmt.setString(8, user.getProfilePicPath());
+            pstmt.setString(9, user.getMotivation()); // NUOVO
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -246,6 +249,13 @@ public class UserDAO {
         user.setAdmin(rs.getBoolean("is_admin"));
         user.setProfilePicPath(rs.getString("profile_pic_path"));
         user.setFavoriteGenre(rs.getString("favorite_genre"));
+
+        // Lettura sicura della motivazione (potrebbe non esistere in vecchi record)
+        try {
+            user.setMotivation(rs.getString("motivation"));
+        } catch (SQLException e) {
+            user.setMotivation("");
+        }
 
         try {
             user.setApproved(rs.getBoolean("is_approved"));

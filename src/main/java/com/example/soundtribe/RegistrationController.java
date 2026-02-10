@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class RegistrationController {
@@ -23,6 +24,10 @@ public class RegistrationController {
     public TextField emailField2;
     @FXML
     public PasswordField passwordField2;
+
+    // NUOVO CAMPO FXML
+    @FXML
+    public TextArea motivationField;
 
     public void initialize() {
         if (handleAccessByRegistration != null) {
@@ -44,39 +49,37 @@ public class RegistrationController {
         String surname = surnameField.getText().trim();
         String email = emailField2.getText().trim();
         String password = passwordField2.getText();
+        String motivation = motivationField.getText().trim();
 
-        // 1. Controllo campi vuoti
-        if (name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        // 1. Controllo campi vuoti (inclusa motivazione)
+        if (name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || motivation.isEmpty()) {
             AlertUtil.mostra("Errore di registrazione", "Campi incompleti",
-                    "Per favore, compila tutti i campi.", Alert.AlertType.WARNING);
+                    "Per favore, compila tutti i campi, inclusa la motivazione per l'iscrizione.", Alert.AlertType.WARNING);
             return;
         }
 
         // 2. Creazione oggetto User
-        // Usiamo il costruttore: name, surname, email, password, isApproved (FALSE)
-        // Passiamo 'false' perché l'utente deve essere approvato dall'admin
+        // NOTA: Assicurati di aver aggiornato la classe User per avere il metodo setMotivation() o un costruttore adeguato.
         User newUser = new User(name, surname, email, password, "Nessuno");
+        newUser.setMotivation(motivation); // Impostiamo la motivazione
+
         UserDAO userDAO = new UserDAO();
 
         // 3. Tentativo di registrazione nel Database
         boolean success = userDAO.registerUser(newUser);
 
         if (success) {
-            // REGISTRAZIONE RIUSCITA
-
-            // MODIFICA IMPORTANTE: Non facciamo più il login automatico.
-            // Avvisiamo l'utente che la richiesta è in attesa di approvazione.
-
-            AlertUtil.mostra("Registrazione Inviata",
-                    "In attesa di approvazione",
-                    "Il tuo account è stato creato correttamente. \nUn amministratore dovrà approvare la tua richiesta prima che tu possa effettuare il login.",
+            // REGISTRAZIONE RIUSCITA - IN ATTESA DI APPROVAZIONE
+            AlertUtil.mostra("Richiesta Inviata",
+                    "In attesa di valutazione",
+                    "La tua richiesta di iscrizione e le tue motivazioni sono state inviate all'amministratore.\nRiceverai una notifica (email) non appena il tuo account sarà attivato.",
                     Alert.AlertType.INFORMATION);
 
             // Rimandiamo l'utente alla schermata di Login
             SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
 
         } else {
-            // REGISTRAZIONE FALLITA (Probabilmente email duplicata)
+            // REGISTRAZIONE FALLITA
             AlertUtil.mostra("Errore di registrazione", "Impossibile registrare l'utente",
                     "L'email inserita potrebbe essere già in uso o c'è un problema col server.", Alert.AlertType.ERROR);
         }

@@ -1,7 +1,9 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.dao.ConcertDAO;
 import com.example.soundtribe.dao.EsecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
+import com.example.soundtribe.entità.Concert;
 import com.example.soundtribe.entità.Esecution;
 import com.example.soundtribe.entità.Song;
 import javafx.collections.FXCollections;
@@ -16,7 +18,10 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -33,27 +38,29 @@ public class SongsController {
     @FXML public Button backHome_Songs;
     @FXML public Button Exit_Songs;
     @FXML public Button aggiungiBrano;
+    @FXML public Button btnDizionari; // NUOVO BOTTONE
     @FXML public TextField searchBarSongs;
     @FXML public ComboBox<String> generiFilter;
 
-    // NOTA: Cambiato il tipo generico della ListView in MusicItem
     @FXML public ListView<MusicItem> listaBrani;
 
     private SongDAO songDAO;
     private EsecutionDAO execDAO;
+    private ConcertDAO concertDAO;
     private List<MusicItem> allMusicItems;
 
     @FXML
     public void initialize() {
         songDAO = new SongDAO();
         execDAO = new EsecutionDAO();
+        concertDAO = new ConcertDAO();
         allMusicItems = new ArrayList<>();
 
         // 1. POPOLAMENTO MENU GENERI
         generiFilter.getItems().add("Tutti");
         generiFilter.getItems().addAll(
                 "Afro", "Blues", "Folk", "Indie", "Jazz", "Musica classica",
-                "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap", "Esecuzioni" // Aggiunto filtro per sole esecuzioni
+                "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap", "Esecuzioni", "Concerti"
         );
         generiFilter.getSelectionModel().selectFirst();
 
@@ -66,66 +73,72 @@ public class SongsController {
 
         setupCellFactory();
 
-        // 3. Carichiamo TUTTI i dati (Brani + Esecuzioni)
-        loadAllData();
-
-        // 4. Gestione Ricerca Iniziale (dalla Home)
+        // 3. GESTIONE CARICAMENTO DATI
         String pendingSearch = UserSession.getInstance().getLastSearchQuery();
-        if (pendingSearch != null && !pendingSearch.isEmpty()) {
-            searchBarSongs.setText(pendingSearch);
-            UserSession.getInstance().setLastSearchQuery(null); // Consuma la ricerca
+
+        if ("filter:commented_by_me".equals(pendingSearch)) {
+            loadCommentedSongsOnly();
+            UserSession.getInstance().setLastSearchQuery(null);
+            searchBarSongs.setPromptText("Visualizzando i brani commentati da te");
+        } else {
+            loadAllData();
+            if (pendingSearch != null && !pendingSearch.isEmpty()) {
+                searchBarSongs.setText(pendingSearch);
+                UserSession.getInstance().setLastSearchQuery(null);
+            }
         }
 
         applyFilters();
 
-        // 5. LISTENERS
+        // 4. LISTENERS
         searchBarSongs.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         generiFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
 
-        // 6. Aggiungi Brano
+        // 5. AZIONI BOTTONI
         aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
+
+        // NUOVA AZIONE: APRI DIZIONARI
+        if(btnDizionari != null) {
+            btnDizionari.setOnAction(e -> SceneManager.changeScene(e, "dizionari.fxml", 800, 600, true));
+        }
     }
 
+    // Carica TUTTO (Brani + Esecuzioni + Concerti)
     private void loadAllData() {
         allMusicItems.clear();
-
-        // Aggiungi Canzoni
         List<Song> songs = songDAO.getAllSongs();
-        for (Song s : songs) {
-            allMusicItems.add(new MusicItem(s));
-        }
-
-        // Aggiungi Esecuzioni
+        for (Song s : songs) allMusicItems.add(new MusicItem(s));
         List<Esecution> executions = execDAO.getAllExecutions();
-        for (Esecution e : executions) {
-            allMusicItems.add(new MusicItem(e));
-        }
+        for (Esecution e : executions) allMusicItems.add(new MusicItem(e));
+        List<Concert> concerts = concertDAO.getAllConcerts();
+        for (Concert c : concerts) allMusicItems.add(new MusicItem(c));
+    }
+
+    // Carica SOLO i brani commentati
+    private void loadCommentedSongsOnly() {
+        allMusicItems.clear();
+        int currentUserId = UserSession.getInstance().getUserId();
+        List<Song> commentedSongs = songDAO.getSongsCommentedByUser(currentUserId);
+        for (Song s : commentedSongs) allMusicItems.add(new MusicItem(s));
     }
 
     private void applyFilters() {
         if (allMusicItems == null) return;
-
         String query = searchBarSongs.getText().toLowerCase().trim();
         String selectedGenre = generiFilter.getValue();
 
         List<MusicItem> filteredList = allMusicItems.stream()
                 .filter(item -> {
-                    // Filtro Testo (Titolo o Artista)
                     boolean matchesText = query.isEmpty() ||
                             item.getTitle().toLowerCase().contains(query) ||
                             item.getArtist().toLowerCase().contains(query);
 
-                    // Filtro Genere / Tipo
                     boolean matchesGenre = true;
                     if (selectedGenre != null && !selectedGenre.equals("Tutti")) {
-                        if (selectedGenre.equals("Esecuzioni")) {
-                            matchesGenre = !item.isSong(); // Mostra solo esecuzioni
-                        } else {
-                            // Mostra solo canzoni di quel genere
-                            matchesGenre = item.isSong() && item.getSong().getGenre().equalsIgnoreCase(selectedGenre);
-                        }
+                        if (selectedGenre.equals("Esecuzioni")) matchesGenre = item.isExecution();
+                        else if (selectedGenre.equals("Concerti")) matchesGenre = item.isConcert();
+                        else matchesGenre = item.isSong() && item.getSong().getGenre().equalsIgnoreCase(selectedGenre);
                     }
-
                     return matchesText && matchesGenre;
                 })
                 .sorted(Comparator.comparing(MusicItem::getTitle, String.CASE_INSENSITIVE_ORDER))
@@ -139,37 +152,22 @@ public class SongsController {
             @Override
             protected void updateItem(MusicItem item, boolean empty) {
                 super.updateItem(item, empty);
-
                 if (empty || item == null) {
-                    setGraphic(null);
-                    setText(null);
-                    setStyle("-fx-background-color: transparent;");
+                    setGraphic(null); setText(null); setStyle("-fx-background-color: transparent;");
                 } else {
-                    // Costruzione Card
                     VBox card = new VBox(10);
                     card.setPadding(new Insets(15));
                     card.getStyleClass().add("st-card");
 
-                    // Header
                     HBox header = new HBox(15);
                     header.setAlignment(Pos.CENTER_LEFT);
 
-                    // Icona / Immagine
                     Node iconNode;
-                    if (item.isSong()) {
-                        // Logica Immagine Canzone (come prima)
-                        iconNode = createSongIcon(item.getSong());
-                    } else {
-                        // Icona per Esecuzione (Microfono o Nota diversa)
-                        Label execIcon = new Label("🎤");
-                        execIcon.setStyle("-fx-font-size: 28px; -fx-text-fill: -st-blue-primary;");
-                        execIcon.setMinWidth(50);
-                        execIcon.setAlignment(Pos.CENTER);
-                        iconNode = execIcon;
-                    }
+                    if (item.isSong()) iconNode = createSongIcon(item.getSong());
+                    else if (item.isExecution()) iconNode = createExecutionIcon();
+                    else iconNode = createConcertIcon();
 
-                    // Titolo e Badge
-                    VBox titleBox = new VBox(2);
+                    VBox titleBox = new VBox(5);
                     Label titleLabel = new Label(item.getTitle());
                     titleLabel.getStyleClass().add("st-label-blue");
                     titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
@@ -178,23 +176,26 @@ public class SongsController {
                     if (item.isSong()) {
                         subTitleLabel = new Label(item.getSong().getGenre());
                         subTitleLabel.getStyleClass().add("st-badge");
-                    } else {
-                        // Se è esecuzione, mostra se è Inedito o Cover
+                    } else if (item.isExecution()) {
                         String type = (item.getExecution().getSongId() == 0) ? "Inedito" : "Cover";
                         subTitleLabel = new Label(type);
-                        subTitleLabel.setStyle("-fx-background-color: #444; -fx-text-fill: white; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px;");
+                        subTitleLabel.setStyle("-fx-background-color: #555; -fx-text-fill: white; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px;");
+                    } else {
+                        subTitleLabel = new Label("CONCERTO");
+                        subTitleLabel.setStyle("-fx-background-color: #8a2be2; -fx-text-fill: white; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;");
                     }
                     titleBox.getChildren().addAll(titleLabel, subTitleLabel);
-
                     header.getChildren().addAll(iconNode, titleBox);
 
-                    // Autore / Esecutore
-                    Label authorLabel = new Label(item.isSong() ?
-                            "Autore: " + item.getSong().getArtist() :
-                            "Esecutori: " + item.getExecution().getExecutors());
-                    authorLabel.getStyleClass().add("st-label-subtitle");
+                    String authorText;
+                    if (item.isSong()) authorText = "Autore: " + item.getSong().getArtist();
+                    else if (item.isExecution()) authorText = "Esecutori: " + item.getExecution().getExecutors();
+                    else authorText = "Artista: " + item.getConcert().getArtist();
 
-                    // Bottone Esplora
+                    Label authorLabel = new Label(authorText);
+                    authorLabel.getStyleClass().add("st-label-subtitle");
+                    authorLabel.setPadding(new Insets(0, 0, 0, 65));
+
                     HBox actionBox = new HBox();
                     actionBox.setAlignment(Pos.CENTER_RIGHT);
                     Button exploreBtn = new Button("Esplora");
@@ -202,55 +203,37 @@ public class SongsController {
                     exploreBtn.getStyleClass().add("st-button-primary");
 
                     exploreBtn.setOnAction(e -> {
-                        if (item.isSong()) {
-                            openSongDetails(item.getSong(), exploreBtn);
-                        } else {
-                            openExecutionDetails(item.getExecution(), exploreBtn);
-                        }
+                        if (item.isSong()) openSongDetails(item.getSong(), exploreBtn);
+                        else if (item.isExecution()) openExecutionDetails(item.getExecution(), exploreBtn);
+                        else openConcertDetails(item.getConcert(), exploreBtn);
                     });
 
                     actionBox.getChildren().add(exploreBtn);
-
                     card.getChildren().addAll(header, authorLabel, actionBox);
-                    setGraphic(card);
-                    setStyle("-fx-background-color: transparent; -fx-padding: 5;");
+                    setGraphic(card); setStyle("-fx-background-color: transparent; -fx-padding: 5;");
                 }
             }
         });
     }
 
-    // Helper per creare l'icona della canzone
-    private Node createSongIcon(Song song) {
-        if (song.getCoverPath() != null && !song.getCoverPath().isEmpty()) {
-            try {
-                ImageView coverImg = new ImageView(new Image(song.getCoverPath()));
-                coverImg.setFitWidth(50);
-                coverImg.setFitHeight(50);
-                coverImg.setPreserveRatio(true);
-                Rectangle clip = new Rectangle(50, 50);
-                clip.setArcWidth(10);
-                clip.setArcHeight(10);
-                coverImg.setClip(clip);
-                return coverImg;
-            } catch (Exception e) { }
-        }
-        Label defaultIcon = new Label("🎵");
-        defaultIcon.setStyle("-fx-font-size: 28px; -fx-text-fill: -st-blue-primary;");
-        defaultIcon.setMinWidth(50);
-        defaultIcon.setAlignment(Pos.CENTER);
-        return defaultIcon;
+    // --- HELPER ---
+    private Node createSongIcon(Song song) { /* ... codice esistente ... */ return createAvatar("🎵", Color.web("#3969da")); }
+    private Node createExecutionIcon() { return createAvatar("🎤", Color.web("#da3969")); }
+    private Node createConcertIcon() { return createAvatar("🎸", Color.web("#8a2be2")); }
+
+    private Node createAvatar(String emoji, Color bgColor) {
+        StackPane stack = new StackPane();
+        Circle bg = new Circle(25); bg.setFill(bgColor);
+        Label icon = new Label(emoji); icon.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+        stack.getChildren().addAll(bg, icon); return stack;
     }
 
-    // Navigazione Dettaglio Canzone
     private void openSongDetails(Song song, Button source) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraBrani.fxml"));
             Parent root = loader.load();
-
-            // Importante: Assicurati che ExploreSongController esista e abbia setSong()
-            // ExploreSongController controller = loader.getController();
-            // controller.setSong(song);
-
+            ExploreSongController controller = loader.getController();
+            controller.setSong(song);
             Stage stage = (Stage) source.getScene().getWindow();
             Scene scene = new Scene(root, 800, 600);
             scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
@@ -258,15 +241,25 @@ public class SongsController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // Navigazione Dettaglio Esecuzione (NUOVO)
     private void openExecutionDetails(Esecution execution, Button source) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraEsecuzione.fxml"));
             Parent root = loader.load();
-
             ExploreExecutionController controller = loader.getController();
-            controller.setExecution(execution); // Passiamo l'esecuzione al controller
+            controller.setExecution(execution);
+            Stage stage = (Stage) source.getScene().getWindow();
+            Scene scene = new Scene(root, 800, 600);
+            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+            stage.setScene(scene);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
 
+    private void openConcertDetails(Concert concert, Button source) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraConcerto.fxml"));
+            Parent root = loader.load();
+            ExploreConcertController controller = loader.getController();
+            controller.setConcert(concert);
             Stage stage = (Stage) source.getScene().getWindow();
             Scene scene = new Scene(root, 800, 600);
             scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());

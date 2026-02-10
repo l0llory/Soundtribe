@@ -33,11 +33,17 @@ public class HomeController {
     @FXML public Button nextP;
     @FXML public TextField globalSearchField;
     @FXML public Button globalSearchBtn;
+
+    // Bottoni Menu Griglia
     @FXML public Button handleBraniMusicali;
     @FXML public Button handleUtenti;
     @FXML public Button handleCaricaMateriale;
     @FXML public Button handleAmministrazione;
+
+    // Bottoni Top Bar
     @FXML public Button profileButton;
+    @FXML public Button handleMyComments; // <-- Ora è nella top bar
+
     @FXML public ListView<RecentActivity> lastActivities;
 
     public void initialize(){
@@ -54,6 +60,13 @@ public class HomeController {
         handleUtenti.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", 800, 600, true));
         handleCaricaMateriale.setOnAction(event -> SceneManager.changeScene(event, "caricaMateriale.fxml", 800, 600, true));
         handleAmministrazione.setOnAction(event -> SceneManager.changeScene(event, "Amministrazione.fxml", 800, 600, true));
+
+        // AZIONE: Naviga ai brani commentati
+        handleMyComments.setOnAction(event -> {
+            // Impostiamo il filtro speciale nella sessione
+            UserSession.getInstance().setLastSearchQuery("filter:commented_by_me");
+            SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true);
+        });
 
         setupActivityList();
         loadRecentActivities();
@@ -115,7 +128,7 @@ public class HomeController {
 
         List<RecentActivity> allActivities = new ArrayList<>();
 
-        // 1. CARICA ESECUZIONI (Ora usiamo il titolo vero!)
+        // 1. CARICA ESECUZIONI
         List<Esecution> executions = execDAO.getAllExecutions();
         for (Esecution e : executions) {
             String title = (e.getTitle() != null && !e.getTitle().isEmpty()) ? e.getTitle() : "Esecuzione senza titolo";
@@ -129,12 +142,11 @@ public class HomeController {
                 detail = "Cover di: " + songTitle + " | Di: " + getUploaderName(e.getUploaderId(), userDAO);
             }
 
-            // Usiamo l'ID come pseudo-timestamp per l'ordinamento (ID più alto = più recente)
             allActivities.add(new RecentActivity(
                     RecentActivity.Type.NEW_EXECUTION,
                     title,
                     detail,
-                    e.getId() // Passiamo l'ID per ordinare
+                    e.getId()
             ));
         }
 
@@ -145,7 +157,7 @@ public class HomeController {
                     RecentActivity.Type.NEW_SONG,
                     "Nuovo Brano: " + s.getTitle(),
                     "Artista: " + s.getArtist(),
-                    s.getId() // Passiamo l'ID
+                    s.getId()
             ));
         }
 
@@ -156,30 +168,11 @@ public class HomeController {
                     RecentActivity.Type.NEW_USER,
                     "Benvenuto " + u.getName() + "!",
                     "Nuovo membro della community",
-                    u.getId() // Passiamo l'ID
+                    u.getId()
             ));
         }
 
-        // ORDINAMENTO MIGLIORATO:
-        // Ordiniamo la lista mista basandoci sugli ID (dal più grande al più piccolo).
-        // NOTA: Questo assume che gli ID di tabelle diverse crescano più o meno nello stesso periodo temporale.
-        // NOTA: Questo assume che gli ID di tabelle diverse crescano più o meno nello stesso periodo temporale.
-        // Se hai 1000 canzoni e 5 utenti, l'utente con ID 5 finirà in fondo anche se è nuovo.
-        // PER ORA: Dato che non abbiamo un timestamp "created_at" globale, questo è il meglio che possiamo fare
-        // senza modificare pesantemente il DB.
-
-        // Alternativa rapida: mischiare le liste oppure dare priorità alle esecuzioni.
-        // Qui opto per dare PRIORITÀ ALLE ESECUZIONI mettendole in cima se l'ID è alto.
-
-        // Facciamo un ordinamento "Shuffle" intelligente o semplicemente invertiamo?
-        // Se vogliamo vedere l'ultima esecuzione in cima, dobbiamo assicurarci che sia la prima della lista.
-
-        // Strategia Semplice e Funzionante per ora:
-        // Poiché execDAO.getAllExecutions() restituisce già in ordine inverso (DESC),
-        // le esecuzioni sono già ordinate tra loro.
-        // Dobbiamo solo decidere come mescolarle con le canzoni.
-
-        // Uniamo e ordiniamo per ID decrescente (indipendentemente dal tipo)
+        // Ordinamento inverso per ID (mostra i più recenti in alto)
         allActivities.sort(Comparator.comparingInt(RecentActivity::getId).reversed());
 
         int limit = Math.min(allActivities.size(), 20);
@@ -193,14 +186,13 @@ public class HomeController {
         return (u != null) ? u.getName() + " " + u.getSurname() : "Utente " + userId;
     }
 
-    // CLASSE INTERNA AGGIORNATA CON ID
     public static class RecentActivity {
         public enum Type { NEW_SONG, NEW_EXECUTION, NEW_USER }
 
         private final Type type;
         private final String title;
         private final String detail;
-        private final int id; // ID per ordinamento (simulazione timestamp)
+        private final int id;
 
         public RecentActivity(Type type, String title, String detail, int id) {
             this.type = type;
@@ -228,31 +220,21 @@ public class HomeController {
         String query = globalSearchField.getText().trim();
         if (query.isEmpty()) return;
 
-        // Salviamo la query in sessione
         UserSession.getInstance().setLastSearchQuery(query);
 
         SongDAO songDAO = new SongDAO();
-        EsecutionDAO execDAO = new EsecutionDAO(); // <--- ISTANZIA IL DAO
+        EsecutionDAO execDAO = new EsecutionDAO();
         UserDAO userDAO = new UserDAO();
 
-        // 1. Cerchiamo ovunque
         List<Song> foundSongs = songDAO.searchSongs(query);
-        List<Esecution> foundExecutions = execDAO.searchExecutions(query); // <--- CERCA ESECUZIONI
+        List<Esecution> foundExecutions = execDAO.searchExecutions(query);
         List<User> foundUsers = userDAO.searchUsers(query);
 
-        System.out.println("Risultati Ricerca -> Brani: " + foundSongs.size() +
-                ", Esecuzioni: " + foundExecutions.size() +
-                ", Utenti: " + foundUsers.size());
-
-        // 2. Logica di Routing (Priorità ai contenuti musicali)
         if (!foundSongs.isEmpty() || !foundExecutions.isEmpty()) {
-            // Se trovo canzoni O esecuzioni, mando alla pagina musicale
             goToScene(event, "braniMusicali.fxml");
         } else if (!foundUsers.isEmpty()) {
-            // Se trovo solo utenti, mando alla pagina utenti
             goToScene(event, "gestioneUtenti.fxml");
         } else {
-            // Se non trovo nulla, default su brani (mostrerà "Nessun risultato")
             goToScene(event, "braniMusicali.fxml");
         }
     }

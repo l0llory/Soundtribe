@@ -1,39 +1,51 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.entità.Concert;
 import com.example.soundtribe.entità.Esecution;
 import com.example.soundtribe.entità.Song;
 
 public class MusicItem {
     private Song song;
     private Esecution execution;
-    private boolean isSong;
+    private Concert concert; // NUOVO CAMPO
+
+    // Enum per identificare il tipo in modo pulito
+    public enum Type { SONG, EXECUTION, CONCERT }
+    private final Type type;
 
     public MusicItem(Song song) {
         this.song = song;
-        this.isSong = true;
+        this.type = Type.SONG;
     }
 
     public MusicItem(Esecution execution) {
         this.execution = execution;
-        this.isSong = false;
+        this.type = Type.EXECUTION;
     }
 
-    public boolean isSong() { return isSong; }
+    public MusicItem(Concert concert) { // NUOVO COSTRUTTORE
+        this.concert = concert;
+        this.type = Type.CONCERT;
+    }
+
+    public boolean isSong() { return type == Type.SONG; }
+    public boolean isExecution() { return type == Type.EXECUTION; }
+    public boolean isConcert() { return type == Type.CONCERT; } // NUOVO
+
     public Song getSong() { return song; }
     public Esecution getExecution() { return execution; }
+    public Concert getConcert() { return concert; } // NUOVO
 
-    // Helper per il titolo (usato per ordinamento/filtro)
+    // Helper unificati per titolo e artista
     public String getTitle() {
-        return isSong ? song.getTitle() : execution.getTitle();
+        if (isSong()) return song.getTitle();
+        if (isExecution()) return execution.getTitle();
+        return concert.getTitle(); // Concert
     }
 
-    // Helper per l'artista/esecutore
     public String getArtist() {
-        return isSong ? song.getArtist() : execution.getExecutors();
-    }
-
-    // Helper per il genere (le esecuzioni non hanno genere, usiamo stringa vuota o "Varie")
-    public String getGenre() {
-        return isSong ? song.getGenre() : "Esecuzione";
+        if (isSong()) return song.getArtist();
+        if (isExecution()) return execution.getExecutors();
+        return concert.getArtist(); // Concert
     }
 }
