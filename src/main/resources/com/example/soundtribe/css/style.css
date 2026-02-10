@@ -1,131 +1,640 @@
+/**
+ * SoundTribe - CSS per JavaFX
+ * Design DARK MODE (Nero e Blu)
+ */
 
-/* 1. Impostazioni Globali (Root) */
+/* ========================================
+   PALETTE COLORI SOUNDTRIBE (DARK MODE)
+======================================== */
+
 .root {
-    -fx-background-color: #121212; /* Sfondo quasi nero (migliore per gli occhi del nero puro) */
-    -fx-font-family: "System";
-    -fx-font-size: 13px;
-    /* Variabili di colore per riutilizzarle */
-    -fx-base: #121212;
-    -fx-control-inner-background: #121212;
-    -fx-focus-color: #3969da;
+    /* Colori Blu (Rimangono vibranti) */
+    -st-blue-primary: #3b82f6;  /* Un blu leggermente più luminoso per contrasto scuro */
+    -st-blue-hover: #2563eb;
+    -st-blue-light: #1e3a8a;    /* Blu scuro per sfondi secondari */
+    -st-blue-accent: #60a5fa;
+
+    /* Colori Scuri (Base del tema) */
+    -st-dark: #121212;          /* Sfondo principale (quasi nero) */
+    -st-dark-secondary: #1e1e1e;/* Card e pannelli */
+    -st-dark-tertiary: #2d2d2d; /* Input e bordi */
+
+    /* Colori Testo */
+    -st-text-main: #e5e7eb;     /* Bianco sporco per testo principale */
+    -st-text-muted: #9ca3af;    /* Grigio per sottotitoli */
+    -st-text-inverse: #121212;  /* Testo scuro su bottoni chiari */
+
+    /* Altri */
+    -st-white: #ffffff;
+    -st-red: #ef4444;
+    -st-green: #10b981;
+
+    /* Configurazione Base JavaFX */
+    -fx-background-color: -st-dark;
+    -fx-text-fill: -st-text-main;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
 }
 
-/* 2. Etichette (Labels) */
-.label {
-    -fx-text-fill: #e0e0e0; /* Bianco leggermente sporco per leggibilità */
-}
+/* ========================================
+   BUTTONS / BOTTONI
+======================================== */
 
-/* Classe specifica per il Titolo "SoundTribe" (per mantenerlo blu) */
-.label-title {
-    -fx-text-fill: #3969da;
-    -fx-font-size: 22px;
-    -fx-font-weight: bold;
-}
-
-/* Classe per sottotitoli grigi */
-.label-subtitle {
-    -fx-text-fill: #888888;
-    -fx-font-size: 11px;
-}
-
-/* 3. Bottoni (Buttons) */
-.button {
-    -fx-background-color: #0d47a1; /* Blu Scuro */
+/* Bottone Primario (Blu) */
+.st-button-primary {
+    -fx-background-color: -st-blue-primary;
     -fx-text-fill: white;
-    -fx-background-radius: 5;
-    -fx-border-radius: 5;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8;
+    -fx-padding: 10 24 10 24;
     -fx-cursor: hand;
-    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 2);
 }
 
-/* Effetto quando passi il mouse sopra (Hover) */
-.button:hover {
-    -fx-background-color: #1565c0; /* Blu leggermente più chiaro */
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0, 0, 2);
+.st-button-primary:hover {
+    -fx-background-color: -st-blue-hover;
 }
 
-/* Effetto quando clicchi (Pressed) */
-.button:pressed {
-    -fx-background-color: #002171; /* Blu molto scuro */
+.st-button-primary:pressed {
+    -fx-background-color: #1d4ed8;
 }
 
-/* Bottoni di Navigazione (Indietro, Avanti, Home) - Stile più neutro */
-.button-nav {
-    -fx-background-color: #333333; /* Grigio scuro */
+/* Bottone Secondario (Scuro con bordo Blu) */
+.st-button-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-blue-primary;
+    -fx-border-color: -st-blue-primary;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 24 10 24;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+}
+
+.st-button-secondary:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.1); /* Blu trasparente */
+}
+
+.st-button-secondary:pressed {
+    -fx-background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Bottone Outline (Grigio per navigazione) */
+.st-button-outline {
+    -fx-background-color: -st-dark-secondary;
+    -fx-text-fill: -st-text-muted;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+
+.st-button-outline:hover {
+    -fx-background-color: -st-dark-tertiary;
+    -fx-text-fill: -st-text-main;
+    -fx-border-color: -st-blue-primary;
+}
+
+/* Bottone Danger (Rosso) */
+.st-button-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.15);
+    -fx-text-fill: -st-red;
+    -fx-border-color: -st-red;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 10 24 10 24;
+    -fx-cursor: hand;
+}
+
+.st-button-danger:hover {
+    -fx-background-color: -st-red;
     -fx-text-fill: white;
 }
-.button-nav:hover {
-    -fx-background-color: #444444;
+
+/* ========================================
+   TEXT FIELDS & INPUTS
+======================================== */
+
+.st-text-field, .st-password-field, .st-text-area {
+    -fx-background-color: -st-dark-secondary;
+    -fx-text-fill: -st-text-main;
+    -fx-prompt-text-fill: -st-text-muted;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 14 10 14;
 }
 
-/* Bottone Profilo (Tondo) */
-.button-profile {
-    -fx-background-color: #1e1e1e;
-    -fx-background-radius: 50%;
-    -fx-border-color: #3969da;
-    -fx-border-radius: 50%;
-    -fx-min-width: 50px;
-    -fx-min-height: 50px;
-    -fx-max-width: 50px;
-    -fx-max-height: 50px;
+.st-text-field:focused, .st-password-field:focused, .st-text-area:focused {
+    -fx-border-color: -st-blue-primary;
+    -fx-background-color: -st-dark-tertiary;
 }
 
-/* 4. Campi di Testo (TextField / TextArea) */
-.text-field, .text-area {
-    -fx-background-color: #2c2c2c; /* Grigio scuro */
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: #888888;
-    -fx-background-radius: 5;
-    -fx-border-color: #444444;
-    -fx-border-radius: 5;
+.st-text-area .content {
+    -fx-background-color: -st-dark-secondary;
 }
 
-.text-field:focused, .text-area:focused {
-    -fx-border-color: #3969da; /* Bordo blu quando scrivi */
+/* ========================================
+   LABELS / TESTI
+======================================== */
+
+.st-label {
+    -fx-text-fill: -st-text-main;
+    -fx-font-size: 14px;
 }
 
-/* Barra di ricerca arrotondata (override specifico) */
-.search-field {
-    -fx-background-radius: 20 0 0 20;
-    -fx-border-radius: 20 0 0 20;
-    -fx-background-color: #2c2c2c;
-}
-.search-button {
-    -fx-background-radius: 0 20 20 0;
-    -fx-border-radius: 0 20 20 0;
-    -fx-background-color: #333333;
-    -fx-border-color: #444444;
+.st-label-title {
+    -fx-text-fill: -st-text-main;
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
 }
 
-/* 5. Liste (ListView) */
-.list-view {
+.st-label-subtitle {
+    -fx-text-fill: -st-text-muted;
+    -fx-font-size: 13px;
+}
+
+.st-label-blue {
+    -fx-text-fill: -st-blue-primary;
+    -fx-font-weight: 600;
+}
+
+/* ========================================
+   COMBO BOX
+======================================== */
+
+.st-combo-box {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.st-combo-box .cell {
+    -fx-text-fill: -st-text-main;
+}
+
+.st-combo-box .arrow-button {
     -fx-background-color: transparent;
-    -fx-control-inner-background: transparent;
 }
 
-.list-cell {
-    -fx-text-fill: white;
-    -fx-background-color: transparent;
-    -fx-padding: 5px;
+.st-combo-box .arrow {
+    -fx-background-color: -st-text-muted;
 }
 
-/* Cella selezionata o hover */
-.list-cell:filled:selected, .list-cell:filled:hover {
-    -fx-background-color: #333333;
-    -fx-background-radius: 5;
+.st-combo-box-popup .list-view {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
 }
 
-/* 6. ScrollPane (Barre di scorrimento) */
-.scroll-pane {
+.st-combo-box-popup .list-cell {
+    -fx-text-fill: -st-text-main;
     -fx-background-color: transparent;
 }
-.scroll-pane > .viewport {
+
+.st-combo-box-popup .list-cell:hover {
+    -fx-background-color: -st-dark-tertiary;
+}
+
+/* ========================================
+   CARDS & PANELS
+======================================== */
+
+/* Card: Elemento contenitore principale */
+.st-card {
+    -fx-background-color: -st-dark-secondary;
+    -fx-background-radius: 12;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 4);
+}
+
+.st-card:hover {
+    -fx-border-color: -st-blue-primary; /* Bordo blu al passaggio */
+}
+
+.st-panel {
+    -fx-background-color: -st-dark-secondary;
+    -fx-padding: 15;
+    -fx-background-radius: 8;
+}
+
+.st-panel-secondary {
+    -fx-background-color: -st-dark-tertiary;
+    -fx-padding: 15;
+    -fx-background-radius: 8;
+}
+
+/* ========================================
+   LIST VIEW
+======================================== */
+
+.st-list-view {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.st-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-text-main;
+    -fx-padding: 10 15 10 15;
+}
+
+/* Riga pari/dispari (opzionale per tabelle, ma utile anche qui) */
+.st-list-view .list-cell:odd {
+    -fx-background-color: rgba(255, 255, 255, 0.02);
+}
+
+.st-list-view .list-cell:hover {
+    -fx-background-color: -st-dark-tertiary;
+    -fx-cursor: hand;
+}
+
+.st-list-view .list-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.2); /* Blu trasparente */
+    -fx-text-fill: -st-blue-primary;
+    -fx-border-color: -st-blue-primary;
+    -fx-border-width: 0 0 0 3; /* Linea blu a sinistra */
+}
+
+/* ========================================
+   SCROLL BAR (Fondamentale per dark mode)
+======================================== */
+
+.st-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.st-scroll-pane > .viewport {
     -fx-background-color: transparent;
 }
+
 .scroll-bar:vertical, .scroll-bar:horizontal {
     -fx-background-color: transparent;
 }
+
 .scroll-bar .thumb {
-    -fx-background-color: #444444;
-    -fx-background-radius: 5;
+    -fx-background-color: -st-dark-tertiary;
+    -fx-background-radius: 10;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: -st-text-muted;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+/* ========================================
+   SEPARATOR
+======================================== */
+
+.st-separator .line {
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* ========================================
+   CHECKBOX & RADIO
+======================================== */
+
+.st-checkbox, .st-radio-button {
+    -fx-text-fill: -st-text-main;
+}
+
+.st-checkbox .box {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-text-muted;
+}
+
+.st-checkbox:selected .box {
+    -fx-background-color: -st-blue-primary;
+    -fx-border-color: -st-blue-primary;
+}
+
+.st-checkbox .mark {
+    -fx-background-color: white;
+}
+
+/* ========================================
+   DATE PICKER
+======================================== */
+
+.st-date-picker {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+}
+
+.st-date-picker > .arrow-button > .arrow {
+    -fx-background-color: -st-text-muted;
+}
+
+.st-date-picker-popup {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+}
+
+/* ========================================
+   TOGGLE BUTTON (Admin Tabs)
+======================================== */
+
+.st-toggle-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-text-muted;
+    -fx-border-width: 0 0 2 0; /* Linea sotto */
+    -fx-border-color: transparent;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+
+.st-toggle-button:selected {
+    -fx-text-fill: -st-blue-primary;
+    -fx-border-color: -st-blue-primary;
+    -fx-background-color: rgba(59, 130, 246, 0.05);
+}
+
+.st-toggle-button:hover {
+    -fx-text-fill: -st-text-main;
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ========================================
+   BADGES
+======================================== */
+
+.st-badge {
+    -fx-background-color: -st-blue-light;
+    -fx-text-fill: -st-blue-accent;
+    -fx-background-radius: 4;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.st-badge-red {
+    -fx-background-color: rgba(239, 68, 68, 0.2);
+    -fx-text-fill: -st-red;
+    -fx-background-radius: 10;
+    -fx-padding: 0 8 0 8;
+}
+/* ========================================
+   LIST VIEW VARIANTS
+======================================== */
+
+/* Variante "Light/Card" per la lista utenti
+   Crea uno sfondo chiaro (o leggermente differenziato dal nero puro) per l'area della lista */
+.st-list-view-light {
+    -fx-background-color: -st-dark-secondary; /* Usa il grigio delle card invece del nero di fondo */
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+/* Assicura che anche l'area vuota interna (viewport) abbia lo stesso sfondo */
+.st-list-view-light .viewport {
+    -fx-background-color: -st-dark-secondary;
+}
+
+/* Stile delle celle per questa variante */
+.st-list-view-light .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-text-main;
+    -fx-padding: 5; /* Padding ridotto perché le card interne hanno già padding */
+}
+
+.st-list-view-light .list-cell:filled:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.03); /* Leggerissimo highlight */
+}
+
+/* Rimuove il colore di selezione blu standard perché usiamo le card interne */
+.st-list-view-light .list-cell:filled:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -st-text-main;
+}
+
+.st-list-view-light .list-cell:filled:selected:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* ========================================
+   SCROLL PANE & SCROLL BAR (DARK MODE FIX)
+======================================== */
+
+.st-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent; /* Importante per forzare la trasparenza su componenti figli */
+    -fx-border-color: transparent;
+}
+
+/* Rende trasparente l'area di visualizzazione (Viewport) */
+.st-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Barre di scorrimento invisibili di base */
+.st-scroll-pane .scroll-bar:vertical,
+.st-scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+/* Il "pollice" (la parte che si muove) scuro */
+.st-scroll-pane .scroll-bar .thumb {
+    -fx-background-color: -st-dark-tertiary; /* Grigio scuro */
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+}
+
+/* Pollice più chiaro quando ci passi sopra */
+.st-scroll-pane .scroll-bar .thumb:hover {
+    -fx-background-color: -st-text-muted; /* Grigio chiaro */
+}
+
+/* Rimuove lo sfondo della "traccia" */
+.st-scroll-pane .scroll-bar .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Rimuove i pulsanti freccia della scrollbar se presenti */
+.st-scroll-pane .scroll-bar .increment-button,
+.st-scroll-pane .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ========================================
+   COMBO BOX / SELECT (Dark Mode Fixed)
+======================================== */
+
+/* 1. Il bottone principale del ComboBox */
+.st-combo-box {
+    -fx-background-color: -st-dark-secondary;
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 4 8 4 8; /* Aggiustato padding per centrare il testo */
+}
+
+.st-combo-box:hover {
+    -fx-border-color: -st-blue-primary;
+}
+
+.st-combo-box:showing {
+    -fx-background-color: -st-dark-tertiary;
+    -fx-border-color: -st-blue-primary;
+}
+
+/* Testo dentro il bottone */
+.st-combo-box .list-cell {
+    -fx-text-fill: -st-text-main;
+    -fx-background-color: transparent;
+    -fx-padding: 4 0 4 0;
+}
+
+/* Freccia del ComboBox */
+.st-combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.st-combo-box .arrow {
+    -fx-background-color: -st-text-muted;
+}
+
+/* 2. IL POPUP (LA TENDINA) - Correzione Sfondo Bianco */
+.st-combo-box .list-view {
+    -fx-background-color: -st-dark-secondary; /* Sfondo scuro per la tendina */
+    -fx-border-color: -st-dark-tertiary;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 4); /* Ombra per staccare dal fondo */
+}
+
+/* Celle dentro la tendina */
+.st-combo-box .list-view .list-cell {
+    -fx-text-fill: -st-text-main;
+    -fx-background-color: transparent;
+    -fx-padding: 8 12 8 12; /* Più spazio per le voci */
+}
+
+/* Hover sulle voci della tendina (Quando passi col mouse) */
+.st-combo-box .list-view .list-cell:filled:hover {
+    -fx-background-color: -st-blue-primary; /* Evidenziazione Blu */
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+
+/* Voce selezionata nella tendina */
+.st-combo-box .list-view .list-cell:filled:selected {
+    -fx-background-color: -st-dark-tertiary; /* Grigio un po' più chiaro per la selezione attuale */
+    -fx-text-fill: white;
+}
+
+/* Fix ScrollBar dentro la tendina (se ci sono tante voci) */
+.st-combo-box .list-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+.st-combo-box .list-view .scroll-bar .thumb {
+    -fx-background-color: -st-dark-tertiary;
+}
+
+/* ========================================
+   SEGMENTED BUTTONS / TOGGLES (Tab Style)
+======================================== */
+
+/* Stile base per i bottoni del gruppo (stato NON selezionato) */
+.st-segment-button {
+    -fx-background-color: -st-dark-secondary; /* Grigio scuro invece di bianco */
+    -fx-text-fill: -st-text-muted;            /* Testo grigio chiaro */
+    -fx-border-color: -st-blue-primary;       /* Bordo blu per definire la forma */
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16 8 16;
+}
+
+/* Hover su stato non selezionato */
+.st-segment-button:hover {
+    -fx-background-color: -st-dark-tertiary;
+    -fx-text-fill: white;
+}
+
+/* STATO SELEZIONATO / ATTIVO
+   (Funziona sia per ToggleButton:selected che se applichi la classe manualmente) */
+.st-segment-button:selected,
+.st-segment-button-active {
+    -fx-background-color: -st-blue-primary;   /* Sfondo Blu Pieno */
+    -fx-text-fill: white;                     /* Testo Bianco */
+    -fx-border-color: -st-blue-primary;
+}
+
+/* --- CLASSI PER GLI ANGOLI (Per unirli al centro) --- */
+
+/* Bottone di SINISTRA: Arrotonda solo sinistra */
+.st-segment-left {
+    -fx-background-radius: 5 0 0 5;
+    -fx-border-radius: 5 0 0 5;
+    -fx-border-width: 1 0 1 1; /* Rimuove bordo destro per unirlo */
+}
+
+/* Bottone di DESTRA: Arrotonda solo destra */
+.st-segment-right {
+    -fx-background-radius: 0 5 5 0;
+    -fx-border-radius: 0 5 5 0;
+    -fx-border-width: 1 1 1 0; /* Rimuove bordo sinistro */
+}
+
+/* Bottone CENTRALE (se ne avessi 3): Nessun arrotondamento */
+.st-segment-middle {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-width: 1 0 1 0;
+}
+
+/* ========================================
+   ADD SONG / UPLOAD SPECIFIC STYLES
+======================================== */
+
+/* Box per il caricamento immagini (Copertina) */
+.st-upload-box {
+    -fx-background-color: -st-dark-secondary; /* Sfondo coerente con le card */
+    -fx-border-color: -st-blue-primary;       /* Bordo Blu */
+    -fx-border-style: dashed;                 /* Effetto Tratteggiato */
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-min-width: 200px;
+    -fx-min-height: 200px;
+    -fx-max-width: 200px;
+    -fx-max-height: 200px;
+}
+
+.st-upload-box:hover {
+    -fx-background-color: -st-dark-tertiary; /* Leggero highlight al passaggio del mouse */
+    -fx-border-color: -st-blue-hover;
+}
+
+/* Etichetta di testo dentro il box di upload (es. "Nessuna immagine") */
+.st-upload-placeholder-text {
+    -fx-text-fill: -st-text-muted;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+/* Container specifico per il form di aggiunta (opzionale, per spaziatura extra) */
+.st-form-container {
+    -fx-padding: 0 0 0 20; /* Spazio a sinistra per separare dalla copertina */
 }

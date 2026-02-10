@@ -13,20 +13,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.paint.Color; // Import per i colori
+
 import java.io.File;
 import java.util.List;
 
 public class ExploreSongController {
 
-    // ... (Tutti i tuoi @FXML per bottoni e label rimangono uguali) ...
+    // FXML Elements
     @FXML public Button precP_Riproduci;
     @FXML public Button nextP_Riproduci;
     @FXML public Button backHome_Riproduci;
     @FXML public Button Exit_Riproduci;
-    @FXML public Button backToListBtn;
     @FXML public Label titoloBranoLabel;
     @FXML public Label autoreBranoLabel;
     @FXML public Label genereBranoLabel;
@@ -46,59 +43,63 @@ public class ExploreSongController {
     private Song currentSong;
     private CommentDAO commentDAO;
     private UserDAO userDAO;
-    private int currentUserId; // Salviamo l'ID utente loggato
+    private int currentUserId; // ID utente loggato
 
     @FXML
     public void initialize() {
         commentDAO = new CommentDAO();
         userDAO = new UserDAO();
-        currentUserId = UserSession.getInstance().getUserId(); // Prendi ID dalla sessione
+        currentUserId = UserSession.getInstance().getUserId();
 
-        NavigationManager.updateNavigationButtons(precP_Riproduci, nextP_Riproduci);
+        // Setup Navigazione
         NavigationManager.navBack(precP_Riproduci);
         NavigationManager.navForward(nextP_Riproduci);
+        NavigationManager.updateNavigationButtons(precP_Riproduci, nextP_Riproduci);
         NavigationManager.home(backHome_Riproduci);
         NavigationManager.exit(Exit_Riproduci);
 
-        backToListBtn.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true));
+        precP_Riproduci.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true));
         btnPostComment.setOnAction(e -> postNewRootComment());
     }
 
     public void setSong(Song song) {
         this.currentSong = song;
 
-        // ... (Logica di set testo e cover invariata) ...
+        // Popolamento UI (testi gestiti da CSS nel FXML)
         titoloBranoLabel.setText(song.getTitle());
         autoreBranoLabel.setText("Autore: " + song.getArtist());
         genereBranoLabel.setText(song.getGenre().toUpperCase());
-        annoBranoLabel.setText("");
-        if (song.getUploaderName() != null) uploaderLabel.setText("Caricato da: " + song.getUploaderName() + " " + song.getUploaderSurname());
-        else uploaderLabel.setText("Caricato da: Utente sconosciuto");
-        if (song.getDescription() != null) descrizioneLabel.setText(song.getDescription());
-        else descrizioneLabel.setText("Nessuna descrizione disponibile.");
+        annoBranoLabel.setText(""); // Se hai l'anno, mettilo qui
+
+        if (song.getUploaderName() != null)
+            uploaderLabel.setText("Caricato da: " + song.getUploaderName() + " " + song.getUploaderSurname());
+        else
+            uploaderLabel.setText("Caricato da: Utente sconosciuto");
+
+        if (song.getDescription() != null && !song.getDescription().isEmpty())
+            descrizioneLabel.setText(song.getDescription());
+        else
+            descrizioneLabel.setText("Nessuna descrizione disponibile.");
 
         loadCover(song);
         loadAttachedFiles();
-
-        // Caricamento Commenti Aggiornato
         loadComments();
     }
 
-    // --- NUOVA LOGICA COMMENTI (ALBERO + LIKE TOGGLE) ---
+    // --- LOGICA COMMENTI (CSS APPLIED) ---
 
     private void loadComments() {
         commentsContainer.getChildren().clear();
 
-        // Recuperiamo i TOP 3 commenti radice con i loro figli già caricati
+        // Recuperiamo i TOP commenti radice
         List<Comment> rootComments = commentDAO.getTop3RootComments(currentSong.getId());
 
         if (rootComments.isEmpty()) {
             Label placeholder = new Label("Nessun commento ancora. Sii il primo!");
-            placeholder.setTextFill(Color.GRAY);
+            placeholder.getStyleClass().add("st-label-subtitle");
             commentsContainer.getChildren().add(placeholder);
         } else {
             for (Comment c : rootComments) {
-                // Renderizza ricorsivamente partendo dal livello 0
                 renderCommentRecursive(c, 0);
             }
         }
@@ -106,78 +107,78 @@ public class ExploreSongController {
 
     // Metodo ricorsivo per disegnare commenti e risposte
     private void renderCommentRecursive(Comment c, int level) {
-        // Container del singolo commento
         VBox commentBox = new VBox(5);
 
-        // INDENTAZIONE: Margine sinistro aumenta col livello
-        // Level 0 = 0px, Level 1 = 30px, Level 2 = 60px...
-        commentBox.setPadding(new Insets(10, 10, 10, 10 + (level * 30)));
+        // Indentazione per le risposte
+        commentBox.setPadding(new Insets(10, 10, 10, 10 + (level * 20)));
 
-        // Stile visivo: Solo i commenti radice (level 0) hanno lo sfondo bianco "card"
-        // Le risposte hanno uno sfondo trasparente o leggermente diverso
+        // Stile visivo: Root = Card, Reply = Transparent con bordo sinistro
         if (level == 0) {
-            commentBox.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-border-color: #e0e0e0; -fx-border-radius: 5;");
+            commentBox.getStyleClass().add("st-card"); // Sfondo scuro per il commento principale
         } else {
-            commentBox.setStyle("-fx-background-color: transparent; -fx-border-color: #eeeeee; -fx-border-width: 0 0 0 2;"); // Linea guida a sinistra
+            // Per le risposte usiamo uno stile più leggero o nulla
+            // Opzionale: aggiungi una classe .st-reply-box nel CSS per gestire il bordo sinistro
+            commentBox.setStyle("-fx-border-color: #2d2d2d; -fx-border-width: 0 0 0 2;");
         }
 
-        // --- HEADER (Nome + Like) ---
+        // HEADER (Nome + Like)
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
 
         Label userLbl = new Label(c.getUsername());
-        userLbl.setFont(Font.font("System", FontWeight.BOLD, 13));
-        userLbl.setTextFill(Color.web("#3969da"));
+        userLbl.getStyleClass().add("st-label-blue"); // Nome utente evidenziato
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Bottone Like (Cuore)
+        // Bottone Like
         Button likeBtn = new Button();
         boolean isLiked = commentDAO.hasUserLiked(currentUserId, c.getId());
         updateLikeButtonStyle(likeBtn, isLiked, c.getLikes());
 
         likeBtn.setOnAction(e -> {
-            // Logica Toggle
             commentDAO.toggleLike(currentUserId, c.getId());
-            // Ricarica TUTTO per aggiornare conteggi e stati (modo più semplice per sincronizzare)
-            loadComments();
+            loadComments(); // Ricarica per aggiornare stato e contatore
         });
 
         header.getChildren().addAll(userLbl, spacer, likeBtn);
 
-        // --- CONTENUTO ---
+        // CONTENUTO
         Label contentLbl = new Label(c.getContent());
         contentLbl.setWrapText(true);
-        contentLbl.setStyle("-fx-text-fill: #333333;");
+        contentLbl.getStyleClass().add("st-label"); // Testo standard (bianco/grigio chiaro)
 
-        // --- BOTTONE RISPONDI ---
+        // BOTTONE RISPONDI
         Button replyBtn = new Button("Rispondi ↲");
-        replyBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #908888; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 5 0 5 0;");
+        replyBtn.getStyleClass().add("st-button-secondary"); // Stile outline
+        replyBtn.getStyleClass().add("st-button-small");     // Piccolo
+        replyBtn.setStyle("-fx-border-color: transparent;"); // Rimuovi bordo se vuoi solo testo
 
-        // Area di risposta (nascosta di default)
+        // AREA RISPOSTA (Nascosta)
         VBox replyArea = new VBox(5);
         replyArea.setVisible(false);
-        replyArea.setManaged(false); // Non occupa spazio quando nascosta
+        replyArea.setManaged(false);
 
         TextArea replyInput = new TextArea();
         replyInput.setPromptText("Rispondi a " + c.getUsername() + "...");
         replyInput.setPrefRowCount(2);
         replyInput.setWrapText(true);
+        replyInput.getStyleClass().add("st-text-area");
 
         Button sendReplyBtn = new Button("Invia Risposta");
-        sendReplyBtn.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-size: 11px;");
+        sendReplyBtn.getStyleClass().add("st-button-primary");
+        sendReplyBtn.getStyleClass().add("st-button-small");
 
         sendReplyBtn.setOnAction(e -> {
             String replyText = replyInput.getText().trim();
             if (!replyText.isEmpty()) {
-                postReply(c.getId(), replyText); // Posta risposta con ID padre
+                postReply(c.getId(), replyText);
             }
         });
 
         replyArea.getChildren().addAll(replyInput, sendReplyBtn);
 
-        // Azione mostra/nascondi risposta
+        // Toggle Risposta
         replyBtn.setOnAction(e -> {
             boolean isVisible = !replyArea.isVisible();
             replyArea.setVisible(isVisible);
@@ -186,13 +187,9 @@ public class ExploreSongController {
         });
 
         commentBox.getChildren().addAll(header, contentLbl, replyBtn, replyArea);
-
-        // Aggiungi questo box al container principale
         commentsContainer.getChildren().add(commentBox);
 
-        // --- RICORSIONE: Disegna i figli ---
-        // Nota: i figli non vengono messi DENTRO il box del padre, ma sotto,
-        // nel container principale, però con indentazione aumentata.
+        // RICORSIONE FIGLI
         for (Comment reply : c.getReplies()) {
             renderCommentRecursive(reply, level + 1);
         }
@@ -200,11 +197,15 @@ public class ExploreSongController {
 
     private void updateLikeButtonStyle(Button btn, boolean isLiked, int count) {
         if (isLiked) {
-            btn.setText("❤ " + count); // Cuore pieno
-            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 13px;");
+            btn.setText("❤ " + count);
+            btn.getStyleClass().removeAll("st-button-outline"); // Rimuovi stili precedenti
+            btn.getStyleClass().add("st-button-danger");        // Usa stile rosso (danger) per il like attivo
+            btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;"); // Solo testo rosso
         } else {
-            btn.setText("♡ " + count); // Cuore vuoto
-            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #908888; -fx-cursor: hand; -fx-font-size: 13px;");
+            btn.setText("♡ " + count);
+            btn.getStyleClass().removeAll("st-button-danger");
+            btn.getStyleClass().add("st-button-outline");       // Usa stile outline per like inattivo
+            btn.setStyle("-fx-border-color: transparent;");     // Solo testo grigio
         }
     }
 
@@ -215,7 +216,6 @@ public class ExploreSongController {
         User me = userDAO.getUserById(currentUserId);
         String username = (me != null) ? me.getName() : "Utente";
 
-        // Parent ID è null perché è un commento radice
         Comment newC = new Comment(0, currentSong.getId(), currentUserId, username, content, 0, null);
         commentDAO.addComment(newC);
 
@@ -227,14 +227,14 @@ public class ExploreSongController {
         User me = userDAO.getUserById(currentUserId);
         String username = (me != null) ? me.getName() : "Utente";
 
-        // Qui passiamo parentId!
         Comment reply = new Comment(0, currentSong.getId(), currentUserId, username, content, 0, parentId);
         commentDAO.addComment(reply);
 
-        loadComments(); // Ricarica tutto per mostrare la nuova risposta
+        loadComments();
     }
 
-    // --- METODI DI SUPPORTO (Invariati) ---
+    // --- GESTIONE FILE & COVER ---
+
     private void loadCover(Song song) {
         if (song.getCoverPath() != null && !song.getCoverPath().isEmpty()) {
             try {
@@ -245,6 +245,7 @@ public class ExploreSongController {
                     songCoverImageView.setManaged(true);
                     defaultIconLabel.setVisible(false);
                     defaultIconLabel.setManaged(false);
+
                     Rectangle clip = new Rectangle(100, 100);
                     clip.setArcWidth(10); clip.setArcHeight(10);
                     songCoverImageView.setClip(clip);
@@ -263,8 +264,9 @@ public class ExploreSongController {
     private void loadAttachedFiles() {
         filesContainer.getChildren().clear();
         boolean hasFiles = false;
+
         if (currentSong.getPdfSheetPath() != null && !currentSong.getPdfSheetPath().isEmpty()) {
-            addFileButton("📄 Visualizza Spartito/Testo (PDF)", currentSong.getPdfSheetPath(), false);
+            addFileButton("📄 Visualizza Spartito (PDF)", currentSong.getPdfSheetPath(), false);
             hasFiles = true;
         }
         if (currentSong.getAudioPath() != null && !currentSong.getAudioPath().isEmpty()) {
@@ -275,6 +277,7 @@ public class ExploreSongController {
             addFileButton("📺 Guarda su YouTube", currentSong.getYoutubeUrl(), true);
             hasFiles = true;
         }
+
         if (!hasFiles) {
             noFilesLabel.setVisible(true);
             filesContainer.getChildren().add(noFilesLabel);
@@ -284,20 +287,28 @@ public class ExploreSongController {
     }
 
     private void addFileButton(String labelText, String pathOrUrl, boolean isUrl) {
+        // Container File: Usa st-card
         HBox fileRow = new HBox(15);
-        fileRow.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8; -fx-border-color: #dddddd; -fx-border-radius: 8;");
         fileRow.setAlignment(Pos.CENTER_LEFT);
+        fileRow.getStyleClass().add("st-card");
+        // Nota: st-card ha molto padding, se è troppo per una riga file, crea .st-panel-row nel CSS
+        fileRow.setPadding(new Insets(15)); // Override padding se necessario
+
         Label descLabel = new Label(labelText);
-        descLabel.setFont(new Font(14));
-        descLabel.setStyle("-fx-text-fill: #333333;");
-        HBox spacer = new HBox();
+        descLabel.getStyleClass().add("st-label"); // Testo standard
+
+        Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+
         Button actionBtn = new Button(isUrl ? "Apri Link" : "Apri File");
-        actionBtn.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;");
+        actionBtn.getStyleClass().add("st-button-primary"); // Bottone blu
+        actionBtn.getStyleClass().add("st-button-small");
+
         actionBtn.setOnAction(e -> {
             if (isUrl) handleOpenUrl(pathOrUrl);
             else handleOpenFile(pathOrUrl);
         });
+
         fileRow.getChildren().addAll(descLabel, spacer, actionBtn);
         filesContainer.getChildren().add(fileRow);
     }

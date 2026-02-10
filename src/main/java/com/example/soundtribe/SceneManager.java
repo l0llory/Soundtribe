@@ -20,6 +20,8 @@ public class SceneManager {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxml));
             Scene scene = new Scene(loader.load(), width, height);
 
+            scene.getStylesheets().add(SceneManager.class.getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+
             // 3. Prendiamo la finestra attuale e cambiamo il contenuto
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);

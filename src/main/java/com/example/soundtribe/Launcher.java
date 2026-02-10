@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.net.URL;
 
 public class Launcher extends Application {
 
@@ -22,6 +23,18 @@ public class Launcher extends Application {
         // Carica la scena iniziale (Autenticazione)
         FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("Autenticazione.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 500);
+
+        String cssPath = getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm();
+        scene.getStylesheets().add(cssPath);
+
+        URL cssUrl = getClass().getResource("css/style.css");
+        if (cssUrl == null) {
+            System.out.println("ERRORE CRITICO: File CSS non trovato!");
+        } else {
+            System.out.println("CSS Trovato: " + cssUrl.toExternalForm());
+        }
+
+
         stage.setTitle("SoundTribe");
         stage.setScene(scene);
         stage.show();

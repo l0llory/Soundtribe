@@ -4,27 +4,29 @@ import java.sql.Date;
 
 public class Esecution {
     private int id;
-    private int songId;        // Collegamento alla canzone (Foreign Key)
-    private String filePath;   // Dove si trova il file o l'URL
-    private String fileType;   // "MP3", "MP4", "PDF", "YouTube", ecc.
-
-    // Metadati specifici richiesti
+    private int songId;
+    private String title;
+    private String filePath;
+    private String fileType;
     private String executors;
     private String instruments;
     private String duration;
     private boolean isLive;
-    private Date recordingDate; // Usiamo java.sql.Date per il database
+    private Date recordingDate;
     private String recordingPlace;
     private boolean isConcert;
-    private boolean isSelfPerformer; // Se l'utente è l'interprete
+    private boolean isSelfPerformer;
+    private int uploaderId;
 
     public Esecution() {}
 
-    public Esecution(int id, int songId, String filePath, String fileType, String executors,
+    // Costruttore aggiornato
+    public Esecution(int id, int songId, String title, String filePath, String fileType, String executors,
                      String instruments, String duration, boolean isLive, Date recordingDate,
-                     String recordingPlace, boolean isConcert, boolean isSelfPerformer) {
+                     String recordingPlace, boolean isConcert, boolean isSelfPerformer, int uploaderId) {
         this.id = id;
         this.songId = songId;
+        this.title = title;
         this.filePath = filePath;
         this.fileType = fileType;
         this.executors = executors;
@@ -35,42 +37,38 @@ public class Esecution {
         this.recordingPlace = recordingPlace;
         this.isConcert = isConcert;
         this.isSelfPerformer = isSelfPerformer;
+        this.uploaderId = uploaderId;
     }
 
-    // Getters e Setters
+    // Getter e Setter per il titolo
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    // ... (altri getter e setter invariati) ...
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-
     public int getSongId() { return songId; }
     public void setSongId(int songId) { this.songId = songId; }
-
     public String getFilePath() { return filePath; }
     public void setFilePath(String filePath) { this.filePath = filePath; }
-
     public String getFileType() { return fileType; }
     public void setFileType(String fileType) { this.fileType = fileType; }
-
     public String getExecutors() { return executors; }
     public void setExecutors(String executors) { this.executors = executors; }
-
     public String getInstruments() { return instruments; }
     public void setInstruments(String instruments) { this.instruments = instruments; }
-
     public String getDuration() { return duration; }
     public void setDuration(String duration) { this.duration = duration; }
-
     public boolean isLive() { return isLive; }
     public void setLive(boolean live) { isLive = live; }
-
     public Date getRecordingDate() { return recordingDate; }
     public void setRecordingDate(Date recordingDate) { this.recordingDate = recordingDate; }
-
     public String getRecordingPlace() { return recordingPlace; }
     public void setRecordingPlace(String recordingPlace) { this.recordingPlace = recordingPlace; }
-
     public boolean isConcert() { return isConcert; }
     public void setConcert(boolean concert) { isConcert = concert; }
-
     public boolean isSelfPerformer() { return isSelfPerformer; }
     public void setSelfPerformer(boolean selfPerformer) { isSelfPerformer = selfPerformer; }
+    public int getUploaderId() { return uploaderId; }
+    public void setUploaderId(int uploaderId) { this.uploaderId = uploaderId; }
 }

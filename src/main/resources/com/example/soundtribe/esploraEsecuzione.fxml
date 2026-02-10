@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.soundtribe.ExploreExecutionController"
+            stylesheets="@css/style.css"
+            prefHeight="600.0" prefWidth="800.0">
+
+    <top>
+        <VBox spacing="10.0" BorderPane.alignment="CENTER">
+            <padding><Insets top="20.0" right="20.0" bottom="10.0" left="20.0"/></padding>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Button fx:id="backBtn" text="◀ Torna Indietro" styleClass="st-button-outline"/>
+                <Label text="Dettaglio Esecuzione" styleClass="st-label-title">
+                    <font><Font size="20.0"/></font>
+                </Label>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" styleClass="st-scroll-pane">
+            <content>
+                <VBox spacing="20.0" style="-fx-background-color: transparent;">
+                    <padding><Insets top="10.0" right="30.0" bottom="30.0" left="30.0"/></padding>
+
+                    <VBox styleClass="st-card" spacing="15.0">
+                        <Label fx:id="titleLabel" text="Titolo Esecuzione" styleClass="st-label-blue" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                        <HBox spacing="10.0">
+                            <Label text="Esecutori:" styleClass="st-label-subtitle"/>
+                            <Label fx:id="executorsLabel" text="Mario Rossi, The Band" styleClass="st-label"/>
+                        </HBox>
+
+                        <HBox spacing="10.0">
+                            <Label text="Strumenti:" styleClass="st-label-subtitle"/>
+                            <Label fx:id="instrumentsLabel" text="Chitarra, Voce" styleClass="st-label"/>
+                        </HBox>
+
+                        <Separator styleClass="st-separator"/>
+
+                        <HBox spacing="30.0">
+                            <VBox spacing="5.0">
+                                <Label text="Luogo" styleClass="st-label-subtitle"/>
+                                <Label fx:id="placeLabel" text="Teatro Sociale" styleClass="st-label"/>
+                            </VBox>
+                            <VBox spacing="5.0">
+                                <Label text="Data" styleClass="st-label-subtitle"/>
+                                <Label fx:id="dateLabel" text="2023-10-15" styleClass="st-label"/>
+                            </VBox>
+                            <VBox spacing="5.0">
+                                <Label text="Tipo" styleClass="st-label-subtitle"/>
+                                <Label fx:id="typeLabel" text="Live / Inedito" styleClass="st-badge"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <VBox styleClass="st-card" spacing="15.0">
+                        <Label text="File Multimediale" styleClass="st-label-blue"/>
+
+                        <HBox spacing="15.0" alignment="CENTER_LEFT">
+                            <Label fx:id="filePathLabel" text="Nessun file collegato" styleClass="st-label-subtitle" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="openFileBtn" text="Apri File / Link" styleClass="st-button-primary"/>
+                        </HBox>
+                    </VBox>
+
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -1,25 +1,27 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.dao.EsecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
+import com.example.soundtribe.entità.Esecution;
 import com.example.soundtribe.entità.Song;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,184 +35,242 @@ public class SongsController {
     @FXML public Button aggiungiBrano;
     @FXML public TextField searchBarSongs;
     @FXML public ComboBox<String> generiFilter;
-    @FXML public ListView<Song> listaBrani;
+
+    // NOTA: Cambiato il tipo generico della ListView in MusicItem
+    @FXML public ListView<MusicItem> listaBrani;
 
     private SongDAO songDAO;
-    private List<Song> allSongsMasterList;
+    private EsecutionDAO execDAO;
+    private List<MusicItem> allMusicItems;
 
     @FXML
     public void initialize() {
         songDAO = new SongDAO();
+        execDAO = new EsecutionDAO();
+        allMusicItems = new ArrayList<>();
 
         // 1. POPOLAMENTO MENU GENERI
-        generiFilter.getItems().add("Tutti i generi");
+        generiFilter.getItems().add("Tutti");
         generiFilter.getItems().addAll(
                 "Afro", "Blues", "Folk", "Indie", "Jazz", "Musica classica",
-                "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap"
+                "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap", "Esecuzioni" // Aggiunto filtro per sole esecuzioni
         );
         generiFilter.getSelectionModel().selectFirst();
 
-        NavigationManager.updateNavigationButtons(precP_Songs, nextP_Songs);
+        // 2. Setup Navigazione
         NavigationManager.navBack(precP_Songs);
         NavigationManager.navForward(nextP_Songs);
+        NavigationManager.updateNavigationButtons(precP_Songs, nextP_Songs);
         NavigationManager.home(backHome_Songs);
         NavigationManager.exit(Exit_Songs);
 
         setupCellFactory();
 
-        // 2. Carichiamo tutti i brani
-        allSongsMasterList = songDAO.getAllSongs();
-        applyFilters(); // Mostra tutto all'inizio
+        // 3. Carichiamo TUTTI i dati (Brani + Esecuzioni)
+        loadAllData();
 
-        aggiungiBrano.setOnAction(event -> SceneManager.changeScene(event, "aggiungiBrano.fxml", 800, 600, true));
-
-        // 3. LISTENERS: Aggiornano la lista in tempo reale
-        searchBarSongs.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        generiFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-
-        // 4. GESTIONE RICERCA DALLA HOME
+        // 4. Gestione Ricerca Iniziale (dalla Home)
         String pendingSearch = UserSession.getInstance().getLastSearchQuery();
         if (pendingSearch != null && !pendingSearch.isEmpty()) {
-            searchBarSongs.setText(pendingSearch); // Questo triggera automaticamente il listener sopra!
-            UserSession.getInstance().setLastSearchQuery(null); // Pulisci sessione
+            searchBarSongs.setText(pendingSearch);
+            UserSession.getInstance().setLastSearchQuery(null); // Consuma la ricerca
+        }
+
+        applyFilters();
+
+        // 5. LISTENERS
+        searchBarSongs.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        generiFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+
+        // 6. Aggiungi Brano
+        aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
+    }
+
+    private void loadAllData() {
+        allMusicItems.clear();
+
+        // Aggiungi Canzoni
+        List<Song> songs = songDAO.getAllSongs();
+        for (Song s : songs) {
+            allMusicItems.add(new MusicItem(s));
+        }
+
+        // Aggiungi Esecuzioni
+        List<Esecution> executions = execDAO.getAllExecutions();
+        for (Esecution e : executions) {
+            allMusicItems.add(new MusicItem(e));
         }
     }
 
     private void applyFilters() {
-        if (allSongsMasterList == null) return;
+        if (allMusicItems == null) return;
 
         String query = searchBarSongs.getText().toLowerCase().trim();
         String selectedGenre = generiFilter.getValue();
 
-        List<Song> filteredList = allSongsMasterList.stream()
-                .filter(song -> {
+        List<MusicItem> filteredList = allMusicItems.stream()
+                .filter(item -> {
+                    // Filtro Testo (Titolo o Artista)
                     boolean matchesText = query.isEmpty() ||
-                            song.getTitle().toLowerCase().contains(query) ||
-                            song.getArtist().toLowerCase().contains(query);
+                            item.getTitle().toLowerCase().contains(query) ||
+                            item.getArtist().toLowerCase().contains(query);
 
-                    boolean matchesGenre = selectedGenre == null ||
-                            selectedGenre.equals("Tutti i generi") ||
-                            song.getGenre().equalsIgnoreCase(selectedGenre);
+                    // Filtro Genere / Tipo
+                    boolean matchesGenre = true;
+                    if (selectedGenre != null && !selectedGenre.equals("Tutti")) {
+                        if (selectedGenre.equals("Esecuzioni")) {
+                            matchesGenre = !item.isSong(); // Mostra solo esecuzioni
+                        } else {
+                            // Mostra solo canzoni di quel genere
+                            matchesGenre = item.isSong() && item.getSong().getGenre().equalsIgnoreCase(selectedGenre);
+                        }
+                    }
 
                     return matchesText && matchesGenre;
                 })
-                .sorted(Comparator.comparing(Song::getTitle, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(MusicItem::getTitle, String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
 
         listaBrani.setItems(FXCollections.observableArrayList(filteredList));
     }
 
     private void setupCellFactory() {
-        listaBrani.setCellFactory(param -> new ListCell<Song>() {
+        listaBrani.setCellFactory(param -> new ListCell<MusicItem>() {
             @Override
-            protected void updateItem(Song song, boolean empty) {
-                super.updateItem(song, empty);
+            protected void updateItem(MusicItem item, boolean empty) {
+                super.updateItem(item, empty);
 
-                if (empty || song == null) {
+                if (empty || item == null) {
                     setGraphic(null);
+                    setText(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
+                    // Costruzione Card
                     VBox card = new VBox(10);
                     card.setPadding(new Insets(15));
-                    card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #3969da; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
+                    card.getStyleClass().add("st-card");
 
+                    // Header
                     HBox header = new HBox(15);
                     header.setAlignment(Pos.CENTER_LEFT);
 
-                    Node visualElement;
-                    if (song.getCoverPath() != null && !song.getCoverPath().isEmpty()) {
-                        try {
-                            ImageView coverImg = new ImageView(new Image(song.getCoverPath()));
-                            coverImg.setFitWidth(50);
-                            coverImg.setFitHeight(50);
-                            coverImg.setPreserveRatio(true);
-                            Rectangle clip = new Rectangle(50, 50);
-                            clip.setArcWidth(10);
-                            clip.setArcHeight(10);
-                            coverImg.setClip(clip);
-                            visualElement = coverImg;
-                        } catch (Exception e) {
-                            visualElement = createDefaultIcon();
-                        }
+                    // Icona / Immagine
+                    Node iconNode;
+                    if (item.isSong()) {
+                        // Logica Immagine Canzone (come prima)
+                        iconNode = createSongIcon(item.getSong());
                     } else {
-                        visualElement = createDefaultIcon();
+                        // Icona per Esecuzione (Microfono o Nota diversa)
+                        Label execIcon = new Label("🎤");
+                        execIcon.setStyle("-fx-font-size: 28px; -fx-text-fill: -st-blue-primary;");
+                        execIcon.setMinWidth(50);
+                        execIcon.setAlignment(Pos.CENTER);
+                        iconNode = execIcon;
                     }
 
-                    Label titleLabel = new Label(song.getTitle());
-                    titleLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-                    titleLabel.setTextFill(javafx.scene.paint.Color.web("#3969da"));
+                    // Titolo e Badge
+                    VBox titleBox = new VBox(2);
+                    Label titleLabel = new Label(item.getTitle());
+                    titleLabel.getStyleClass().add("st-label-blue");
+                    titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
 
-                    Label genreTag = new Label(song.getGenre());
-                    genreTag.setStyle("-fx-background-color: #f0f4ff; -fx-text-fill: #3969da; -fx-padding: 2 10; -fx-background-radius: 15; -fx-border-color: #3969da; -fx-border-radius: 15;");
-                    genreTag.setFont(Font.font(10));
-
-                    HBox titleGroup = new HBox(10, titleLabel, genreTag);
-                    titleGroup.setAlignment(Pos.CENTER_LEFT);
-
-                    header.getChildren().addAll(visualElement, titleGroup);
-
-                    Label authorLabel = new Label("Autore: " + song.getArtist());
-                    authorLabel.setTextFill(javafx.scene.paint.Color.web("#908888"));
-                    authorLabel.setPadding(new Insets(0, 0, 0, 65));
-
-                    HBox actionBox = new HBox(10);
-                    actionBox.setPadding(new Insets(5, 0, 0, 65));
-
-                    Button playBtn = new Button("▶ Esplora");
-                    playBtn.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;");
-                    playBtn.setOnAction(e -> openSongDetails(song, playBtn));
-                    actionBox.getChildren().add(playBtn);
-
-                    if (song.getYoutubeUrl() != null && !song.getYoutubeUrl().isEmpty()) {
-                        Button ytBtn = createStyledLink("📺 YouTube");
-                        ytBtn.setOnAction(e -> openUrlSafe(song.getYoutubeUrl()));
-                        actionBox.getChildren().add(ytBtn);
+                    Label subTitleLabel;
+                    if (item.isSong()) {
+                        subTitleLabel = new Label(item.getSong().getGenre());
+                        subTitleLabel.getStyleClass().add("st-badge");
+                    } else {
+                        // Se è esecuzione, mostra se è Inedito o Cover
+                        String type = (item.getExecution().getSongId() == 0) ? "Inedito" : "Cover";
+                        subTitleLabel = new Label(type);
+                        subTitleLabel.setStyle("-fx-background-color: #444; -fx-text-fill: white; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px;");
                     }
+                    titleBox.getChildren().addAll(titleLabel, subTitleLabel);
+
+                    header.getChildren().addAll(iconNode, titleBox);
+
+                    // Autore / Esecutore
+                    Label authorLabel = new Label(item.isSong() ?
+                            "Autore: " + item.getSong().getArtist() :
+                            "Esecutori: " + item.getExecution().getExecutors());
+                    authorLabel.getStyleClass().add("st-label-subtitle");
+
+                    // Bottone Esplora
+                    HBox actionBox = new HBox();
+                    actionBox.setAlignment(Pos.CENTER_RIGHT);
+                    Button exploreBtn = new Button("Esplora");
+                    exploreBtn.getStyleClass().add("st-button-small");
+                    exploreBtn.getStyleClass().add("st-button-primary");
+
+                    exploreBtn.setOnAction(e -> {
+                        if (item.isSong()) {
+                            openSongDetails(item.getSong(), exploreBtn);
+                        } else {
+                            openExecutionDetails(item.getExecution(), exploreBtn);
+                        }
+                    });
+
+                    actionBox.getChildren().add(exploreBtn);
 
                     card.getChildren().addAll(header, authorLabel, actionBox);
                     setGraphic(card);
-                    setStyle("-fx-background-color: transparent; -fx-padding: 10;");
+                    setStyle("-fx-background-color: transparent; -fx-padding: 5;");
                 }
-            }
-
-            private Label createDefaultIcon() {
-                Label musicIcon = new Label("♫");
-                musicIcon.setTextFill(javafx.scene.paint.Color.web("#3969da"));
-                musicIcon.setFont(Font.font("System", FontWeight.BOLD, 24));
-                musicIcon.setMinWidth(50);
-                musicIcon.setAlignment(Pos.CENTER);
-                return musicIcon;
-            }
-
-            private Button createStyledLink(String text) {
-                Button btn = new Button(text);
-                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #3969da; -fx-font-size: 11px; -fx-border-color: #3969da; -fx-border-radius: 5; -fx-cursor: hand;");
-                btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-font-size: 11px; -fx-background-radius: 5; -fx-cursor: hand;"));
-                btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #3969da; -fx-font-size: 11px; -fx-border-color: #3969da; -fx-border-radius: 5; -fx-cursor: hand;"));
-                return btn;
             }
         });
     }
 
-    private void openSongDetails(Song song, Button sourceButton) {
+    // Helper per creare l'icona della canzone
+    private Node createSongIcon(Song song) {
+        if (song.getCoverPath() != null && !song.getCoverPath().isEmpty()) {
+            try {
+                ImageView coverImg = new ImageView(new Image(song.getCoverPath()));
+                coverImg.setFitWidth(50);
+                coverImg.setFitHeight(50);
+                coverImg.setPreserveRatio(true);
+                Rectangle clip = new Rectangle(50, 50);
+                clip.setArcWidth(10);
+                clip.setArcHeight(10);
+                coverImg.setClip(clip);
+                return coverImg;
+            } catch (Exception e) { }
+        }
+        Label defaultIcon = new Label("🎵");
+        defaultIcon.setStyle("-fx-font-size: 28px; -fx-text-fill: -st-blue-primary;");
+        defaultIcon.setMinWidth(50);
+        defaultIcon.setAlignment(Pos.CENTER);
+        return defaultIcon;
+    }
+
+    // Navigazione Dettaglio Canzone
+    private void openSongDetails(Song song, Button source) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraBrani.fxml"));
             Parent root = loader.load();
-            ExploreSongController controller = loader.getController();
-            controller.setSong(song);
-            Stage stage = (Stage) sourceButton.getScene().getWindow();
-            stage.setScene(new Scene(root, 800, 600));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+            // Importante: Assicurati che ExploreSongController esista e abbia setSong()
+            // ExploreSongController controller = loader.getController();
+            // controller.setSong(song);
+
+            Stage stage = (Stage) source.getScene().getWindow();
+            Scene scene = new Scene(root, 800, 600);
+            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+            stage.setScene(scene);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private void openUrlSafe(String url) {
+    // Navigazione Dettaglio Esecuzione (NUOVO)
+    private void openExecutionDetails(Esecution execution, Button source) {
         try {
-            Launcher.getInstance().openDocument(url);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraEsecuzione.fxml"));
+            Parent root = loader.load();
+
+            ExploreExecutionController controller = loader.getController();
+            controller.setExecution(execution); // Passiamo l'esecuzione al controller
+
+            Stage stage = (Stage) source.getScene().getWindow();
+            Scene scene = new Scene(root, 800, 600);
+            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+            stage.setScene(scene);
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }

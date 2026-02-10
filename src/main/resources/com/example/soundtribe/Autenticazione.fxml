@@ -5,31 +5,43 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.soundtribe.AuthenticationController" prefHeight="500.0" prefWidth="600.0">
+<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.soundtribe.AuthenticationController"
+            stylesheets="@css/style.css"
+            prefHeight="600.0" prefWidth="600.0">
 
-   <!-- HEADER SECTION -->
    <top>
-      <VBox spacing="8.0" BorderPane.alignment="CENTER">
+      <VBox spacing="10.0" alignment="CENTER" BorderPane.alignment="CENTER">
          <padding>
-            <Insets top="20.0" right="15.0" bottom="10.0" left="15.0"/>
+            <Insets top="40.0" right="15.0" bottom="10.0" left="15.0"/>
          </padding>
-         
-         <!-- Title Section -->
-         <VBox alignment="CENTER" spacing="3.0">
+
+         <VBox alignment="CENTER" spacing="5.0">
             <children>
-               <Label text="SoundTribe" textFill="#3969da">
+               <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@img/soundtribe-logo.png" />
+                  </image>
+                  <VBox.margin>
+                     <Insets bottom="10.0" />
+                  </VBox.margin>
+               </ImageView>
+
+               <Label text="SoundTribe" styleClass="st-label-title">
                   <font>
-                     <Font name="System Bold" size="28.0"/>
+                     <Font name="System Bold" size="32.0"/>
                   </font>
                </Label>
-               <Label text="Gestione collezione musicale" textFill="#908888">
+               <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
                   <font>
-                     <Font size="12.0"/>
+                     <Font size="14.0"/>
                   </font>
                </Label>
             </children>
@@ -37,97 +49,106 @@
       </VBox>
    </top>
 
-   <!-- LOGIN FORM SECTION -->
    <center>
-      <VBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
+      <VBox alignment="CENTER" spacing="15.0" BorderPane.alignment="CENTER" style="-fx-background-color: transparent;">
          <padding>
-            <Insets left="100.0" right="100.0" top="20.0" bottom="20.0" />
+            <Insets bottom="20.0" />
          </padding>
-         <children>
-            <Label text="Accedi al tuo account" textFill="#3969da">
-               <font>
-                  <Font name="System Bold" size="18.0" />
-               </font>
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Label>
-            
-            <!-- Email Field -->
-            <VBox spacing="5.0">
-               <children>
-                  <Label text="Email" textFill="#908888">
+
+         <VBox spacing="20.0" maxWidth="400.0" styleClass="st-card">
+            <padding>
+               <Insets top="40.0" right="40.0" bottom="40.0" left="40.0"/>
+            </padding>
+            <children>
+
+               <VBox alignment="CENTER">
+                  <Label text="Bentornato!" styleClass="st-label-blue">
                      <font>
-                        <Font size="13.0" />
+                        <Font name="System Bold" size="22.0" />
                      </font>
                   </Label>
-                  <TextField fx:id="emailField" promptText="inserisci la tua email" minHeight="35.0">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </TextField>
-               </children>
-            </VBox>
-            
-            <!-- Password Field -->
-            <VBox spacing="5.0">
-               <children>
-                  <Label text="Password" textFill="#908888">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
+                  <Label text="Accedi al tuo account" styleClass="st-label-subtitle">
+                     <VBox.margin>
+                        <Insets top="5.0"/>
+                     </VBox.margin>
                   </Label>
-                  <PasswordField fx:id="passwordField" promptText="inserisci la tua password" minHeight="35.0">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </PasswordField>
-               </children>
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </VBox>
-            
-            <!-- Login Button -->
-            <Button fx:id="loginButton" mnemonicParsing="false" text="Accedi" 
-                    maxWidth="Infinity" minHeight="40.0" defaultButton="true">
-               <font>
-                  <Font name="System Bold" size="14.0" />
-               </font>
-            </Button>
-            
-            <!-- Divider -->
-            <HBox alignment="CENTER" spacing="10.0">
-               <children>
-                  <Label text="Non hai un account?" textFill="#908888">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-                  <Button fx:id="goToRegistrationButton" mnemonicParsing="false" text="Registrati ora" 
-                          style="-fx-background-color: transparent; -fx-text-fill: #3969da; -fx-cursor: hand;">
-                     <font>
-                        <Font name="System Bold" size="12.0" />
-                     </font>
-                  </Button>
-               </children>
-               <VBox.margin>
-                  <Insets top="10.0" />
-               </VBox.margin>
-            </HBox>
-         </children>
+               </VBox>
+
+               <VBox spacing="5.0">
+                  <children>
+                     <Label text="Email" styleClass="st-label-subtitle">
+                        <font>
+                           <Font size="13.0"/>
+                        </font>
+                     </Label>
+                     <TextField fx:id="emailField" promptText="nome@esempio.com" minHeight="45.0" styleClass="st-text-field">
+                        <font>
+                           <Font size="14.0"/>
+                        </font>
+                     </TextField>
+                  </children>
+               </VBox>
+
+               <VBox spacing="5.0">
+                  <children>
+                     <Label text="Password" styleClass="st-label-subtitle">
+                        <font>
+                           <Font size="13.0"/>
+                        </font>
+                     </Label>
+                     <PasswordField fx:id="passwordField" promptText="Inserisci la password" minHeight="45.0" styleClass="st-password-field">
+                        <font>
+                           <Font size="14.0"/>
+                        </font>
+                     </PasswordField>
+                  </children>
+               </VBox>
+
+               <Button fx:id="loginButton" mnemonicParsing="false" text="Accedi"
+                       maxWidth="Infinity" minHeight="45.0" defaultButton="true" styleClass="st-button-primary">
+                  <font>
+                     <Font name="System Bold" size="15.0" />
+                  </font>
+                  <VBox.margin>
+                     <Insets top="10.0" />
+                  </VBox.margin>
+               </Button>
+
+               <HBox alignment="CENTER" spacing="5.0">
+                  <children>
+                     <Label text="Non hai un account?" styleClass="st-label-subtitle">
+                        <font>
+                           <Font size="12.0"/>
+                        </font>
+                     </Label>
+
+                     <Button fx:id="goToRegistrationButton" mnemonicParsing="false" text="Registrati ora"
+                             styleClass="st-button-outline"
+                             style="-fx-border-color: transparent; -fx-padding: 0 5 0 5; -fx-text-fill: -st-blue-primary;">
+                        <font>
+                           <Font name="System Bold" size="12.0" />
+                        </font>
+                     </Button>
+                  </children>
+                  <VBox.margin>
+                     <Insets top="5.0" />
+                  </VBox.margin>
+               </HBox>
+
+            </children>
+         </VBox>
       </VBox>
    </center>
-   
+
    <bottom>
       <VBox alignment="CENTER">
          <padding>
             <Insets top="20.0" right="20.0" bottom="20.0" left="20.0" />
          </padding>
          <children>
-            <Label text="© 2026 SoundTribe" textFill="#908888">
+            <Label text="© 2026 SoundTribe" styleClass="st-label-subtitle">
                <font>
-                  <Font size="10.0" />
+                  <Font size="11.0" />
                </font>
             </Label>
          </children>
@@ -135,4 +156,3 @@
    </bottom>
 
 </BorderPane>
-

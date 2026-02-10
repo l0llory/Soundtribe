@@ -20,11 +20,14 @@ public class UploadController {
     @FXML public Button backHome_Upload;
     @FXML public Button Exit_Upload;
 
-    // Sezione 1: Brano
+    // Sezione 1: Titolo (NUOVO)
+    @FXML public TextField titoloEsecuzioneField;
+
+    // Sezione 2: Brano
     @FXML public ComboBox<Song> comboSelezionaBrano;
     @FXML public Button nuovoBrano_Upload;
 
-    // Sezione 2: Sorgente
+    // Sezione 3: Sorgente
     @FXML public Button tabFile;
     @FXML public Button tabYoutube;
     @FXML public VBox fileUploadArea;
@@ -34,7 +37,7 @@ public class UploadController {
     @FXML public TextField youtubeLinkField;
     @FXML public CheckBox chkConcertoIntero;
 
-    // Sezione 3: Metadati
+    // Sezione 4: Metadati
     @FXML public ComboBox<String> comboTipoFile;
     @FXML public GridPane metadataGrid;
     @FXML public CheckBox chkSelfPerformer;
@@ -65,14 +68,21 @@ public class UploadController {
         // Action Nuovo Brano
         nuovoBrano_Upload.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
 
-        // Conferma Upload (Logica stub)
+        // Conferma Upload
         btnConfermaUpload.setOnAction(e -> handleUpload());
+
+        // FEATURE OPZIONALE: Se seleziono un brano esistente, suggerisco un titolo se il campo è vuoto
+        comboSelezionaBrano.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && (titoloEsecuzioneField.getText() == null || titoloEsecuzioneField.getText().isEmpty())) {
+                titoloEsecuzioneField.setText(newVal.getTitle() + " (Cover)");
+            }
+        });
     }
 
     private void setupNavigation() {
-        NavigationManager.updateNavigationButtons(precP_Upload, nextP_Upload);
         NavigationManager.navBack(precP_Upload);
         NavigationManager.navForward(nextP_Upload);
+        NavigationManager.updateNavigationButtons(precP_Upload, nextP_Upload);
         NavigationManager.home(backHome_Upload);
         NavigationManager.exit(Exit_Upload);
     }
@@ -83,7 +93,7 @@ public class UploadController {
     }
 
     private void setupTabs() {
-        // Logica semplice per cambiare tra File e YouTube
+        // Toggle Logica
         tabFile.setOnAction(e -> {
             isYoutubeMode = false;
             fileUploadArea.setVisible(true);
@@ -91,9 +101,10 @@ public class UploadController {
             youtubeUploadArea.setVisible(false);
             youtubeUploadArea.setManaged(false);
 
-            // Stile attivo/inattivo
-            tabFile.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-background-radius: 5 0 0 5;");
-            tabYoutube.setStyle("-fx-background-color: white; -fx-border-color: #3969da; -fx-text-fill: #3969da; -fx-background-radius: 0 5 5 0;");
+            if (!tabFile.getStyleClass().contains("st-segment-button-active")) {
+                tabFile.getStyleClass().add("st-segment-button-active");
+            }
+            tabYoutube.getStyleClass().remove("st-segment-button-active");
         });
 
         tabYoutube.setOnAction(e -> {
@@ -103,16 +114,16 @@ public class UploadController {
             youtubeUploadArea.setVisible(true);
             youtubeUploadArea.setManaged(true);
 
-            tabYoutube.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-background-radius: 0 5 5 0;");
-            tabFile.setStyle("-fx-background-color: white; -fx-border-color: #3969da; -fx-text-fill: #3969da; -fx-background-radius: 5 0 0 5;");
+            if (!tabYoutube.getStyleClass().contains("st-segment-button-active")) {
+                tabYoutube.getStyleClass().add("st-segment-button-active");
+            }
+            tabFile.getStyleClass().remove("st-segment-button-active");
         });
     }
 
     private void setupMetadataLogic() {
-        // 1. Logica "Sono io l'interprete"
         chkSelfPerformer.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
-                // Se sono io, precompila con il mio nome e disabilita
                 int userId = UserSession.getInstance().getUserId();
                 UserDAO dao = new UserDAO();
                 User me = dao.getUserById(userId);
@@ -126,8 +137,6 @@ public class UploadController {
             }
         });
 
-        // 2. Logica "Live Recording"
-        // Data e Luogo sono obbligatori solo se è Live, altrimenti opzionali o disabilitati
         dataRegistrazione.setDisable(true);
         luogoField.setDisable(true);
 
@@ -136,9 +145,8 @@ public class UploadController {
             luogoField.setDisable(!newVal);
         });
 
-        // 3. Nascondi campi inutili se è uno spartito
         comboTipoFile.valueProperty().addListener((obs, oldVal, newVal) -> {
-            boolean isAudioVideo = newVal != null && (newVal.contains("Audio") || newVal.contains("Video"));
+            boolean isAudioVideo = newVal != null;
             metadataGrid.setVisible(isAudioVideo);
             metadataGrid.setManaged(isAudioVideo);
         });
@@ -153,11 +161,26 @@ public class UploadController {
     }
 
     private void handleUpload() {
-        if (comboSelezionaBrano.getValue() == null) {
-            AlertUtil.mostra("Errore", "Nessun Brano", "Devi selezionare un brano a cui associare il file.", Alert.AlertType.WARNING);
+        // 1. VALIDAZIONE: Titolo obbligatorio
+        if (titoloEsecuzioneField.getText() == null || titoloEsecuzioneField.getText().trim().isEmpty()) {
+            AlertUtil.mostra("Errore", "Titolo Mancante", "Inserisci un titolo per questa esecuzione.", Alert.AlertType.WARNING);
             return;
         }
 
+        // VALIDAZIONE: Sorgente
+        if (isYoutubeMode) {
+            if (youtubeLinkField.getText() == null || youtubeLinkField.getText().trim().isEmpty()) {
+                AlertUtil.mostra("Errore", "Link Mancante", "Inserisci un link YouTube valido.", Alert.AlertType.WARNING);
+                return;
+            }
+        } else {
+            if (selectedFile == null) {
+                AlertUtil.mostra("Errore", "File Mancante", "Seleziona un file locale da caricare.", Alert.AlertType.WARNING);
+                return;
+            }
+        }
+
+        // VALIDAZIONE: Live
         if (chkLiveRecording.isSelected()) {
             if (dataRegistrazione.getValue() == null || luogoField.getText().isEmpty()) {
                 AlertUtil.mostra("Dati Mancanti", "Live Recording", "Per le registrazioni dal vivo, Data e Luogo sono obbligatori.", Alert.AlertType.ERROR);
@@ -165,22 +188,26 @@ public class UploadController {
             }
         }
 
-
+        // 2. RECUPERO DATI
+        int songId = 0;
         Song selectedSong = comboSelezionaBrano.getValue();
-        int songId = selectedSong.getId();
+        if (selectedSong != null) {
+            songId = selectedSong.getId();
+        }
 
-        // Prepara la data (converti da DatePicker di JavaFX a SQL Date)
         java.sql.Date sqlDate = null;
         if (dataRegistrazione.getValue() != null) {
             sqlDate = java.sql.Date.valueOf(dataRegistrazione.getValue());
         }
 
+        int currentUserId = UserSession.getInstance().getUserId();
 
+        // 3. CREAZIONE OGGETTO ESECUTION (Aggiornato col TITOLO)
         Esecution newMedia = new Esecution(
-                0,
+                0, // ID auto-increment
                 songId,
-
-                isYoutubeMode ? youtubeLinkField.getText() : (selectedFile != null ? selectedFile.getAbsolutePath() : ""),
+                titoloEsecuzioneField.getText(), // <--- TITOLO
+                isYoutubeMode ? youtubeLinkField.getText() : selectedFile.getAbsolutePath(),
                 comboTipoFile.getValue(),
                 esecutoriField.getText(),
                 strumentiField.getText(),
@@ -189,14 +216,30 @@ public class UploadController {
                 sqlDate,
                 luogoField.getText(),
                 chkConcertoIntero.isSelected(),
-                chkSelfPerformer.isSelected()
+                chkSelfPerformer.isSelected(),
+                currentUserId
         );
 
-
+        // 4. SALVATAGGIO
         EsecutionDAO mediaDAO = new EsecutionDAO();
         mediaDAO.addMedia(newMedia);
 
-        // Qui implementerai la logica di salvataggio nel DB (nuova tabella 'documents' o simile)
         AlertUtil.mostra("Successo", "Caricamento Completato", "Il materiale è stato caricato correttamente.", Alert.AlertType.INFORMATION);
+
+        resetFields();
+    }
+
+    private void resetFields() {
+        titoloEsecuzioneField.clear(); // Resetta il titolo
+        comboSelezionaBrano.getSelectionModel().clearSelection();
+        youtubeLinkField.clear();
+        selectedFile = null;
+        lblSelectedFile.setText("Nessun file selezionato");
+        esecutoriField.clear();
+        strumentiField.clear();
+        durataField.clear();
+        chkLiveRecording.setSelected(false);
+        chkConcertoIntero.setSelected(false);
+        chkSelfPerformer.setSelected(false);
     }
 }

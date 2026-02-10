@@ -18,7 +18,6 @@ public class ProfileController {
     @FXML public Button homeBtn;
     @FXML public Button logoutBtn;
 
-    // --- MODIFICA 1: Usa Circle invece di ImageView ---
     @FXML public Circle profileCircle;
     @FXML public Button changePicBtn;
 

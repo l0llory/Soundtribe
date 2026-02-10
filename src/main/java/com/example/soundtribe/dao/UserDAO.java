@@ -2,18 +2,15 @@ package com.example.soundtribe.dao;
 
 import com.example.soundtribe.entità.User;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
-    private String dbUrl;
-    private String user;
-    private String password;
+    private String dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
+    private String user = "postgres";
+    private String password = "AppSoundtribe14";
 
     public UserDAO() {
-        // Credenziali del tuo database PostgreSQL
-        this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
-        this.user = "postgres";
-        this.password = "AppSoundtribe14";
-
         initTable();
     }
 
@@ -30,8 +27,9 @@ public class UserDAO {
                 "email VARCHAR(150) UNIQUE NOT NULL, " +
                 "password VARCHAR(100) NOT NULL, " +
                 "is_admin BOOLEAN DEFAULT FALSE, " +
-                "profile_pic_path TEXT, " +     // Nuova colonna
-                "favorite_genre TEXT" +         // Nuova colonna
+                "is_approved BOOLEAN DEFAULT FALSE, " + // Colonna Approvazione
+                "profile_pic_path TEXT, " +
+                "favorite_genre TEXT" +
                 ")";
 
         try (Connection conn = getConnection();
@@ -40,12 +38,13 @@ public class UserDAO {
             // 1. Crea la tabella base se non c'è
             stmt.execute(sql);
 
-            // 2. Migrazione: Se la tabella esisteva già, aggiungiamo le colonne nuove
+            // 2. Migrazione sicura: aggiunge colonne se mancano (per database esistenti)
             try {
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic_path TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_genre TEXT");
+                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE");
             } catch (SQLException ignore) {
-                // Ignoriamo errori se le colonne esistono già
+                // Colonne già presenti
             }
 
         } catch (SQLException e) {
@@ -53,10 +52,12 @@ public class UserDAO {
         }
     }
 
-    // Metodo per Registrare un nuovo utente (INSERT)
+    // --- METODI CRUD PRINCIPALI ---
+
+    // 1. REGISTRAZIONE (Create)
     public boolean registerUser(User user) {
-        // Nota: Al momento della registrazione profile_pic e genere sono NULL, va bene così.
-        String sql = "INSERT INTO users (name, surname, email, password, is_admin) VALUES (?, ?, ?, ?, ?)";
+        // Inseriamo anche i nuovi campi. is_approved sarà FALSE per default.
+        String sql = "INSERT INTO users (name, surname, email, password, is_admin, is_approved, favorite_genre, profile_pic_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -65,7 +66,10 @@ public class UserDAO {
             pstmt.setString(2, user.getSurname());
             pstmt.setString(3, user.getEmail());
             pstmt.setString(4, user.getPassword());
-            pstmt.setBoolean(5, user.isAdmin());
+            pstmt.setBoolean(5, user.isAdmin());      // false
+            pstmt.setBoolean(6, user.isApproved());   // false (da costruttore)
+            pstmt.setString(7, user.getFavoriteGenre());
+            pstmt.setString(8, user.getProfilePicPath());
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -80,8 +84,68 @@ public class UserDAO {
         }
     }
 
-    // Metodo per aggiornare i dati di un utente esistente (UPDATE)
-    // Usato da ProfileController
+    // 2. GET ALL USERS (Read - Lista Principale)
+    // Ritorna SOLO gli utenti APPROVATI (is_approved = TRUE)
+    public List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE is_approved = TRUE ORDER BY name ASC";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                users.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // 3. GET PENDING USERS (Read - Lista Richieste)
+    // Ritorna SOLO gli utenti NON APPROVATI (is_approved = FALSE)
+    public List<User> getPendingUsers() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE is_approved = FALSE ORDER BY id ASC";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                users.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // 4. UPDATE STATUS (Per approvare utente)
+    public void updateUserStatus(int userId, boolean approved) {
+        String sql = "UPDATE users SET is_approved = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setBoolean(1, approved);
+            pstmt.setInt(2, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 5. DELETE USER (Per rifiutare richiesta o eliminare account)
+    public void deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 6. UPDATE PROFILE (Aggiornamento utente loggato)
     public boolean updateUser(User user) {
         String sql = "UPDATE users SET name = ?, password = ?, profile_pic_path = ?, favorite_genre = ? WHERE id = ?";
 
@@ -92,7 +156,7 @@ public class UserDAO {
             pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getProfilePicPath());
             pstmt.setString(4, user.getFavoriteGenre());
-            pstmt.setInt(5, user.getId()); // WHERE id = ?
+            pstmt.setInt(5, user.getId());
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -103,32 +167,7 @@ public class UserDAO {
         }
     }
 
-    //Metodo per la ricerca degli Utenti
-    public java.util.List<User> searchUsers(String query) {
-        java.util.List<User> users = new java.util.ArrayList<>();
-        // Cerca per Nome, Cognome o Email (case insensitive)
-        String sql = "SELECT * FROM users WHERE name ILIKE ? OR surname ILIKE ? OR email ILIKE ?";
-
-        try (java.sql.Connection conn = getConnection();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            String pattern = "%" + query + "%";
-            pstmt.setString(1, pattern);
-            pstmt.setString(2, pattern);
-            pstmt.setString(3, pattern);
-
-            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    users.add(mapRow(rs));
-                }
-            }
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
-    }
-
-    // Metodo per il Login
+    // 7. LOGIN
     public User login(String email, String password) {
         String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
@@ -140,7 +179,13 @@ public class UserDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapRow(rs);
+                    User u = mapRow(rs);
+                    // Controllo di sicurezza: se non è approvato, login fallito
+                    if (!u.isApproved()) {
+                        System.out.println("Login bloccato: utente non approvato.");
+                        return null;
+                    }
+                    return u;
                 }
             }
         } catch (SQLException e) {
@@ -149,7 +194,32 @@ public class UserDAO {
         return null;
     }
 
-    // Metodo per recuperare un utente dato il suo ID
+    // 8. RICERCA
+    public List<User> searchUsers(String query) {
+        List<User> users = new ArrayList<>();
+        // Cerca solo tra gli utenti approvati
+        String sql = "SELECT * FROM users WHERE is_approved = TRUE AND (name ILIKE ? OR surname ILIKE ? OR email ILIKE ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            String pattern = "%" + query + "%";
+            pstmt.setString(1, pattern);
+            pstmt.setString(2, pattern);
+            pstmt.setString(3, pattern);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // 9. GET BY ID
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try (Connection conn = getConnection();
@@ -164,21 +234,24 @@ public class UserDAO {
         return null;
     }
 
-    // Mappatura da ResultSet a Oggetto User
+    // --- MAPPER HELPER ---
     private User mapRow(ResultSet rs) throws SQLException {
-        // Creiamo l'utente con il costruttore base
-        User user = new User(
-                rs.getInt("id"),
-                rs.getString("name"),
-                rs.getString("surname"),
-                rs.getString("email"),
-                rs.getString("password"),
-                rs.getBoolean("is_admin")
-        );
+        User user = new User();
 
-        // Aggiungiamo i campi opzionali (che potrebbero essere NULL nel database)
+        user.setId(rs.getInt("id"));
+        user.setName(rs.getString("name"));
+        user.setSurname(rs.getString("surname"));
+        user.setEmail(rs.getString("email"));
+        user.setPassword(rs.getString("password"));
+        user.setAdmin(rs.getBoolean("is_admin"));
         user.setProfilePicPath(rs.getString("profile_pic_path"));
         user.setFavoriteGenre(rs.getString("favorite_genre"));
+
+        try {
+            user.setApproved(rs.getBoolean("is_approved"));
+        } catch (SQLException e) {
+            user.setApproved(true); // Fallback
+        }
 
         return user;
     }

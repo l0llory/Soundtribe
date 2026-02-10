@@ -14,17 +14,16 @@ public class RegistrationController {
     @FXML
     public Button backToAuthentication;
     @FXML
-    private Button handleAccessByRegistration;
+    public Button handleAccessByRegistration;
     @FXML
-    private TextField nameField;
+    public TextField nameField;
     @FXML
-    private TextField surnameField;
+    public TextField surnameField;
     @FXML
-    private TextField emailField2;
+    public TextField emailField2;
     @FXML
-    private PasswordField passwordField2;
+    public PasswordField passwordField2;
 
-    // Gestisce l'inizializzazione dei bottoni
     public void initialize() {
         if (handleAccessByRegistration != null) {
             handleAccessByRegistration.setOnAction(this::handleRegistration);
@@ -35,12 +34,10 @@ public class RegistrationController {
         }
     }
 
-    // Gestisce il ritorno alla schermata di autenticazione (Login)
     private void handleBackToAuthentication(ActionEvent event) {
         SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
     }
 
-    // Gestisce la logica di registrazione
     private void handleRegistration(ActionEvent event) {
 
         String name = nameField.getText().trim();
@@ -55,9 +52,10 @@ public class RegistrationController {
             return;
         }
 
-        // 2. Creazione oggetto User e DAO
-        // Usiamo il costruttore senza ID (lo genererà il database)
-        User newUser = new User(name, surname, email, password);
+        // 2. Creazione oggetto User
+        // Usiamo il costruttore: name, surname, email, password, isApproved (FALSE)
+        // Passiamo 'false' perché l'utente deve essere approvato dall'admin
+        User newUser = new User(name, surname, email, password, "Nessuno");
         UserDAO userDAO = new UserDAO();
 
         // 3. Tentativo di registrazione nel Database
@@ -66,32 +64,21 @@ public class RegistrationController {
         if (success) {
             // REGISTRAZIONE RIUSCITA
 
-            // Per entrare subito nella Home, dobbiamo recuperare l'ID appena creato
-            // Facciamo un login "silenzioso" automatico
-            User loggedUser = userDAO.login(email, password);
+            // MODIFICA IMPORTANTE: Non facciamo più il login automatico.
+            // Avvisiamo l'utente che la richiesta è in attesa di approvazione.
 
-            if (loggedUser != null) {
-                // Impostiamo la sessione globale
-                UserSession.getInstance().setUserId(loggedUser.getId());
-                UserSession.getInstance().setIsAdmin(loggedUser.isAdmin()); // Di default false, ma lo settiamo
+            AlertUtil.mostra("Registrazione Inviata",
+                    "In attesa di approvazione",
+                    "Il tuo account è stato creato correttamente. \nUn amministratore dovrà approvare la tua richiesta prima che tu possa effettuare il login.",
+                    Alert.AlertType.INFORMATION);
 
-                AlertUtil.mostra("Successo", "Registrazione completata!",
-                        "Benvenuto in SoundTribe, " + name, Alert.AlertType.INFORMATION);
-
-                // Vai alla Home
-                SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
-            } else {
-                // Caso raro: registrato ma login fallito subito dopo
-                AlertUtil.mostra("Attenzione", "Registrazione avvenuta",
-                        "Per favore effettua il login manualmente.", Alert.AlertType.INFORMATION);
-                SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
-            }
+            // Rimandiamo l'utente alla schermata di Login
+            SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
 
         } else {
             // REGISTRAZIONE FALLITA (Probabilmente email duplicata)
-            // Nota: Il tuo UserDAO cattura l'eccezione SQLState 23505 e ritorna false
             AlertUtil.mostra("Errore di registrazione", "Impossibile registrare l'utente",
-                    "L'email inserita potrebbe essere già in uso.", Alert.AlertType.ERROR);
+                    "L'email inserita potrebbe essere già in uso o c'è un problema col server.", Alert.AlertType.ERROR);
         }
     }
 }

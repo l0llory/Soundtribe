@@ -24,7 +24,10 @@ public class AdminController {
     public void initialize() {
 
         NavigationManager.navBack(precP_Admin);
-        NavigationManager.navForward(precP_Admin);
+        NavigationManager.navForward(nextP_Admin);
+
+        NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);
+
         NavigationManager.home(backHome_Admin);
         NavigationManager.exit(Exit_Admin);
 
