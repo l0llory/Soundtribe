@@ -16,6 +16,7 @@ public class Launcher extends Application {
         return instance;
     }
 
+
     @Override
     public void start(Stage stage) throws IOException {
         instance = this; // Salva l'istanza per permettere ai controller di chiamarla
@@ -26,13 +27,6 @@ public class Launcher extends Application {
 
         String cssPath = getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm();
         scene.getStylesheets().add(cssPath);
-
-        URL cssUrl = getClass().getResource("css/style.css");
-        if (cssUrl == null) {
-            System.out.println("ERRORE CRITICO: File CSS non trovato!");
-        } else {
-            System.out.println("CSS Trovato: " + cssUrl.toExternalForm());
-        }
 
 
         stage.setTitle("SoundTribe");

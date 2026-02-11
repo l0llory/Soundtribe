@@ -5,21 +5,29 @@ import java.util.List;
 
 public class Comment {
     private int id;
-    private int songId;
     private int userId;
-    private String username; // Per visualizzare chi ha scritto senza fare troppe query
+    private String username;
     private String content;
     private int likes;
-    private Integer parentId; // Può essere null se è un commento principale
+    private Integer parentId; // Null se è un commento principale
+
+    // Riferimenti alle Risorse (Uno di questi sarà valorizzato, gli altri 0/null)
+    private int songId;
+    private int executionId;
+    private int concertId;
 
     // Lista per contenere le risposte (figli)
     private List<Comment> replies = new ArrayList<>();
 
+    // Costruttore Vuoto
     public Comment() {}
 
-    public Comment(int id, int songId, int userId, String username, String content, int likes, Integer parentId) {
+    // Costruttore Completo (Aggiornato con tutti i tipi di risorsa)
+    public Comment(int id, int songId, int executionId, int concertId, int userId, String username, String content, int likes, Integer parentId) {
         this.id = id;
         this.songId = songId;
+        this.executionId = executionId;
+        this.concertId = concertId;
         this.userId = userId;
         this.username = username;
         this.content = content;
@@ -27,12 +35,15 @@ public class Comment {
         this.parentId = parentId;
     }
 
-    // Getters e Setters
+    // Costruttore di compatibilità (Utile se crei commenti al volo solo per Canzoni)
+    public Comment(int id, int songId, int userId, String username, String content, int likes, Integer parentId) {
+        this(id, songId, 0, 0, userId, username, content, likes, parentId);
+    }
+
+    // --- GETTERS E SETTERS ---
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-
-    public int getSongId() { return songId; }
-    public void setSongId(int songId) { this.songId = songId; }
 
     public int getUserId() { return userId; }
     public void setUserId(int userId) { this.userId = userId; }
@@ -49,6 +60,26 @@ public class Comment {
     public Integer getParentId() { return parentId; }
     public void setParentId(Integer parentId) { this.parentId = parentId; }
 
+
+    public int getSongId() { return songId; }
+    public void setSongId(int songId) { this.songId = songId; }
+
+    public int getExecutionId() { return executionId; }
+    public void setExecutionId(int executionId) { this.executionId = executionId; }
+
+    public int getConcertId() { return concertId; }
+    public void setConcertId(int concertId) { this.concertId = concertId; }
+
+    // --- Gestione Risposte ---
+
     public List<Comment> getReplies() { return replies; }
-    public void addReply(Comment reply) { this.replies.add(reply); }
+
+    // Metodo fondamentale usato dal DAO per settare la lista completa
+    public void setReplies(List<Comment> replies) {
+        this.replies = replies;
+    }
+
+    public void addReply(Comment reply) {
+        this.replies.add(reply);
+    }
 }

@@ -165,7 +165,7 @@ public class UsersController {
                     Button actionBtn = new Button("Vedi Profilo");
                     actionBtn.getStyleClass().add("st-button-secondary");
                     actionBtn.getStyleClass().add("st-button-small");
-                    actionBtn.setOnAction(event -> {/* Codice apertura profilo */});
+                    actionBtn.setOnAction(event -> {SceneManager.changeScene(event, "profiloUtente.fxml", 800, 600, true);});
 
                     card.getChildren().addAll(avatar, info, spacer, roleBadge, actionBtn);
                     setGraphic(card);

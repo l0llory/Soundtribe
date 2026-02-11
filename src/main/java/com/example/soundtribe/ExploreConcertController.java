@@ -11,82 +11,59 @@ import javafx.scene.layout.VBox;
 
 public class ExploreConcertController {
 
-    // Navigazione
-    @FXML public Button precP_Concert;
-    @FXML public Button nextP_Concert;
-    @FXML public Button backHome_Concert;
-    @FXML public Button Exit_Concert;
-
-    // Header Info
-    @FXML public Label concertTitleLabel;
-    @FXML public Label concertArtistLabel;
-    @FXML public Label uploaderLabel;
-    @FXML public Label concertDateLabel;
-    @FXML public Label concertLocationLabel;
-
-    // Contenuti
+    @FXML public Button precP_Concert, nextP_Concert, backHome_Concert, Exit_Concert;
+    @FXML public Label concertTitleLabel, concertArtistLabel, uploaderLabel, concertDateLabel, concertLocationLabel;
     @FXML public TextArea descriptionArea;
     @FXML public Label linkLabel;
     @FXML public Button openLinkBtn;
 
-    // Commenti
+    // Comment UI Elements
     @FXML public TextArea newCommentArea;
     @FXML public Button btnPostComment;
     @FXML public VBox commentsContainer;
 
     private Concert currentConcert;
     private UserDAO userDAO;
+    private CommentManager commentManager;
 
     @FXML
     public void initialize() {
         userDAO = new UserDAO();
-
-        // Setup Navigazione
         NavigationManager.navBack(precP_Concert);
         NavigationManager.navForward(nextP_Concert);
         NavigationManager.updateNavigationButtons(precP_Concert, nextP_Concert);
         NavigationManager.home(backHome_Concert);
         NavigationManager.exit(Exit_Concert);
-
-        // Torna alla lista brani se premi indietro
         precP_Concert.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, true));
-
         openLinkBtn.setOnAction(e -> openUrl());
-        btnPostComment.setOnAction(e -> postComment());
     }
 
     public void setConcert(Concert concert) {
         this.currentConcert = concert;
 
-        // Popolamento UI
         concertTitleLabel.setText(concert.getTitle());
         concertArtistLabel.setText("Artista Principale: " + concert.getArtist());
+        concertDateLabel.setText(concert.getDate() != null ? concert.getDate().toString() : "Data sconosciuta");
+        concertLocationLabel.setText(concert.getLocation() != null ? concert.getLocation() : "Luogo sconosciuto");
 
-        if (concert.getDate() != null) {
-            concertDateLabel.setText(concert.getDate().toString());
-        } else {
-            concertDateLabel.setText("Data sconosciuta");
-        }
-
-        concertLocationLabel.setText(concert.getLocation() != null && !concert.getLocation().isEmpty() ? concert.getLocation() : "Luogo sconosciuto");
-
-        // Info Uploader
         if (concert.getUploaderId() > 0) {
             User u = userDAO.getUserById(concert.getUploaderId());
-            if (u != null) {
-                uploaderLabel.setText("Caricato da: " + u.getName() + " " + u.getSurname());
-            } else {
-                uploaderLabel.setText("Caricato da: Utente " + concert.getUploaderId());
-            }
+            uploaderLabel.setText(u != null ? "Caricato da: " + u.getName() + " " + u.getSurname() : "Caricato da: Utente " + concert.getUploaderId());
         } else {
             uploaderLabel.setText("Caricato da: Admin / Sconosciuto");
         }
 
-        // Scaletta / Descrizione
         descriptionArea.setText(concert.getDescription());
-
-        // Link
         linkLabel.setText(concert.getYoutubeUrl());
+
+        // INIZIALIZZA IL COMMENT MANAGER
+        this.commentManager = new CommentManager(
+                commentsContainer,
+                newCommentArea,
+                btnPostComment,
+                concert.getId(),
+                CommentManager.ResourceType.CONCERT
+        );
     }
 
     private void openUrl() {
@@ -96,16 +73,6 @@ public class ExploreConcertController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private void postComment() {
-        // Placeholder per la logica dei commenti sui concerti
-        // Nota: Per implementare questo realmente, servirebbe aggiornare la tabella Comments
-        // per accettare un concert_id oltre a song_id, oppure usare una tabella polimorfica.
-        if (!newCommentArea.getText().trim().isEmpty()) {
-            AlertUtil.mostra("Info", "Coming Soon", "I commenti sui concerti saranno abilitati a breve!", javafx.scene.control.Alert.AlertType.INFORMATION);
-            newCommentArea.clear();
         }
     }
 }

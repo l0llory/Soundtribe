@@ -1,5 +1,6 @@
 package com.example.soundtribe.dao;
 
+import com.example.soundtribe.CommentManager;
 import com.example.soundtribe.entità.Comment;
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,198 +20,176 @@ public class CommentDAO {
     }
 
     private void initTable() {
-        // Tabella Commenti
-        String sqlComments = "CREATE TABLE IF NOT EXISTS comments (" +
+        // Definizione base (utile solo per la prima creazione)
+        String sql = "CREATE TABLE IF NOT EXISTS comments (" +
                 "id SERIAL PRIMARY KEY, " +
-                "song_id INT NOT NULL, " +
                 "user_id INT NOT NULL, " +
-                "username VARCHAR(100), " +
+                "username TEXT, " +
                 "content TEXT NOT NULL, " +
                 "likes INT DEFAULT 0, " +
                 "parent_id INT, " +
-                "FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE, " +
-                "FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE" +
-                ")";
-
-        // Tabella Likes (Per gestire un solo like per utente)
-        String sqlLikes = "CREATE TABLE IF NOT EXISTS comment_likes (" +
-                "user_id INT NOT NULL, " +
-                "comment_id INT NOT NULL, " +
-                "PRIMARY KEY (user_id, comment_id), " +
-                "FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE" +
+                "song_id INT, " +          // Ora deve essere nullable
+                "execution_id INT, " +
+                "concert_id INT " +
                 ")";
 
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-            stmt.execute(sqlComments);
-            stmt.execute(sqlLikes);
+            // 1. Crea la tabella se non esiste
+            stmt.execute(sql);
+
+            // 2. MIGRAZIONE COLONNE (Aggiungi se mancano)
+            try {
+                stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS execution_id INT");
+                stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS concert_id INT");
+            } catch (SQLException ignore) {}
+
+            // 3. FIX IMPORTANTE: Rimuovi il vincolo NOT NULL da song_id
+            // Questo permette di inserire commenti per Concerti ed Esecuzioni lasciando song_id vuoto.
+            try {
+                stmt.execute("ALTER TABLE comments ALTER COLUMN song_id DROP NOT NULL");
+            } catch (SQLException e) {
+                // Ignoriamo l'errore se è già nullable o se c'è un problema specifico di versione,
+                // ma stampiamo un warning per debug.
+                System.out.println("Info: Tentativo di rendere song_id nullable. " + e.getMessage());
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    // Aggiungi commento
-    public void addComment(Comment c) {
-        String sql = "INSERT INTO comments (song_id, user_id, username, content, likes, parent_id) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, c.getSongId());
-            pstmt.setInt(2, c.getUserId());
-            pstmt.setString(3, c.getUsername());
-            pstmt.setString(4, c.getContent());
-            pstmt.setInt(5, 0);
-            if (c.getParentId() == null) pstmt.setNull(6, Types.INTEGER);
-            else pstmt.setInt(6, c.getParentId());
+    /**
+     * Aggiunge un commento al database collegandolo alla risorsa corretta.
+     */
+    public void addComment(Comment comment, CommentManager.ResourceType type, int resourceId) {
+        String sql = "INSERT INTO comments (user_id, username, content, parent_id, likes, song_id, execution_id, concert_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, comment.getUserId());
+            pstmt.setString(2, comment.getUsername());
+            pstmt.setString(3, comment.getContent());
+
+            if (comment.getParentId() != null && comment.getParentId() > 0) {
+                pstmt.setInt(4, comment.getParentId());
+            } else {
+                pstmt.setNull(4, Types.INTEGER);
+            }
+
+            pstmt.setInt(5, 0); // Likes
+
+            // LOGICA DI ASSEGNAZIONE ID
+            switch (type) {
+                case SONG:
+                    pstmt.setInt(6, resourceId);      // song_id
+                    pstmt.setNull(7, Types.INTEGER);
+                    pstmt.setNull(8, Types.INTEGER);
+                    break;
+                case EXECUTION:
+                    pstmt.setNull(6, Types.INTEGER);  // song_id NULL
+                    pstmt.setInt(7, resourceId);      // execution_id
+                    pstmt.setNull(8, Types.INTEGER);
+                    break;
+                case CONCERT:
+                    pstmt.setNull(6, Types.INTEGER);  // song_id NULL
+                    pstmt.setNull(7, Types.INTEGER);
+                    pstmt.setInt(8, resourceId);      // concert_id
+                    break;
+            }
+
             pstmt.executeUpdate();
+
         } catch (SQLException e) {
+            System.err.println("Errore inserimento commento: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // --- GESTIONE LIKE (TOGGLE) ---
-
-    // Controlla se l'utente ha già messo like
-    public boolean hasUserLiked(int userId, int commentId) {
-        String sql = "SELECT 1 FROM comment_likes WHERE user_id = ? AND comment_id = ?";
-        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            pstmt.setInt(2, commentId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public void addComment(Comment comment) {
+        if (comment.getSongId() > 0) addComment(comment, CommentManager.ResourceType.SONG, comment.getSongId());
+        else if (comment.getExecutionId() > 0) addComment(comment, CommentManager.ResourceType.EXECUTION, comment.getExecutionId());
+        else if (comment.getConcertId() > 0) addComment(comment, CommentManager.ResourceType.CONCERT, comment.getConcertId());
     }
 
-    // Mette o toglie il like
-    public void toggleLike(int userId, int commentId) {
-        if (hasUserLiked(userId, commentId)) {
-            // Se c'è già, lo togliamo (UNLIKE)
-            removeLike(userId, commentId);
-        } else {
-            // Se non c'è, lo mettiamo (LIKE)
-            addLike(userId, commentId);
+    public List<Comment> getCommentsByResource(CommentManager.ResourceType type, int resourceId) {
+        List<Comment> comments = new ArrayList<>();
+
+        String column = "";
+        switch (type) {
+            case SONG -> column = "song_id";
+            case EXECUTION -> column = "execution_id";
+            case CONCERT -> column = "concert_id";
         }
-    }
 
-    private void addLike(int userId, int commentId) {
-        String sqlLink = "INSERT INTO comment_likes (user_id, comment_id) VALUES (?, ?)";
-        String sqlCount = "UPDATE comments SET likes = likes + 1 WHERE id = ?";
+        String sql = "SELECT * FROM comments WHERE " + column + " = ? AND (parent_id IS NULL OR parent_id = 0) ORDER BY id DESC";
 
-        try (Connection conn = getConnection()) {
-            conn.setAutoCommit(false); // Transazione
-            try (PreparedStatement p1 = conn.prepareStatement(sqlLink);
-                 PreparedStatement p2 = conn.prepareStatement(sqlCount)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-                p1.setInt(1, userId);
-                p1.setInt(2, commentId);
-                p1.executeUpdate();
-
-                p2.setInt(1, commentId);
-                p2.executeUpdate();
-
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                e.printStackTrace();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void removeLike(int userId, int commentId) {
-        String sqlLink = "DELETE FROM comment_likes WHERE user_id = ? AND comment_id = ?";
-        String sqlCount = "UPDATE comments SET likes = likes - 1 WHERE id = ?";
-
-        try (Connection conn = getConnection()) {
-            conn.setAutoCommit(false);
-            try (PreparedStatement p1 = conn.prepareStatement(sqlLink);
-                 PreparedStatement p2 = conn.prepareStatement(sqlCount)) {
-
-                p1.setInt(1, userId);
-                p1.setInt(2, commentId);
-                p1.executeUpdate();
-
-                p2.setInt(1, commentId);
-                p2.executeUpdate();
-
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                e.printStackTrace();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Recupera l'albero completo dei commenti (Padri + Figli ricorsivi)
-    public List<Comment> getFullCommentTree(int songId) {
-        List<Comment> roots = new ArrayList<>();
-        // Prendi solo i commenti RADICE (parent_id NULL)
-        String sql = "SELECT * FROM comments WHERE song_id = ? AND parent_id IS NULL ORDER BY likes DESC, id DESC"; // Ordina per popolarità
-
-        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, songId);
+            pstmt.setInt(1, resourceId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Comment c = mapRow(rs);
-                    loadRepliesRecursive(c, conn); // Carica figli
-                    roots.add(c);
+                    c.setReplies(getReplies(c.getId()));
+                    comments.add(c);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return roots;
+        return comments;
     }
 
-    // Metodo ricorsivo per caricare le risposte
-    private void loadRepliesRecursive(Comment parent, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM comments WHERE parent_id = ? ORDER BY id ASC"; // Ordine cronologico
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, parent.getId());
+    private List<Comment> getReplies(int parentId) {
+        List<Comment> replies = new ArrayList<>();
+        String sql = "SELECT * FROM comments WHERE parent_id = ? ORDER BY id ASC";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, parentId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    Comment child = mapRow(rs);
-                    parent.addReply(child); // Aggiungi alla lista del padre
-                    loadRepliesRecursive(child, conn); // Cerca nipoti
+                    Comment c = mapRow(rs);
+                    c.setReplies(getReplies(c.getId()));
+                    replies.add(c);
                 }
             }
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return replies;
     }
 
-    // Per compatibilità con la vecchia vista "Top 3" (senza ricorsione visiva ma recupero dati)
     public List<Comment> getTop3RootComments(int songId) {
-        // ... (stesso codice di prima, o puoi usare getFullCommentTree e limitare la lista nel controller)
-        // Per semplicità qui riuso la logica di getFullCommentTree ma limitata
-        List<Comment> roots = new ArrayList<>();
-        String sql = "SELECT * FROM comments WHERE song_id = ? AND parent_id IS NULL ORDER BY likes DESC LIMIT 3";
-
-        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, songId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    Comment c = mapRow(rs);
-                    loadRepliesRecursive(c, conn); // Carica comunque le risposte per farle vedere
-                    roots.add(c);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return roots;
+        return getCommentsByResource(CommentManager.ResourceType.SONG, songId);
     }
 
+    public boolean hasUserLiked(int userId, int commentId) {
+        return false;
+    }
+
+    public void toggleLike(int userId, int commentId) {
+        String sql = "UPDATE comments SET likes = likes + 1 WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, commentId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
 
     private Comment mapRow(ResultSet rs) throws SQLException {
-        Integer parentId = rs.getInt("parent_id");
-        if (rs.wasNull()) parentId = null;
+        Integer parentId = rs.getObject("parent_id") != null ? rs.getInt("parent_id") : null;
+
+        int sId = rs.getObject("song_id") != null ? rs.getInt("song_id") : 0;
+        int eId = 0;
+        int cId = 0;
+
+        try { eId = rs.getInt("execution_id"); } catch (SQLException e) {}
+        try { cId = rs.getInt("concert_id"); } catch (SQLException e) {}
 
         return new Comment(
                 rs.getInt("id"),
-                rs.getInt("song_id"),
+                sId,
+                eId,
+                cId,
                 rs.getInt("user_id"),
                 rs.getString("username"),
                 rs.getString("content"),
