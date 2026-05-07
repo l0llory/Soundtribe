@@ -1,7 +1,8 @@
 package com.example.soundtribe;
 
-import javafx.scene.control.Button;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
+
 import java.util.Stack;
 
 public class NavigationManager {
@@ -11,18 +12,11 @@ public class NavigationManager {
 
     // --- METODO CHIAMATO QUANDO SI APRE UNA NUOVA PAGINA (NON BACK/FORWARD) ---
     public static void navigateTo(String fxml) {
-        // Evitiamo di aggiungere duplicati consecutivi (es. clicco Home mentre sono in Home)
         if (!backStack.isEmpty() && backStack.peek().equals(fxml)) {
             return;
         }
-
-        // Aggiungo alla storia "Indietro"
         backStack.push(fxml);
-        // Se navigo in una pagina nuova, la storia "Avanti" deve essere distrutta (come Chrome)
         forwardStack.clear();
-
-        // Debug
-        System.out.println("History Push: " + fxml + " | BackStack Size: " + backStack.size());
     }
 
     // --- LOGICA PULSANTE INDIETRO ---
@@ -32,16 +26,18 @@ public class NavigationManager {
 
         button.setOnAction(event -> {
             if (backStack.size() > 1) {
-                // 1. Tolgo la pagina corrente dalla backStack e la metto nella forwardStack
+
                 String currentPage = backStack.pop();
                 forwardStack.push(currentPage);
 
-                // 2. Guardo quale è la pagina precedente
+
                 String previousPage = backStack.peek();
 
-                // 3. Cambio scena SENZA AGGIUNGERE ALLA STORIA (addToHistory = false)
+
                 System.out.println("Going Back to: " + previousPage);
-                SceneManager.changeScene(event, previousPage, 800, 600, false);
+                SceneManager.changeScene(event, previousPage, false);
+
+                button.setDisable(backStack.size() <= 1);
             }
         });
     }
@@ -61,7 +57,10 @@ public class NavigationManager {
 
                 // 3. Cambio scena SENZA AGGIUNGERE ALLA STORIA (addToHistory = false)
                 System.out.println("Going Forward to: " + nextPage);
-                SceneManager.changeScene(event, nextPage, 800, 600, false);
+                SceneManager.changeScene(event, nextPage, false);
+                
+                // Aggiorniamo lo stato
+                button.setDisable(forwardStack.isEmpty());
             }
         });
     }
@@ -74,6 +73,10 @@ public class NavigationManager {
 
         // Posso andare avanti se c'è qualcosa nello stack forward
         forwardBtn.setDisable(forwardStack.isEmpty());
+        
+        // Colleghiamo anche le azioni
+        navBack(backBtn);
+        navForward(forwardBtn);
     }
 
     // --- GESTIONE USCITA E RESET ---
@@ -83,14 +86,14 @@ public class NavigationManager {
             backStack.clear();
             forwardStack.clear();
             // Quando esco e vado al login, NON voglio che il login finisca nella cronologia
-            SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
+            SceneManager.changeScene(event, "Autenticazione.fxml", false);
         });
     }
 
     public static void home(Button button) {
         button.setOnAction(event -> {
             // Andare alla Home è una "Nuova Navigazione", quindi addToHistory = true
-            SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
+            SceneManager.changeScene(event, "Home.fxml", true);
         });
     }
 }

@@ -23,7 +23,7 @@ public class UserProfileViewController {
 
     public void initialize() {
         // Il bottone indietro torna alla gestione utenti
-        backButton.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", 800, 600, true));
+        backButton.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
     }
 
     // METODO FONDAMENTALE: Riceve l'utente da visualizzare

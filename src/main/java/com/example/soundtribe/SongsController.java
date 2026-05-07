@@ -95,11 +95,11 @@ public class SongsController {
         generiFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
 
         // 5. AZIONI BOTTONI
-        aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
+        aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", true));
 
         // NUOVA AZIONE: APRI DIZIONARI
         if(btnDizionari != null) {
-            btnDizionari.setOnAction(e -> SceneManager.changeScene(e, "dizionari.fxml", 800, 600, true));
+            btnDizionari.setOnAction(e -> SceneManager.changeScene(e, "dizionari.fxml", true));
         }
     }
 

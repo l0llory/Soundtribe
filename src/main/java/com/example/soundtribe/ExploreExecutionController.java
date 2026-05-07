@@ -43,7 +43,7 @@ public class ExploreExecutionController {
         NavigationManager.updateNavigationButtons(precP_Exec, nextP_Exec);
         NavigationManager.home(backHome_Exec);
         NavigationManager.exit(Exit_Exec);
-        precP_Exec.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true));
+        precP_Exec.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
     }
 
     public void setExecution(Esecution execution) {

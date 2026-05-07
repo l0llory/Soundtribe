@@ -118,7 +118,7 @@ public class ProfileController {
 
         if (success) {
             AlertUtil.mostra("Successo", "Profilo Aggiornato", "I tuoi dati sono stati salvati.", Alert.AlertType.INFORMATION);
-            SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
+            SceneManager.changeScene(event, "Home.fxml", true);
         } else {
             AlertUtil.mostra("Errore", "Errore salvataggio", "Impossibile aggiornare i dati nel database.", Alert.AlertType.ERROR);
         }

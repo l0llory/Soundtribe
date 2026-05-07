@@ -34,8 +34,8 @@ public class Launcher extends Application {
         stage.show();
     }
 
-    public void openDocument(String uri) {
-        getHostServices().showDocument(uri);
+    public void openDocument(String url) {
+        getHostServices().showDocument(url);
     }
 
     public static void main(String[] args) {

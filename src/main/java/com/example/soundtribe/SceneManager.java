@@ -9,12 +9,17 @@ import javafx.event.ActionEvent;
 import java.io.IOException;
 
 public class SceneManager {
-    public static void changeScene(ActionEvent event, String fxml, double width, double height, boolean addToHistory){
+    public static void changeScene(ActionEvent event, String fxml, boolean addToHistory){
         try {
             // 1. Se è una nuova pagina, la salviamo nella cronologia
             if (addToHistory) {
                 NavigationManager.navigateTo(fxml);
             }
+
+            // Ottieni la finestra corrente
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
 
             // 2. Carichiamo il file FXML
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxml));
@@ -23,7 +28,6 @@ public class SceneManager {
             scene.getStylesheets().add(SceneManager.class.getResource("/com/example/soundtribe/css/style.css").toExternalForm());
 
             // 3. Prendiamo la finestra attuale e cambiamo il contenuto
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
 

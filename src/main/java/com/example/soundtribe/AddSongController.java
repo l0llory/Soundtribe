@@ -125,7 +125,7 @@ public class AddSongController {
             );
 
             songDAO.addSong(newSong);
-            SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, false);
+            SceneManager.changeScene(e, "braniMusicali.fxml", false);
         });
 
     }

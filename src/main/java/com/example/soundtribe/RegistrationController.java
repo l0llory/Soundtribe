@@ -40,7 +40,7 @@ public class RegistrationController {
     }
 
     private void handleBackToAuthentication(ActionEvent event) {
-        SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
+        SceneManager.changeScene(event, "Autenticazione.fxml", false);
     }
 
     private void handleRegistration(ActionEvent event) {
@@ -76,7 +76,7 @@ public class RegistrationController {
                     Alert.AlertType.INFORMATION);
 
             // Rimandiamo l'utente alla schermata di Login
-            SceneManager.changeScene(event, "Autenticazione.fxml", 600, 500, false);
+            SceneManager.changeScene(event, "Autenticazione.fxml", false);
 
         } else {
             // REGISTRAZIONE FALLITA

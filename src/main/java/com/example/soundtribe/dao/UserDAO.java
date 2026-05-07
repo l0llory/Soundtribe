@@ -8,7 +8,7 @@ import java.util.List;
 public class UserDAO {
     private String dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
     private String user = "postgres";
-    private String password = "AppSoundtribe14";
+    private String password = "SALAmandra22";
 
     public UserDAO() {
         initTable();

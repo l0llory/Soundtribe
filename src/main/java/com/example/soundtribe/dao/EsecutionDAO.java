@@ -32,7 +32,7 @@ public class EsecutionDAO {
     public EsecutionDAO() {
         this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
         this.user = "postgres";
-        this.password = "AppSoundtribe14";
+        this.password = "SALAmandra22";
         initTable();
     }
 

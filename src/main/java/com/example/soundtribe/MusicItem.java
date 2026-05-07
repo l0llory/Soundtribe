@@ -23,7 +23,7 @@ public class MusicItem {
         this.type = Type.EXECUTION;
     }
 
-    public MusicItem(Concert concert) { // NUOVO COSTRUTTORE
+    public MusicItem(Concert concert) {
         this.concert = concert;
         this.type = Type.CONCERT;
     }
