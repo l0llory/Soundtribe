@@ -38,7 +38,7 @@ public class SongsController {
     @FXML public Button backHome_Songs;
     @FXML public Button Exit_Songs;
     @FXML public Button aggiungiBrano;
-    @FXML public Button btnDizionari; // NUOVO BOTTONE
+    @FXML public Button btnDizionari;
     @FXML public TextField searchBarSongs;
     @FXML public ComboBox<String> generiFilter;
 
@@ -203,9 +203,58 @@ public class SongsController {
                     exploreBtn.getStyleClass().add("st-button-primary");
 
                     exploreBtn.setOnAction(e -> {
-                        if (item.isSong()) SceneManager.changeScene(e, "esploraBrani.fxml", true);
-                        else if (item.isExecution()) SceneManager.changeScene(e,"esploraEsecuzione.fxml", true);
-                        else SceneManager.changeScene(e, "esploraConcerto.fxml", true);
+                        try {
+                            // Non usare SceneManager qui perché dobbiamo passare i dati al controller
+                            FXMLLoader loader = new FXMLLoader();
+                            if (item.isSong()) {
+                                NavigationManager.navigateTo("esploraBrani.fxml");
+                                loader.setLocation(getClass().getResource("esploraBrani.fxml"));
+                            }
+                            else if (item.isExecution()) {
+                                NavigationManager.navigateTo("esploraEsecuzione.fxml");
+                                loader.setLocation(getClass().getResource("esploraEsecuzione.fxml"));
+                            }
+                            else {
+                                NavigationManager.navigateTo("esploraConcerto.fxml");
+                                loader.setLocation(getClass().getResource("esploraConcerto.fxml"));
+                            }
+
+                            Parent root = loader.load();
+                            
+                            // Passa l'oggetto al controller corrispondente
+                            if (item.isSong()) {
+                                ExploreSongController controller = loader.getController();
+                                controller.setSong(item.getSong());
+                            } else if (item.isExecution()) {
+                                ExploreExecutionController controller = loader.getController();
+                                controller.setExecution(item.getExecution());
+                            } else {
+                                ExploreConcertController controller = loader.getController();
+                                controller.setConcert(item.getConcert());
+                            }
+
+                            // Ottieni la scena corrente
+                            Scene currentScene = ((Node) e.getSource()).getScene();
+                            Stage stage = (Stage) currentScene.getWindow();
+                            
+                            double width = currentScene.getWidth();
+                            double height = currentScene.getHeight();
+                            boolean isMaximized = stage.isMaximized();
+
+                            Scene newScene = new Scene(root, width, height);
+                            newScene.getStylesheets().add(SceneManager.class.getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+
+                            stage.setScene(newScene);
+                            
+                            if (isMaximized) {
+                                stage.setMaximized(true);
+                            }
+                            
+                            stage.show();
+
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     });
 
                     actionBox.getChildren().add(exploreBtn);
