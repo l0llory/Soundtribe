@@ -23,14 +23,17 @@ public class Launcher extends Application {
 
         // Carica la scena iniziale (Autenticazione)
         FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("Autenticazione.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 600, 500);
+        // Rimuoviamo le dimensioni fisse da qui, se ci sono problemi con il calcolo
+        // dei bordi finestra nativi. Impostiamo dimensioni minime nello stage se necessario
+        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
 
         String cssPath = getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm();
         scene.getStylesheets().add(cssPath);
 
-
         stage.setTitle("SoundTribe");
         stage.setScene(scene);
+        stage.setMinWidth(800);
+        stage.setMinHeight(600);
         stage.show();
     }
 
