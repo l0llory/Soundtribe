@@ -6,16 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAO {
-    private String dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
-    private String user = "postgres";
-    private String password = "SALAmandra22";
 
     public UserDAO() {
         initTable();
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dbUrl, user, password);
     }
 
     // Crea la tabella utenti se non esiste e aggiorna lo schema
@@ -33,7 +26,7 @@ public class UserDAO {
                 "motivation TEXT" + // NUOVA COLONNA
                 ")";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement()) {
 
             // 1. Crea la tabella base se non c'è
@@ -61,7 +54,7 @@ public class UserDAO {
         // Inseriamo anche i nuovi campi. is_approved sarà FALSE per default.
         String sql = "INSERT INTO users (name, surname, email, password, is_admin, is_approved, favorite_genre, profile_pic_path, motivation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, user.getName());
@@ -93,7 +86,7 @@ public class UserDAO {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE is_approved = TRUE ORDER BY name ASC";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
@@ -111,7 +104,7 @@ public class UserDAO {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE is_approved = FALSE ORDER BY id ASC";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
@@ -126,7 +119,7 @@ public class UserDAO {
     // 4. UPDATE STATUS (Per approvare utente)
     public void updateUserStatus(int userId, boolean approved) {
         String sql = "UPDATE users SET is_approved = ? WHERE id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setBoolean(1, approved);
             pstmt.setInt(2, userId);
@@ -139,7 +132,7 @@ public class UserDAO {
     // 5. DELETE USER (Per rifiutare richiesta o eliminare account)
     public void deleteUser(int userId) {
         String sql = "DELETE FROM users WHERE id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             pstmt.executeUpdate();
@@ -152,7 +145,7 @@ public class UserDAO {
     public boolean updateUser(User user) {
         String sql = "UPDATE users SET name = ?, password = ?, profile_pic_path = ?, favorite_genre = ? WHERE id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, user.getName());
@@ -174,7 +167,7 @@ public class UserDAO {
     public User login(String email, String password) {
         String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, email);
@@ -203,7 +196,7 @@ public class UserDAO {
         // Cerca solo tra gli utenti approvati
         String sql = "SELECT * FROM users WHERE is_approved = TRUE AND (name ILIKE ? OR surname ILIKE ? OR email ILIKE ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             String pattern = "%" + query + "%";
@@ -225,7 +218,7 @@ public class UserDAO {
     // 9. GET BY ID
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {

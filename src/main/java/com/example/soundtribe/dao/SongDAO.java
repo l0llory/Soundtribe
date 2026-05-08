@@ -6,20 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SongDAO {
-    private String dbUrl;
-    private String user;
-    private String password;
 
     public SongDAO() {
-        this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
-        this.user = "postgres";
-        this.password = "SALAmandra22";
-
         initTable();
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dbUrl, user, password);
     }
 
     private void initTable() {
@@ -37,7 +26,7 @@ public class SongDAO {
                 "uploader_surname TEXT, " +
                 "description TEXT" +
                 ")";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
 
@@ -78,7 +67,7 @@ public class SongDAO {
     public List<Song> getAllSongs() {
         List<Song> songs = new ArrayList<>();
         String sql = "SELECT * FROM songs";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
@@ -93,7 +82,7 @@ public class SongDAO {
     public List<Song> searchSongs(String query) {
         List<Song> songs = new ArrayList<>();
         String sql = "SELECT * FROM songs WHERE title ILIKE ? OR artist ILIKE ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             String searchPattern = "%" + query + "%";
             pstmt.setString(1, searchPattern);
@@ -112,7 +101,7 @@ public class SongDAO {
     public void addSong(Song song) {
         String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url, cover_path, uploaded_by, uploader_name, uploader_surname, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, song.getTitle());
@@ -143,7 +132,7 @@ public class SongDAO {
         Song song = null;
         String sql = "SELECT * FROM songs WHERE id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, songId);
@@ -166,7 +155,7 @@ public class SongDAO {
                 "JOIN comments c ON s.id = c.song_id " +
                 "WHERE c.user_id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
@@ -189,7 +178,7 @@ public class SongDAO {
         // Seleziona i valori unici e non nulli, ordinati alfabeticamente
         String sql = "SELECT DISTINCT artist FROM songs WHERE artist IS NOT NULL AND artist <> '' ORDER BY artist";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -207,7 +196,7 @@ public class SongDAO {
         List<String> genres = new ArrayList<>();
         String sql = "SELECT DISTINCT genre FROM songs WHERE genre IS NOT NULL AND genre <> '' ORDER BY genre";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 

@@ -7,16 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommentDAO {
-    private String dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
-    private String user = "postgres";
-    private String password = "SALAmandra22";
 
     public CommentDAO() {
         initTable();
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dbUrl, user, password);
     }
 
     private void initTable() {
@@ -33,7 +26,7 @@ public class CommentDAO {
                 "concert_id INT " +
                 ")";
 
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = CredDAO.getConnection(); Statement stmt = conn.createStatement()) {
             // 1. Crea la tabella se non esiste
             stmt.execute(sql);
 
@@ -64,7 +57,7 @@ public class CommentDAO {
     public void addComment(Comment comment, CommentManager.ResourceType type, int resourceId) {
         String sql = "INSERT INTO comments (user_id, username, content, parent_id, likes, song_id, execution_id, concert_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, comment.getUserId());
@@ -124,7 +117,7 @@ public class CommentDAO {
 
         String sql = "SELECT * FROM comments WHERE " + column + " = ? AND (parent_id IS NULL OR parent_id = 0) ORDER BY id DESC";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, resourceId);
@@ -144,7 +137,7 @@ public class CommentDAO {
     private List<Comment> getReplies(int parentId) {
         List<Comment> replies = new ArrayList<>();
         String sql = "SELECT * FROM comments WHERE parent_id = ? ORDER BY id ASC";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, parentId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -168,7 +161,7 @@ public class CommentDAO {
 
     public void toggleLike(int userId, int commentId) {
         String sql = "UPDATE comments SET likes = likes + 1 WHERE id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, commentId);
             pstmt.executeUpdate();
