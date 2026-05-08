@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
@@ -29,6 +30,15 @@ public class Launcher extends Application {
 
         String cssPath = getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm();
         scene.getStylesheets().add(cssPath);
+
+        // Imposta l'icona dell'applicazione
+        try {
+            // Usa il percorso relativo dalla root del classpath (resources)
+            Image icon = new Image(getClass().getResourceAsStream("/com/example/soundtribe/img/soundtribe-logo.png"));
+            stage.getIcons().add(icon);
+        } catch (Exception e) {
+            System.err.println("Impossibile caricare l'icona dell'applicazione: " + e.getMessage());
+        }
 
         stage.setTitle("SoundTribe");
         stage.setScene(scene);
