@@ -203,9 +203,9 @@ public class SongsController {
                     exploreBtn.getStyleClass().add("st-button-primary");
 
                     exploreBtn.setOnAction(e -> {
-                        if (item.isSong()) openSongDetails(item.getSong(), exploreBtn);
-                        else if (item.isExecution()) openExecutionDetails(item.getExecution(), exploreBtn);
-                        else openConcertDetails(item.getConcert(), exploreBtn);
+                        if (item.isSong()) SceneManager.changeScene(e, "braniMusicali.fxml", true);
+                        else if (item.isExecution()) SceneManager.changeScene(e,"esploraEsecuzione.fxml", true);
+                        else SceneManager.changeScene(e, "esploraConcerto.fxml", true);
                     });
 
                     actionBox.getChildren().add(exploreBtn);
@@ -228,42 +228,4 @@ public class SongsController {
         stack.getChildren().addAll(bg, icon); return stack;
     }
 
-    private void openSongDetails(Song song, Button source) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraBrani.fxml"));
-            Parent root = loader.load();
-            ExploreSongController controller = loader.getController();
-            controller.setSong(song);
-            Stage stage = (Stage) source.getScene().getWindow();
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private void openExecutionDetails(Esecution execution, Button source) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraEsecuzione.fxml"));
-            Parent root = loader.load();
-            ExploreExecutionController controller = loader.getController();
-            controller.setExecution(execution);
-            Stage stage = (Stage) source.getScene().getWindow();
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private void openConcertDetails(Concert concert, Button source) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraConcerto.fxml"));
-            Parent root = loader.load();
-            ExploreConcertController controller = loader.getController();
-            controller.setConcert(concert);
-            Stage stage = (Stage) source.getScene().getWindow();
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
-    }
 }
