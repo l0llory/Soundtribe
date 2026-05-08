@@ -203,7 +203,7 @@ public class SongsController {
                     exploreBtn.getStyleClass().add("st-button-primary");
 
                     exploreBtn.setOnAction(e -> {
-                        if (item.isSong()) SceneManager.changeScene(e, "braniMusicali.fxml", true);
+                        if (item.isSong()) SceneManager.changeScene(e, "esploraBrani.fxml", true);
                         else if (item.isExecution()) SceneManager.changeScene(e,"esploraEsecuzione.fxml", true);
                         else SceneManager.changeScene(e, "esploraConcerto.fxml", true);
                     });
