@@ -13,7 +13,7 @@ public class SongDAO {
     public SongDAO() {
         this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
         this.user = "postgres";
-        this.password = "AppSoundtribe14";
+        this.password = "AntonioGramsci57!";
 
         initTable();
     }

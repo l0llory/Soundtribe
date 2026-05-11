@@ -8,7 +8,7 @@ import java.util.List;
 public class ConcertDAO {
     private String dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
     private String user = "postgres";
-    private String password = "AppSoundtribe14";
+    private String password = "AntonioGramsci57!";
 
     public ConcertDAO() {
         initTable();
