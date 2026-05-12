@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.soundtribe.controller.ProfileController"
+            stylesheets="@../css/style.css"
+            prefHeight="600.0" prefWidth="800.0">
+
+    <top>
+        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Button fx:id="backBtn" text="◀" minWidth="40.0" styleClass="st-button-outline"/>
+                <Button fx:id="homeBtn" text="🏠" minWidth="40.0" styleClass="st-button-outline"/>
+
+                <Label text="Il Tuo Profilo" styleClass="st-label-title">
+                    <font>
+                        <Font name="System Bold" size="22.0"/>
+                    </font>
+                    <HBox.margin>
+                        <Insets left="15.0"/>
+                    </HBox.margin>
+                </Label>
+
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="logoutBtn" text="Logout (Esci)" styleClass="st-button-danger"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="20.0" alignment="TOP_CENTER" style="-fx-background-color: transparent;">
+            <padding>
+                <Insets top="20.0" right="50.0" bottom="20.0" left="50.0"/>
+            </padding>
+
+            <VBox alignment="CENTER" spacing="15.0">
+                <Circle fx:id="profileCircle" radius="70.0" stroke="#3b82f6" strokeWidth="3.0" fill="TRANSPARENT"/>
+
+                <Button fx:id="changePicBtn" text="Cambia Immagine Profilo" styleClass="st-button-secondary"/>
+            </VBox>
+
+            <VBox maxWidth="600.0" styleClass="st-card" spacing="15.0">
+                <children>
+                    <GridPane hgap="20.0" vgap="15.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40"/>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="60"/>
+                        </columnConstraints>
+
+                        <Label text="Username (Nome)" styleClass="st-label-subtitle" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="usernameField" styleClass="st-text-field" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="Nuova Password" styleClass="st-label-subtitle" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <PasswordField fx:id="passwordField" promptText="Lascia vuoto per non cambiare" styleClass="st-password-field" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="Genere Musicale Preferito" styleClass="st-label-subtitle" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="genreCombo" maxWidth="Infinity" styleClass="st-combo-box" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                        <rowConstraints>
+                            <RowConstraints />
+                            <RowConstraints />
+                            <RowConstraints />
+                        </rowConstraints>
+                    </GridPane>
+                </children>
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <HBox spacing="20.0" alignment="CENTER">
+                <Button fx:id="cancelBtn" text="Annulla" minWidth="100.0" styleClass="st-button-outline"/>
+                <Button fx:id="saveBtn" text="Salva Modifiche" minWidth="150.0" styleClass="st-button-primary"/>
+            </HBox>
+
+        </VBox>
+    </center>
+</BorderPane>

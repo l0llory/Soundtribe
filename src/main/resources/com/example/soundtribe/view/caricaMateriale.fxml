@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.soundtribe.controller.UploadController"
+            stylesheets="@../css/style.css"
+            prefHeight="650.0" prefWidth="800.0">
+
+    <top>
+        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <children>
+                    <HBox spacing="5.0" alignment="CENTER_LEFT">
+                        <children>
+                            <Button fx:id="precP_Upload" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                            <Button fx:id="nextP_Upload" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                            <Button fx:id="backHome_Upload" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                        </children>
+                    </HBox>
+                    <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+                        <children>
+                            <Label text="SoundTribe" styleClass="st-label-title">
+                                <font><Font name="System Bold" size="22.0"/></font>
+                            </Label>
+                            <Label text="Carica Materiale" styleClass="st-label-subtitle"/>
+                        </children>
+                        <HBox.margin><Insets left="15.0"/></HBox.margin>
+                    </VBox>
+                    <Button fx:id="Exit_Upload" text="Esci" minWidth="70.0" minHeight="30.0" styleClass="st-button-outline"/>
+                </children>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" styleClass="st-scroll-pane">
+            <content>
+                <VBox spacing="20.0" style="-fx-background-color: transparent;">
+                    <padding><Insets top="10.0" right="30.0" bottom="30.0" left="30.0"/></padding>
+
+                    <VBox alignment="CENTER" spacing="10.0">
+                        <Label text="Cosa vuoi caricare?" styleClass="st-label-subtitle"/>
+                        <HBox spacing="0.0" alignment="CENTER">
+                            <Button fx:id="btnModeExecution" text="Singola Esecuzione" prefWidth="200.0"
+                                    styleClass="st-segment-button, st-segment-left, st-segment-button-active"/>
+                            <Button fx:id="btnModeConcert" text="Concerto Intero" prefWidth="200.0"
+                                    styleClass="st-segment-button, st-segment-right"/>
+                        </HBox>
+                    </VBox>
+
+                    <StackPane>
+                        <VBox fx:id="formEsecuzione" spacing="20.0">
+                            <VBox spacing="10.0" styleClass="st-card">
+                                <Label text="1. Titolo Esecuzione" styleClass="st-label-blue">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <TextField fx:id="titoloEsecuzioneField" promptText="Es. Live a Milano, Cover Acustica..." styleClass="st-text-field"/>
+                            </VBox>
+
+                            <VBox spacing="10.0" styleClass="st-card">
+                                <Label text="2. Associa a Brano (Opzionale)" styleClass="st-label-blue">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <HBox spacing="15.0">
+                                    <ComboBox fx:id="comboSelezionaBrano" promptText="Seleziona Brano..." maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="st-combo-box"/>
+                                    <Button fx:id="nuovoBrano_Upload" text="+ Nuovo Brano" styleClass="st-button-secondary"/>
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="10.0" styleClass="st-card">
+                                <Label text="3. Sorgente" styleClass="st-label-blue">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <HBox spacing="0.0">
+                                    <Button fx:id="tabFile" text="File Locale" prefWidth="150.0" styleClass="st-segment-button, st-segment-left, st-segment-button-active"/>
+                                    <Button fx:id="tabYoutube" text="YouTube" prefWidth="150.0" styleClass="st-segment-button, st-segment-right"/>
+                                </HBox>
+                                <VBox fx:id="fileUploadArea" spacing="10.0" alignment="CENTER" style="-fx-border-style: dashed; -fx-border-color: gray; -fx-padding: 20;">
+                                    <Button fx:id="btnSelezionaFile" text="Scegli File" styleClass="st-button-secondary"/>
+                                    <Label fx:id="lblSelectedFile" text="Nessun file"/>
+                                </VBox>
+                                <VBox fx:id="youtubeUploadArea" visible="false" managed="false">
+                                    <TextField fx:id="youtubeLinkField" promptText="Link YouTube..." styleClass="st-text-field"/>
+                                </VBox>
+                            </VBox>
+
+                            <VBox spacing="15.0" styleClass="st-card">
+                                <Label text="4. Dettagli Esecuzione" styleClass="st-label-blue">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <ComboBox fx:id="comboTipoFile" promptText="Tipo File..." styleClass="st-combo-box"/>
+
+                                <GridPane fx:id="metadataGrid" hgap="15.0" vgap="15.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="100.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" />
+                                    </columnConstraints>
+
+                                    <CheckBox fx:id="chkSelfPerformer" text="Sono io l'interprete" GridPane.columnSpan="2" styleClass="st-checkbox"/>
+
+                                    <Label text="Esecutori:" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="esecutoriField" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="st-text-field"/>
+
+                                    <Label text="Strumenti:" GridPane.rowIndex="2"/>
+                                    <MenuButton fx:id="menuStrumenti" text="Seleziona Strumenti..." maxWidth="Infinity"
+                                                GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="st-button-outline"/>
+
+                                    <Label text="Durata:" GridPane.rowIndex="3"/>
+                                    <TextField fx:id="durataField" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="st-text-field"/>
+
+                                    <CheckBox fx:id="chkLiveRecording" text="Registrazione LIVE" GridPane.rowIndex="4" GridPane.columnSpan="2" styleClass="st-checkbox"/>
+
+                                    <Label text="Data:" GridPane.rowIndex="5"/>
+                                    <DatePicker fx:id="dataRegistrazione" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                                    <Label text="Luogo:" GridPane.rowIndex="6"/>
+                                    <TextField fx:id="luogoField" GridPane.rowIndex="6" GridPane.columnIndex="1" styleClass="st-text-field"/>
+                                </GridPane>
+                            </VBox>
+                        </VBox>
+
+                        <VBox fx:id="formConcerto" spacing="20.0" visible="false" managed="false">
+                            <VBox spacing="15.0" styleClass="st-card">
+                                <Label text="Dati del Concerto" styleClass="st-label-blue">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <VBox spacing="5.0">
+                                    <Label text="Nome del Concerto / Tour *" styleClass="st-label"/>
+                                    <TextField fx:id="concertTitleField" promptText="Es. Live at Wembley 2024" styleClass="st-text-field"/>
+                                </VBox>
+                                <VBox spacing="5.0">
+                                    <Label text="Artista Principale / Band *" styleClass="st-label"/>
+                                    <TextField fx:id="concertArtistField" promptText="Nome Artista" styleClass="st-text-field"/>
+                                </VBox>
+                                <VBox spacing="5.0">
+                                    <Label text="Link YouTube (Intero Concerto) *" styleClass="st-label"/>
+                                    <TextField fx:id="concertYoutubeField" promptText="https://www.youtube.com/..." styleClass="st-text-field"/>
+                                </VBox>
+                                <HBox spacing="20.0">
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label text="Data Concerto" styleClass="st-label"/>
+                                        <DatePicker fx:id="concertDateField" maxWidth="Infinity"/>
+                                    </VBox>
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label text="Luogo" styleClass="st-label"/>
+                                        <TextField fx:id="concertLocationField" promptText="Città, Stadio..." styleClass="st-text-field"/>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="10.0" styleClass="st-card">
+                                <Label text="Scaletta e Info Brani" styleClass="st-label-blue">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <Label text="Inserisci qui la scaletta, i minutaggi (timestamp) e le note sui brani." styleClass="st-label-subtitle"/>
+                                <TextArea fx:id="concertDescField" promptText="00:00 - Intro&#10;05:30 - Canzone 1&#10;..." prefRowCount="8" styleClass="st-text-area"/>
+                            </VBox>
+                        </VBox>
+                    </StackPane>
+
+                    <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                        <Button text="Annulla" styleClass="st-button-outline"/>
+                        <Button fx:id="btnConfermaUpload" text="Carica Materiale" prefHeight="40.0" prefWidth="150.0" styleClass="st-button-primary"/>
+                    </HBox>
+
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

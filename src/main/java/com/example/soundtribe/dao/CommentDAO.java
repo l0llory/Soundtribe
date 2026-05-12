@@ -1,6 +1,6 @@
 package com.example.soundtribe.dao;
 
-import com.example.soundtribe.CommentManager;
+import com.example.soundtribe.manager.CommentManager;
 import com.example.soundtribe.entità.Comment;
 import java.sql.*;
 import java.util.ArrayList;
