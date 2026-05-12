@@ -39,7 +39,7 @@ public class DizionariController {
         songDAO = new SongDAO();
         esecutionDAO = new EsecutionDAO();
 
-        backBtn.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, true));
+        backBtn.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", true));
 
         loadDictionaries();
 

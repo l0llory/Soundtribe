@@ -27,14 +27,18 @@ public class AuthenticationController {
     }
 
     private void handleLogin(ActionEvent event) {
-        String email = emailField.getText();
-        String password = passwordField.getText();
+        // Rimuoviamo gli spazi vuoti accidentali prima o dopo la stringa
+        String email = emailField.getText().trim();
+        String password = passwordField.getText().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
             AlertUtil.mostra("Errore di accesso", "Campi incompleti",
                     "Per favore, inserisci sia l'email che la password.", AlertType.WARNING);
             return;
         }
+        
+        System.out.println("Tentativo di login con Email: '" + email + "' e Password: '" + password + "'"); // LOG PER DEBUG
+
         UserDAO userDAO = new UserDAO();
         User loggedUser = userDAO.login(email, password);
 
@@ -42,7 +46,7 @@ public class AuthenticationController {
             // SALVARE LA SESSIONE (Importante per poi caricare brani a nome suo)
             UserSession.getInstance().setUserId(loggedUser.getId());
             UserSession.getInstance().setIsAdmin(loggedUser.isAdmin());
-            SceneManager.changeScene(event, "Home.fxml", 800, 600, true);
+            SceneManager.changeScene(event, "Home.fxml", true);
         } else {
             AlertUtil.mostra("Errore Login", "Credenziali errate", "Email o password non valide", AlertType.ERROR);
         }
@@ -50,6 +54,6 @@ public class AuthenticationController {
     }
 
     private void handleGoToRegistration(ActionEvent event) {
-        SceneManager.changeScene(event, "Registrazione.fxml", 600, 600, false);
+        SceneManager.changeScene(event, "Registrazione.fxml", false);
     }
 }

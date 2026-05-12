@@ -51,21 +51,21 @@ public class HomeController {
         NavigationManager.navBack(precP);
 
         setupProfileButton();
-        profileButton.setOnAction(event -> SceneManager.changeScene(event, "GestioneProfilo.fxml", 800, 600, true));
+        profileButton.setOnAction(event -> SceneManager.changeScene(event, "GestioneProfilo.fxml", true));
 
         globalSearchBtn.setOnAction(this::performGlobalSearch);
         globalSearchField.setOnAction(this::performGlobalSearch);
 
-        handleBraniMusicali.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true));
-        handleUtenti.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", 800, 600, true));
-        handleCaricaMateriale.setOnAction(event -> SceneManager.changeScene(event, "caricaMateriale.fxml", 800, 600, true));
-        handleAmministrazione.setOnAction(event -> SceneManager.changeScene(event, "Amministrazione.fxml", 800, 600, true));
+        handleBraniMusicali.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
+        handleUtenti.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
+        handleCaricaMateriale.setOnAction(event -> SceneManager.changeScene(event, "caricaMateriale.fxml", true));
+        handleAmministrazione.setOnAction(event -> SceneManager.changeScene(event, "Amministrazione.fxml", true));
 
         // AZIONE: Naviga ai brani commentati
         handleMyComments.setOnAction(event -> {
             // Impostiamo il filtro speciale nella sessione
             UserSession.getInstance().setLastSearchQuery("filter:commented_by_me");
-            SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true);
+            SceneManager.changeScene(event, "braniMusicali.fxml", true);
         });
 
         setupActivityList();
@@ -241,7 +241,7 @@ public class HomeController {
 
     private void goToScene(Event sourceEvent, String fxmlFile) {
         ActionEvent cleanEvent = new ActionEvent(globalSearchBtn, Event.NULL_SOURCE_TARGET);
-        SceneManager.changeScene(cleanEvent, fxmlFile, 800, 600, true);
+        SceneManager.changeScene(cleanEvent, fxmlFile, true);
     }
 
     private void setupProfileButton() {

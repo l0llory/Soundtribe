@@ -73,7 +73,7 @@ public class UploadController {
 
         comboTipoFile.getItems().addAll("Spartito (PDF)", "Audio (MP3)", "Video (MP4)", "Altro");
         btnSelezionaFile.setOnAction(e -> pickFile());
-        nuovoBrano_Upload.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
+        nuovoBrano_Upload.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", true));
         btnConfermaUpload.setOnAction(e -> handleUpload());
     }
 

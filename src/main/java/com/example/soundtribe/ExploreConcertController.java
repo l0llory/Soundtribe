@@ -34,7 +34,7 @@ public class ExploreConcertController {
         NavigationManager.updateNavigationButtons(precP_Concert, nextP_Concert);
         NavigationManager.home(backHome_Concert);
         NavigationManager.exit(Exit_Concert);
-        precP_Concert.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", 800, 600, true));
+        precP_Concert.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", true));
         openLinkBtn.setOnAction(e -> openUrl());
     }
 

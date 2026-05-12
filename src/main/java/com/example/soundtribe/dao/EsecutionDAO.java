@@ -7,9 +7,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EsecutionDAO {
-    private String dbUrl;
-    private String user;
-    private String password;
 
     // LISTA STRUMENTI PREDEFINITI
     private static final List<String> PRESET_STRUMENTI = Arrays.asList(
@@ -30,14 +27,7 @@ public class EsecutionDAO {
     );
 
     public EsecutionDAO() {
-        this.dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
-        this.user = "postgres";
-        this.password = "AntonioGramsci57!";
         initTable();
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dbUrl, user, password);
     }
 
     private void initTable() {
@@ -59,7 +49,7 @@ public class EsecutionDAO {
                 "FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE SET NULL" +
                 ")";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(sql);
@@ -79,7 +69,7 @@ public class EsecutionDAO {
         String sql = "INSERT INTO media_files (song_id, title, file_path, file_type, executors, instruments, duration, is_live, recording_date, recording_place, is_concert, is_self_performer, uploader_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             if (media.getSongId() == 0) {
@@ -112,7 +102,7 @@ public class EsecutionDAO {
     public List<Esecution> getMediaBySongId(int songId) {
         List<Esecution> mediaList = new ArrayList<>();
         String sql = "SELECT * FROM media_files WHERE song_id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, songId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -125,7 +115,7 @@ public class EsecutionDAO {
     public List<Esecution> getAllExecutions() {
         List<Esecution> mediaList = new ArrayList<>();
         String sql = "SELECT * FROM media_files ORDER BY id DESC";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) mediaList.add(mapRow(rs));
@@ -155,7 +145,7 @@ public class EsecutionDAO {
     public List<Esecution> searchExecutions(String query) {
         List<Esecution> results = new ArrayList<>();
         String sql = "SELECT * FROM media_files WHERE title ILIKE ? OR executors ILIKE ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             String searchPattern = "%" + query + "%";
             pstmt.setString(1, searchPattern);
@@ -194,7 +184,7 @@ public class EsecutionDAO {
         // 3. Aggiungi quelli esistenti nel DB (aggiunti dagli utenti)
         String sql = "SELECT DISTINCT instruments FROM media_files WHERE instruments IS NOT NULL AND instruments <> ''";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 

@@ -1,5 +1,7 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.dao.CommentDAO;
+import com.example.soundtribe.dao.UserDAO;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -32,7 +34,7 @@ public class AdminController {
         NavigationManager.exit(Exit_Admin);
 
         // Caricamento dati dinamici (Esempio)
-        refreshStats(156, 1247, 2, "2.3 GB");
+        refreshStats(UserDAO.getNumberUsers(), CommentDAO.getTotalComments(), CommentDAO.getCommentsByStatus("BANNED"), "2.3 GB");
     }
 
     public void refreshStats(int users, int comments, int reports, String storage) {

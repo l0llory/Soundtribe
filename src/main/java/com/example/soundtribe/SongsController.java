@@ -38,7 +38,7 @@ public class SongsController {
     @FXML public Button backHome_Songs;
     @FXML public Button Exit_Songs;
     @FXML public Button aggiungiBrano;
-    @FXML public Button btnDizionari; // NUOVO BOTTONE
+    @FXML public Button btnDizionari;
     @FXML public TextField searchBarSongs;
     @FXML public ComboBox<String> generiFilter;
 
@@ -95,11 +95,11 @@ public class SongsController {
         generiFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
 
         // 5. AZIONI BOTTONI
-        aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", 800, 600, true));
+        aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", true));
 
         // NUOVA AZIONE: APRI DIZIONARI
         if(btnDizionari != null) {
-            btnDizionari.setOnAction(e -> SceneManager.changeScene(e, "dizionari.fxml", 800, 600, true));
+            btnDizionari.setOnAction(e -> SceneManager.changeScene(e, "dizionari.fxml", true));
         }
     }
 
@@ -203,9 +203,58 @@ public class SongsController {
                     exploreBtn.getStyleClass().add("st-button-primary");
 
                     exploreBtn.setOnAction(e -> {
-                        if (item.isSong()) openSongDetails(item.getSong(), exploreBtn);
-                        else if (item.isExecution()) openExecutionDetails(item.getExecution(), exploreBtn);
-                        else openConcertDetails(item.getConcert(), exploreBtn);
+                        try {
+                            // Non usare SceneManager qui perché dobbiamo passare i dati al controller
+                            FXMLLoader loader = new FXMLLoader();
+                            if (item.isSong()) {
+                                NavigationManager.navigateTo("esploraBrani.fxml");
+                                loader.setLocation(getClass().getResource("esploraBrani.fxml"));
+                            }
+                            else if (item.isExecution()) {
+                                NavigationManager.navigateTo("esploraEsecuzione.fxml");
+                                loader.setLocation(getClass().getResource("esploraEsecuzione.fxml"));
+                            }
+                            else {
+                                NavigationManager.navigateTo("esploraConcerto.fxml");
+                                loader.setLocation(getClass().getResource("esploraConcerto.fxml"));
+                            }
+
+                            Parent root = loader.load();
+                            
+                            // Passa l'oggetto al controller corrispondente
+                            if (item.isSong()) {
+                                ExploreSongController controller = loader.getController();
+                                controller.setSong(item.getSong());
+                            } else if (item.isExecution()) {
+                                ExploreExecutionController controller = loader.getController();
+                                controller.setExecution(item.getExecution());
+                            } else {
+                                ExploreConcertController controller = loader.getController();
+                                controller.setConcert(item.getConcert());
+                            }
+
+                            // Ottieni la scena corrente
+                            Scene currentScene = ((Node) e.getSource()).getScene();
+                            Stage stage = (Stage) currentScene.getWindow();
+                            
+                            double width = currentScene.getWidth();
+                            double height = currentScene.getHeight();
+                            boolean isMaximized = stage.isMaximized();
+
+                            Scene newScene = new Scene(root, width, height);
+                            newScene.getStylesheets().add(SceneManager.class.getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+
+                            stage.setScene(newScene);
+                            
+                            if (isMaximized) {
+                                stage.setMaximized(true);
+                            }
+                            
+                            stage.show();
+
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     });
 
                     actionBox.getChildren().add(exploreBtn);
@@ -228,42 +277,4 @@ public class SongsController {
         stack.getChildren().addAll(bg, icon); return stack;
     }
 
-    private void openSongDetails(Song song, Button source) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraBrani.fxml"));
-            Parent root = loader.load();
-            ExploreSongController controller = loader.getController();
-            controller.setSong(song);
-            Stage stage = (Stage) source.getScene().getWindow();
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private void openExecutionDetails(Esecution execution, Button source) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraEsecuzione.fxml"));
-            Parent root = loader.load();
-            ExploreExecutionController controller = loader.getController();
-            controller.setExecution(execution);
-            Stage stage = (Stage) source.getScene().getWindow();
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private void openConcertDetails(Concert concert, Button source) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("esploraConcerto.fxml"));
-            Parent root = loader.load();
-            ExploreConcertController controller = loader.getController();
-            controller.setConcert(concert);
-            Stage stage = (Stage) source.getScene().getWindow();
-            Scene scene = new Scene(root, 800, 600);
-            scene.getStylesheets().add(getClass().getResource("/com/example/soundtribe/css/style.css").toExternalForm());
-            stage.setScene(scene);
-        } catch (IOException e) { e.printStackTrace(); }
-    }
 }

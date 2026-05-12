@@ -45,7 +45,7 @@ public class ExploreSongController {
         NavigationManager.updateNavigationButtons(precP_Riproduci, nextP_Riproduci);
         NavigationManager.home(backHome_Riproduci);
         NavigationManager.exit(Exit_Riproduci);
-        precP_Riproduci.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", 800, 600, true));
+        precP_Riproduci.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
     }
 
     public void setSong(Song song) {

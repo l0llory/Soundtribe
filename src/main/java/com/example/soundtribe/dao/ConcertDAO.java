@@ -6,16 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConcertDAO {
-    private String dbUrl = "jdbc:postgresql://localhost:5432/soundtribe";
-    private String user = "postgres";
-    private String password = "AntonioGramsci57!";
 
     public ConcertDAO() {
         initTable();
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dbUrl, user, password);
     }
 
     private void initTable() {
@@ -29,7 +22,7 @@ public class ConcertDAO {
                 "description TEXT, " +
                 "uploader_id INT" +
                 ")";
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = CredDAO.getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -38,7 +31,7 @@ public class ConcertDAO {
 
     public void addConcert(Concert concert) {
         String sql = "INSERT INTO concerts (title, artist, youtube_url, concert_date, location, description, uploader_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, concert.getTitle());
             pstmt.setString(2, concert.getArtist());
             pstmt.setString(3, concert.getYoutubeUrl());
@@ -55,7 +48,7 @@ public class ConcertDAO {
     public List<Concert> getAllConcerts() {
         List<Concert> list = new ArrayList<>();
         String sql = "SELECT * FROM concerts ORDER BY id DESC";
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = CredDAO.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 list.add(new Concert(
                         rs.getInt("id"),
