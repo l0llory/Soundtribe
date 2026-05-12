@@ -209,15 +209,15 @@ public class SongsController {
                             FXMLLoader loader = new FXMLLoader();
                             if (item.isSong()) {
                                 NavigationManager.navigateTo("esploraBrani.fxml");
-                                loader.setLocation(getClass().getResource("esploraBrani.fxml"));
+                                loader.setLocation(getClass().getResource("/com/example/soundtribe/view/esploraBrani.fxml"));
                             }
                             else if (item.isExecution()) {
                                 NavigationManager.navigateTo("esploraEsecuzione.fxml");
-                                loader.setLocation(getClass().getResource("esploraEsecuzione.fxml"));
+                                loader.setLocation(getClass().getResource("/com/example/soundtribe/view/esploraEsecuzione.fxml"));
                             }
                             else {
                                 NavigationManager.navigateTo("esploraConcerto.fxml");
-                                loader.setLocation(getClass().getResource("esploraConcerto.fxml"));
+                                loader.setLocation(getClass().getResource("/com/example/soundtribe/view/esploraConcerto.fxml"));
                             }
 
                             Parent root = loader.load();

@@ -58,7 +58,7 @@ public class HomeController {
         globalSearchBtn.setOnAction(this::performGlobalSearch);
         globalSearchField.setOnAction(this::performGlobalSearch);
 
-        handleBraniMusicali.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
+        handleBraniMusicali.setOnAction(event -> SceneManager.changeScene(event, "view/braniMusicali.fxml", true));
         handleUtenti.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
         handleCaricaMateriale.setOnAction(event -> SceneManager.changeScene(event, "caricaMateriale.fxml", true));
         handleAmministrazione.setOnAction(event -> SceneManager.changeScene(event, "Amministrazione.fxml", true));

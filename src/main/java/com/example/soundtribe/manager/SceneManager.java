@@ -28,7 +28,7 @@ public class SceneManager {
             boolean isMaximized = stage.isMaximized();
 
             // 2. Carichiamo il file FXML
-            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxml));
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/com/example/soundtribe/view/" + fxml));
             
             // Creiamo la scena passando la larghezza e l'altezza della scena precedente
             Scene newScene = new Scene(loader.load(), width, height);

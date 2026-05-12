@@ -23,7 +23,7 @@ public class Launcher extends Application {
         instance = this; // Salva l'istanza per permettere ai controller di chiamarla
 
         // Carica la scena iniziale (Autenticazione)
-        FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("Autenticazione.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("/com/example/soundtribe/view/Autenticazione.fxml"));
         // Rimuoviamo le dimensioni fisse da qui, se ci sono problemi con il calcolo
         // dei bordi finestra nativi. Impostiamo dimensioni minime nello stage se necessario
         Scene scene = new Scene(fxmlLoader.load(), 800, 600);
