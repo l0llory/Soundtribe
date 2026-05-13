@@ -115,8 +115,7 @@ public class CommentDAO {
             case CONCERT -> column = "concert_id";
         }
 
-        String sql = "SELECT * FROM comments WHERE " + column + " = ? AND (parent_id IS NULL OR parent_id = 0) ORDER BY id DESC";
-
+        String sql = "SELECT * FROM comments ORDER BY id ASC";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -189,5 +188,38 @@ public class CommentDAO {
                 rs.getInt("likes"),
                 parentId
         );
+    }
+    // All'interno di CommentDAO.java
+
+    public static int getTotalComments() {
+        String sql = "SELECT COUNT(*) FROM comments";
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1); // Il primo (e unico) risultato della query COUNT(*)
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel recupero del numero totale di commenti: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0; // In caso di errore o nessun commento
+    }
+
+    public static int getCommentsByStatus(String status) {
+        String sql = "SELECT COUNT(*) FROM comments WHERE status = ?";
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, status);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel recupero del numero di commenti per stato '" + status + "': " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

@@ -267,7 +267,7 @@ public class UserDAO {
                 return rs.getInt(1); // Il primo (e unico) risultato della query COUNT(*)
             }
         } catch (SQLException e) {
-            System.err.println("Errore nel recupero del numero totale di utenti: " + e.getMessage());
+            System.out.println("Errore nel recupero del numero totale di utenti: " + e.getMessage());
             e.printStackTrace();
         }
         return 0;

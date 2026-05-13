@@ -1,5 +1,6 @@
-package com.example.soundtribe;
+package com.example.soundtribe.manager;
 
+import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entità.Comment;
