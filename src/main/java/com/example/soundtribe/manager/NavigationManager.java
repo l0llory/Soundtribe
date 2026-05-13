@@ -1,5 +1,6 @@
 package com.example.soundtribe.manager;
 
+import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.item.UserSession;
 import javafx.scene.control.Button;
 
@@ -79,14 +80,16 @@ public class NavigationManager {
         navForward(forwardBtn);
     }
 
-    // --- GESTIONE USCITA E RESET ---
+    // ---Metodo di gestione dell'uscita dall'applicazione con la chiamata al metodo showLogoutConfirmation della classe AlertUtil---
     public static void exit(Button button) {
         button.setOnAction(event -> {
-            UserSession.getInstance().cleanUserSession();
-            backStack.clear();
-            forwardStack.clear();
-            // Quando esco e vado al login, NON voglio che il login finisca nella cronologia
-            SceneManager.changeScene(event, "Autenticazione.fxml", false);
+            AlertUtil.showLogoutConfirmation(() -> {
+                UserSession.getInstance().cleanUserSession();
+                backStack.clear();
+                forwardStack.clear();
+                // Quando esco e vado al login, NON voglio che il login finisca nella cronologia
+                SceneManager.changeScene(event, "Autenticazione.fxml", false);
+            });
         });
     }
 
