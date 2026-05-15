@@ -180,15 +180,12 @@ public class CommentManager {
     private void saveComment(String content, Integer parentId) {
         User me = userDAO.getUserById(currentUserId);
         String username = (me != null) ? me.getName() : "Utente";
-
-        // Crea il commento passando il tipo di risorsa e l'ID
-        // Nota: Il costruttore di Comment deve essere in grado di gestire questi dati
-        // Oppure il metodo addComment del DAO deve sapere dove salvare.
-        Comment newC = new Comment();
-        newC.setUserId(currentUserId);
-        newC.setUsername(username);
-        newC.setContent(content);
-        newC.setParentId(parentId);
+        
+        int songId = (resourceType == ResourceType.SONG) ? resourceId : 0;
+        int execId = (resourceType == ResourceType.EXECUTION) ? resourceId : 0;
+        int concId = (resourceType == ResourceType.CONCERT) ? resourceId : 0;
+        
+        Comment newC = new Comment(0, songId, execId, concId, currentUserId, username, content, 0, parentId, "Pending");
 
         // Passiamo al DAO l'onere di salvare nella tabella giusta o con i flag giusti
         commentDAO.addComment(newC, resourceType, resourceId);

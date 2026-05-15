@@ -23,7 +23,8 @@ public class CommentDAO {
                 "parent_id INT, " +
                 "song_id INT, " +          // Ora deve essere nullable
                 "execution_id INT, " +
-                "concert_id INT " +
+                "concert_id INT, " +
+                "status TEXT DEFAULT 'Pending'" + // Aggiunto campo status alla creazione
                 ")";
 
         try (Connection conn = CredDAO.getConnection(); Statement stmt = conn.createStatement()) {
@@ -34,6 +35,7 @@ public class CommentDAO {
             try {
                 stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS execution_id INT");
                 stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS concert_id INT");
+                stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pending'"); // Migrazione status
             } catch (SQLException ignore) {}
 
             // 3. FIX IMPORTANTE: Rimuovi il vincolo NOT NULL da song_id
@@ -55,7 +57,7 @@ public class CommentDAO {
      * Aggiunge un commento al database collegandolo alla risorsa corretta.
      */
     public void addComment(Comment comment, CommentManager.ResourceType type, int resourceId) {
-        String sql = "INSERT INTO comments (user_id, username, content, parent_id, likes, song_id, execution_id, concert_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO comments (user_id, username, content, parent_id, likes, song_id, execution_id, concert_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -90,6 +92,7 @@ public class CommentDAO {
                     pstmt.setInt(8, resourceId);      // concert_id
                     break;
             }
+            pstmt.setString(9, comment.getStatus());
 
             pstmt.executeUpdate();
 
@@ -115,7 +118,7 @@ public class CommentDAO {
             case CONCERT -> column = "concert_id";
         }
 
-        String sql = "SELECT * FROM comments ORDER BY id ASC";
+        String sql = "SELECT * FROM comments WHERE parent_id IS NULL AND " + column + " = ? ORDER BY id ASC";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -173,9 +176,11 @@ public class CommentDAO {
         int sId = rs.getObject("song_id") != null ? rs.getInt("song_id") : 0;
         int eId = 0;
         int cId = 0;
+        String status = "Pending";
 
         try { eId = rs.getInt("execution_id"); } catch (SQLException e) {}
         try { cId = rs.getInt("concert_id"); } catch (SQLException e) {}
+        try { status = rs.getString("status"); } catch (SQLException e) {}
 
         return new Comment(
                 rs.getInt("id"),
@@ -187,7 +192,7 @@ public class CommentDAO {
                 rs.getString("content"),
                 rs.getInt("likes"),
                 parentId,
-               rs.getString("status")
+                status
         );
     }
     // All'interno di CommentDAO.java
