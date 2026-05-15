@@ -10,6 +10,7 @@ public class Comment {
     private String content;
     private int likes;
     private Integer parentId; // Null se è un commento principale
+    private String status;
 
     // Riferimenti alle Risorse (Uno di questi sarà valorizzato, gli altri 0/null)
     private int songId;
@@ -20,10 +21,11 @@ public class Comment {
     private List<Comment> replies = new ArrayList<>();
 
     // Costruttore Vuoto
-    public Comment() {}
+    //public Comment(int id, int songId, int i, int i1, int userId, String username, String content, int likes, Integer parentId, String status) {}
 
     // Costruttore Completo (Aggiornato con tutti i tipi di risorsa)
-    public Comment(int id, int songId, int executionId, int concertId, int userId, String username, String content, int likes, Integer parentId) {
+    public Comment(int id, int songId, int executionId, int concertId, int userId, String username,
+                   String content, int likes, Integer parentId, String status) {
         this.id = id;
         this.songId = songId;
         this.executionId = executionId;
@@ -33,11 +35,12 @@ public class Comment {
         this.content = content;
         this.likes = likes;
         this.parentId = parentId;
+        this.status = "Pending";
     }
 
     // Costruttore di compatibilità (Utile se crei commenti al volo solo per Canzoni)
-    public Comment(int id, int songId, int userId, String username, String content, int likes, Integer parentId) {
-        this(id, songId, 0, 0, userId, username, content, likes, parentId);
+    public Comment(int id, int songId, int userId, String username, String content, int likes, Integer parentId, String status) {
+        this(id, songId, 0, 0, userId, username, content, likes, parentId, status);
     }
 
     // --- GETTERS E SETTERS ---
@@ -69,6 +72,9 @@ public class Comment {
 
     public int getConcertId() { return concertId; }
     public void setConcertId(int concertId) { this.concertId = concertId; }
+
+    public String getStatus() {return status;}
+    public void setStatus(String status) {this.status = status;}
 
     // --- Gestione Risposte ---
 

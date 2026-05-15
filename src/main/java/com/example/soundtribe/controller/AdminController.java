@@ -1,6 +1,11 @@
 package com.example.soundtribe.controller;
 
+<<<<<<< HEAD:src/main/java/com/example/soundtribe/controller/AdminController.java
 import com.example.soundtribe.manager.NavigationManager;
+=======
+import com.example.soundtribe.dao.CommentDAO;
+import com.example.soundtribe.dao.UserDAO;
+>>>>>>> 8c600b46647362a78a0d02dfc7c23f7159a875f2:src/main/java/com/example/soundtribe/AdminController.java
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,6 +26,9 @@ public class AdminController {
 
     @FXML private ListView<String> moderationList;
 
+    private CommentDAO commentDAO = new CommentDAO();
+    private UserDAO userDAO = new UserDAO();
+
     @FXML
     public void initialize() {
 
@@ -32,8 +40,13 @@ public class AdminController {
         NavigationManager.home(backHome_Admin);
         NavigationManager.exit(Exit_Admin);
 
-        // Caricamento dati dinamici (Esempio)
-        refreshStats(156, 1247, 2, "2.3 GB");
+        // Caricamento dati dinamici
+        refreshStats(
+            userDAO.getNumberUsers(), 
+            commentDAO.getTotalComments(), 
+            commentDAO.getCommentsByStatus("Banned"),
+            "2.3 GB"
+        );
     }
 
     public void refreshStats(int users, int comments, int reports, String storage) {
