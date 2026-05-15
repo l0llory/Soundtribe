@@ -258,16 +258,17 @@ public class UserDAO {
 
         return user;
     }
-    public static int getNumberUsers(){
+
+    public int getNumberUsers() {
         String sql = "SELECT COUNT(*) FROM users";
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                return rs.getInt(1); // Il primo (e unico) risultato della query COUNT(*)
+                return rs.getInt(1);
             }
         } catch (SQLException e) {
-            System.out.println("Errore nel recupero del numero totale di utenti: " + e.getMessage());
+            System.err.println("Errore nel recupero del numero totale di utenti: " + e.getMessage());
             e.printStackTrace();
         }
         return 0;

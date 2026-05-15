@@ -35,7 +35,7 @@ public class Comment {
         this.content = content;
         this.likes = likes;
         this.parentId = parentId;
-        this.status = "PENDING";
+        this.status = "Pending";
     }
 
     // Costruttore di compatibilità (Utile se crei commenti al volo solo per Canzoni)
@@ -74,6 +74,8 @@ public class Comment {
     public void setConcertId(int concertId) { this.concertId = concertId; }
 
     public String getStatus() {return status;}
+    public void setStatus(String status) {this.status = status;}
+
     // --- Gestione Risposte ---
 
     public List<Comment> getReplies() { return replies; }

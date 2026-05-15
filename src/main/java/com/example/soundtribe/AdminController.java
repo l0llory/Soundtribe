@@ -22,6 +22,9 @@ public class AdminController {
 
     @FXML private ListView<String> moderationList;
 
+    private CommentDAO commentDAO = new CommentDAO();
+    private UserDAO userDAO = new UserDAO();
+
     @FXML
     public void initialize() {
 
@@ -33,8 +36,13 @@ public class AdminController {
         NavigationManager.home(backHome_Admin);
         NavigationManager.exit(Exit_Admin);
 
-        // Caricamento dati dinamici (Esempio)
-        refreshStats(UserDAO.getNumberUsers(), CommentDAO.getTotalComments(), CommentDAO.getCommentsByStatus("BANNED"), "2.3 GB");
+        // Caricamento dati dinamici
+        refreshStats(
+            userDAO.getNumberUsers(), 
+            commentDAO.getTotalComments(), 
+            commentDAO.getCommentsByStatus("Banned"),
+            "2.3 GB"
+        );
     }
 
     public void refreshStats(int users, int comments, int reports, String storage) {

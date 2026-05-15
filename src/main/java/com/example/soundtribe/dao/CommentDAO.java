@@ -186,12 +186,13 @@ public class CommentDAO {
                 rs.getString("username"),
                 rs.getString("content"),
                 rs.getInt("likes"),
-                parentId
+                parentId,
+               rs.getString("status")
         );
     }
     // All'interno di CommentDAO.java
 
-    public static int getTotalComments() {
+    public int getTotalComments() {
         String sql = "SELECT COUNT(*) FROM comments";
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
@@ -206,7 +207,7 @@ public class CommentDAO {
         return 0; // In caso di errore o nessun commento
     }
 
-    public static int getCommentsByStatus(String status) {
+    public int getCommentsByStatus(String status) {
         String sql = "SELECT COUNT(*) FROM comments WHERE status = ?";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
