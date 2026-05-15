@@ -1,11 +1,8 @@
 package com.example.soundtribe.controller;
 
-<<<<<<< HEAD:src/main/java/com/example/soundtribe/controller/AdminController.java
 import com.example.soundtribe.manager.NavigationManager;
-=======
 import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.dao.UserDAO;
->>>>>>> 8c600b46647362a78a0d02dfc7c23f7159a875f2:src/main/java/com/example/soundtribe/AdminController.java
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
