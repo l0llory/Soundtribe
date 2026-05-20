@@ -140,4 +140,79 @@ public class ConcertDAO {
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
+    // --- NUOVI METODI PER LA GESTIONE COLLABORATIVA DELLA SCALETTA ---
+
+    public List<ConcertTrack> getTracksForConcert(int concertId) {
+        List<ConcertTrack> tracks = new ArrayList<>();
+        // Ingegneria del SW: Uniamo i dati della traccia con gli strumenti usando STRING_AGG
+        String sql = "SELECT ct.*, " +
+                "(SELECT STRING_AGG(instrument_name, ', ') FROM track_instruments WHERE track_id = ct.id) AS inst_list " +
+                "FROM concert_tracks ct WHERE concert_id = ? ORDER BY start_time ASC";
+
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, concertId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String instList = rs.getString("inst_list");
+                    ConcertTrack track = new ConcertTrack(
+                            rs.getString("title"),
+                            rs.getString("executors"),
+                            rs.getString("start_time"),
+                            rs.getString("end_time"),
+                            instList != null ? instList : ""
+                    );
+                    tracks.add(track);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tracks;
+    }
+
+    public void addTrackToConcert(int concertId, ConcertTrack track) {
+        String sqlTrack = "INSERT INTO concert_tracks (concert_id, title, executors, start_time, end_time) VALUES (?, ?, ?, ?, ?) RETURNING id";
+
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmtTrack = conn.prepareStatement(sqlTrack)) {
+
+            pstmtTrack.setInt(1, concertId);
+            pstmtTrack.setString(2, track.getTitle());
+            pstmtTrack.setString(3, track.getExecutors());
+            pstmtTrack.setString(4, track.getStartTime());
+            pstmtTrack.setString(5, track.getEndTime());
+
+            ResultSet rsTrack = pstmtTrack.executeQuery();
+            if (rsTrack.next()) {
+                int newTrackId = rsTrack.getInt(1);
+
+                // GESTIONE STRUMENTI NEL DIZIONARIO E NELLA TABELLA PONTE
+                if (track.getInstruments() != null && !track.getInstruments().isEmpty()) {
+                    String[] insts = track.getInstruments().split(",");
+                    String insertDict = "INSERT INTO instruments (name) VALUES (?) ON CONFLICT DO NOTHING";
+                    String insertRel = "INSERT INTO track_instruments (track_id, instrument_name) VALUES (?, ?)";
+
+                    try (PreparedStatement psDict = conn.prepareStatement(insertDict);
+                         PreparedStatement psRel = conn.prepareStatement(insertRel)) {
+
+                        for (String inst : insts) {
+                            String cleanInst = inst.trim();
+                            if (cleanInst.isEmpty()) continue;
+
+                            psDict.setString(1, cleanInst);
+                            psDict.executeUpdate();
+
+                            psRel.setInt(1, newTrackId);
+                            psRel.setString(2, cleanInst);
+                            psRel.executeUpdate();
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore inserimento traccia: " + e.getMessage());
+        }
+    }
 }

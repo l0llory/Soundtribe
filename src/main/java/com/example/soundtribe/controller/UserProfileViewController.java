@@ -23,27 +23,25 @@ public class UserProfileViewController {
     @FXML public Label idLabel;
 
     public void initialize() {
-        // Il bottone indietro torna alla gestione utenti
         backButton.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
     }
 
-    // METODO FONDAMENTALE: Riceve l'utente da visualizzare
+    // METODO RICEVENTE: Chiamato dinamicamente da UsersController
     public void setTargetUser(User user) {
         if (user == null) return;
 
-        // 1. Dati Testuali
+        // 1. Assegnazione Dati Testuali
         fullNameLabel.setText(user.getName() + " " + user.getSurname());
         emailLabel.setText(user.getEmail());
         idLabel.setText("#" + user.getId());
 
-        // Genere (Gestione null)
         if (user.getFavoriteGenre() != null && !user.getFavoriteGenre().isEmpty()) {
             genreLabel.setText(user.getFavoriteGenre());
         } else {
             genreLabel.setText("Non specificato");
         }
 
-        // 2. Ruolo (Stile Badge)
+        // 2. Rendering grafico dei Ruoli con stile Badge
         if (user.isAdmin()) {
             roleLabel.setText("ADMIN");
             roleLabel.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-padding: 5 15; -fx-background-radius: 20; -fx-font-weight: bold;");
@@ -52,36 +50,33 @@ public class UserProfileViewController {
             roleLabel.setStyle("-fx-background-color: #3969da; -fx-text-fill: white; -fx-padding: 5 15; -fx-background-radius: 20; -fx-font-weight: bold;");
         }
 
-        // 3. Stato (Approvato/In Attesa)
+        // 3. Rendering visivo dello Stato Account
         if (user.isApproved()) {
             statusLabel.setText("✔ Attivo");
-            statusLabel.setTextFill(Color.web("#27ae60")); // Verde
+            statusLabel.setTextFill(Color.web("#27ae60"));
         } else {
             statusLabel.setText("⏳ In Attesa");
-            statusLabel.setTextFill(Color.web("#f39c12")); // Arancione
+            statusLabel.setTextFill(Color.web("#f39c12"));
         }
 
-        // 4. Immagine Profilo
+        // 4. Caricamento Immagine Profilo Dedicata
         loadProfileImage(user);
     }
 
     private void loadProfileImage(User user) {
         try {
-            // Immagine di default
             URL defaultUrl = getClass().getResource("/com/example/soundtribe/img/user.png");
             Image defaultImg = (defaultUrl != null) ? new Image(defaultUrl.toExternalForm()) : null;
 
             if (user.getProfilePicPath() != null && !user.getProfilePicPath().isEmpty()) {
                 Image userImg = new Image(user.getProfilePicPath());
                 if (userImg.isError()) {
-                    // Se il percorso è sbagliato, usa default
                     if (defaultImg != null) profileCircle.setFill(new ImagePattern(defaultImg));
                     else profileCircle.setFill(Color.LIGHTGRAY);
                 } else {
                     profileCircle.setFill(new ImagePattern(userImg));
                 }
             } else {
-                // Se non ha foto, usa default
                 if (defaultImg != null) profileCircle.setFill(new ImagePattern(defaultImg));
                 else profileCircle.setFill(Color.LIGHTGRAY);
             }

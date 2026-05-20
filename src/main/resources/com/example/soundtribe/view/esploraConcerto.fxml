@@ -94,12 +94,22 @@
 
                     <Separator styleClass="st-separator"/>
 
-                    <VBox spacing="5.0" styleClass="st-card">
-                        <Label text="Scaletta e Note" styleClass="st-label-blue">
-                            <font><Font name="System Bold" size="14.0"/></font>
-                        </Label>
-                        <TextArea fx:id="descriptionArea" editable="false" wrapText="true" prefRowCount="6"
-                                  styleClass="st-text-area" style="-fx-background-color: transparent;"/>
+                    <VBox spacing="10.0" styleClass="st-card">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Scaletta Brani" styleClass="st-label-blue">
+                                <font><Font name="System Bold" size="18.0"/></font>
+                            </Label>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="btnAddTrack" text="+ Aggiungi Brano" styleClass="st-button-primary"/>
+                        </HBox>
+
+                        <Label text="Note sul concerto:" styleClass="st-label-subtitle"/>
+                        <Label fx:id="descriptionLabel" wrapText="true" styleClass="st-label"/>
+
+                        <Separator styleClass="st-separator"/>
+
+                        <VBox fx:id="tracksContainer" spacing="8.0">
+                        </VBox>
                     </VBox>
 
                     <Label text="Video del Concerto" styleClass="st-label-blue">
@@ -133,7 +143,6 @@
                         </HBox>
 
                         <VBox fx:id="commentsContainer" spacing="15.0">
-                            <Label text="Funzionalità commenti per concerti in arrivo..." styleClass="st-label-subtitle" style="-fx-font-style: italic;"/>
                         </VBox>
                     </VBox>
 

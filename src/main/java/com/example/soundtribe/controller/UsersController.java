@@ -8,8 +8,11 @@ import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entità.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -167,10 +170,39 @@ public class UsersController {
                     HBox.setHgrow(spacer, Priority.ALWAYS);
 
                     Button actionBtn = new Button("Vedi Profilo");
-                    actionBtn.getStyleClass().add("st-button-secondary");
-                    actionBtn.getStyleClass().add("st-button-small");
+                    actionBtn.getStyleClass().addAll("st-button-secondary", "st-button-small");
+
+                    // --- SEZIONE MODIFICATA CON PASSAGGIO PARAMETRI ---
                     actionBtn.setOnAction(event -> {
-                        SceneManager.changeScene(event, "profiloUtente.fxml", true);});
+                        try {
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/soundtribe/view/profiloUtente.fxml"));
+                            Parent root = loader.load();
+
+                            // Recuperiamo il controller della schermata profilo e gli passiamo l'utente cliccato
+                            UserProfileViewController controller = loader.getController();
+                            controller.setTargetUser(user);
+
+                            NavigationManager.navigateTo("profiloUtente.fxml");
+
+                            Scene currentScene = ((Node) event.getSource()).getScene();
+                            Stage stage = (Stage) currentScene.getWindow();
+
+                            double width = currentScene.getWidth();
+                            double height = currentScene.getHeight();
+                            boolean isMaximized = stage.isMaximized();
+
+                            Scene newScene = new Scene(root, width, height);
+                            newScene.getStylesheets().add(SceneManager.class.getResource("/com/example/soundtribe/css/style.css").toExternalForm());
+
+                            stage.setScene(newScene);
+                            if (isMaximized) {
+                                stage.setMaximized(true);
+                            }
+                            stage.show();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
 
                     card.getChildren().addAll(avatar, info, spacer, roleBadge, actionBtn);
                     setGraphic(card);
@@ -179,7 +211,7 @@ public class UsersController {
         });
     }
 
-    // --- LISTA RICHIESTE SOSPESE (MODIFICATA) ---
+    // --- LISTA RICHIESTE SOSPESE ---
     private void setupPendingListCellFactory() {
         richiesteSospeso.setCellFactory(param -> new ListCell<User>() {
             @Override
@@ -201,7 +233,6 @@ public class UsersController {
                     Label emailLbl = new Label(user.getEmail());
                     emailLbl.getStyleClass().add("st-label-subtitle");
 
-                    // Indicatore che c'è una motivazione
                     Label hint = new Label("Richiesta da valutare");
                     hint.setStyle("-fx-text-fill: #f39c12; -fx-font-size: 10px;");
 
@@ -210,10 +241,8 @@ public class UsersController {
                     Region spacer = new Region();
                     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                    // Pulsante unico per aprire la valutazione
                     Button btnEvaluate = new Button("Valuta Richiesta");
-                    btnEvaluate.getStyleClass().add("st-button-primary");
-                    btnEvaluate.getStyleClass().add("st-button-small");
+                    btnEvaluate.getStyleClass().addAll("st-button-primary", "st-button-small");
 
                     btnEvaluate.setOnAction(e -> showEvaluationDialog(user));
 
@@ -237,13 +266,11 @@ public class UsersController {
         Label header = new Label("Valutazione Iscrizione");
         header.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
 
-        // Dettagli Utente
         GridPane details = new GridPane();
         details.setHgap(10); details.setVgap(5);
         addRow(details, 0, "Nome:", user.getName() + " " + user.getSurname());
         addRow(details, 1, "Email:", user.getEmail());
 
-        // Motivazione
         Label motLbl = new Label("Motivazione dell'utente:");
         motLbl.setStyle("-fx-text-fill: #aaa; -fx-padding: 10 0 0 0;");
 
@@ -253,7 +280,6 @@ public class UsersController {
         motArea.setPrefRowCount(5);
         motArea.setStyle("-fx-control-inner-background: #2b2b36; -fx-text-fill: white;");
 
-        // Azioni
         HBox actions = new HBox(15);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
