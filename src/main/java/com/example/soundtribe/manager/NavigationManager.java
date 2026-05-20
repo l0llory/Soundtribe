@@ -4,90 +4,93 @@ import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.item.UserSession;
 import javafx.scene.control.Button;
 
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NavigationManager {
-    // Usiamo Stack per simulare la cronologia del browser
-    private static final Stack<String> backStack = new Stack<>();
-    private static final Stack<String> forwardStack = new Stack<>();
+    private static final int MAX_HISTORY_SIZE = 3;
+    
+    // Lista che rappresenta la cronologia delle pagine visitate
+    private static final List<String> history = new ArrayList<>();
+    
+    // Indice della pagina corrente nella cronologia
+    private static int currentIndex = -1;
 
-    // --- METODO CHIAMATO QUANDO SI APRE UNA NUOVA PAGINA (NON BACK/FORWARD) ---
+    // --- METODO CHIAMATO QUANDO SI APRE UNA NUOVA PAGINA ---
     public static void navigateTo(String fxml) {
-        if (!backStack.isEmpty() && backStack.peek().equals(fxml)) {
+        // Evita di aggiungere la pagina corrente alla cronologia se è già l'ultima
+        if (currentIndex >= 0 && history.get(currentIndex).equals(fxml)) {
             return;
         }
-        backStack.push(fxml);
-        forwardStack.clear();
+
+        // Se eravamo andati "indietro" e poi navighiamo verso una nuova pagina,
+        // la cronologia "in avanti" (le pagine dopo currentIndex) viene cancellata.
+        if (currentIndex < history.size() - 1) {
+            history.subList(currentIndex + 1, history.size()).clear();
+        }
+
+        // Aggiungi la nuova pagina
+        history.add(fxml);
+        currentIndex++;
+
+        // Mantieni la dimensione massima della cronologia a MAX_HISTORY_SIZE
+        if (history.size() > MAX_HISTORY_SIZE) {
+            history.remove(0); // Rimuovi il First In
+            currentIndex--;    // L'indice scala all'indietro perché gli elementi sono slittati
+        }
     }
 
     // --- LOGICA PULSANTE INDIETRO ---
     public static void navBack(Button button) {
-        // Aggiorniamo stato iniziale
-        button.setDisable(backStack.size() <= 1);
-
         button.setOnAction(event -> {
-            if (backStack.size() > 1) {
-
-                String currentPage = backStack.pop();
-                forwardStack.push(currentPage);
-
-
-                String previousPage = backStack.peek();
-
-
+            if (currentIndex > 0) {
+                currentIndex--;
+                String previousPage = history.get(currentIndex);
                 System.out.println("Going Back to: " + previousPage);
+                // addToHistory = false perché stiamo solo navigando nella cronologia esistente
                 SceneManager.changeScene(event, previousPage, false);
-
-                button.setDisable(backStack.size() <= 1);
             }
         });
     }
 
     // --- LOGICA PULSANTE AVANTI ---
     public static void navForward(Button button) {
-        // Aggiorniamo stato iniziale
-        button.setDisable(forwardStack.isEmpty());
-
         button.setOnAction(event -> {
-            if (!forwardStack.isEmpty()) {
-                // 1. Prendo la pagina futura
-                String nextPage = forwardStack.pop();
-
-                // 2. La rimetto nella backStack (perché ora diventa la pagina corrente)
-                backStack.push(nextPage);
-
-                // 3. Cambio scena SENZA AGGIUNGERE ALLA STORIA (addToHistory = false)
+            if (currentIndex < history.size() - 1) {
+                currentIndex++;
+                String nextPage = history.get(currentIndex);
                 System.out.println("Going Forward to: " + nextPage);
+                // addToHistory = false perché stiamo solo navigando nella cronologia esistente
                 SceneManager.changeScene(event, nextPage, false);
-                
-                // Aggiorniamo lo stato
-                button.setDisable(forwardStack.isEmpty());
             }
         });
     }
 
     // --- AGGIORNAMENTO STATO BOTTONI ---
-    // Da chiamare nel metodo initialize() di ogni controller
     public static void updateNavigationButtons(Button backBtn, Button forwardBtn) {
-        // Posso andare indietro se c'è più di 1 elemento (l'elemento 1 è la pagina corrente)
-        backBtn.setDisable(backStack.size() <= 1);
+        // Abilita il pulsante indietro solo se non siamo al primo elemento della cronologia
+        if (backBtn != null) {
+            backBtn.setDisable(currentIndex <= 0);
+            navBack(backBtn);
+        }
 
-        // Posso andare avanti se c'è qualcosa nello stack forward
-        forwardBtn.setDisable(forwardStack.isEmpty());
-        
-        // Colleghiamo anche le azioni
-        navBack(backBtn);
-        navForward(forwardBtn);
+        // Abilita il pulsante avanti solo se non siamo all'ultimo elemento della cronologia
+        if (forwardBtn != null) {
+            forwardBtn.setDisable(currentIndex >= history.size() - 1);
+            navForward(forwardBtn);
+        }
     }
 
-    // ---Metodo di gestione dell'uscita dall'applicazione con la chiamata al metodo showLogoutConfirmation della classe AlertUtil---
+    // --- GESTIONE USCITA E RESET ---
     public static void exit(Button button) {
         button.setOnAction(event -> {
             AlertUtil.showLogoutConfirmation(() -> {
                 UserSession.getInstance().cleanUserSession();
-                backStack.clear();
-                forwardStack.clear();
-                // Quando esco e vado al login, NON voglio che il login finisca nella cronologia
+                
+                // Resetta la cronologia al logout
+                history.clear();
+                currentIndex = -1;
+
                 SceneManager.changeScene(event, "Autenticazione.fxml", false);
             });
         });
