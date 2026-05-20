@@ -228,4 +228,38 @@ public class CommentDAO {
         }
         return 0;
     }
+    public List<Comment> getPendingComments() {
+        List<Comment> comments = new ArrayList<>();
+        String sql = "SELECT * FROM comments WHERE status = 'Pending' ORDER BY id DESC";
+
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Comment c = mapRow(rs);
+                comments.add(c);
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel recupero dei commenti in sospeso: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return comments;
+    }
+    public void updateCommentStatus(int commentId, String newStatus) {
+        String sql = "UPDATE comments SET status = ? WHERE id = ?";
+
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, newStatus);
+            pstmt.setInt(2, commentId);
+            pstmt.executeUpdate();
+
+            System.out.println("Commento " + commentId + " aggiornato a: " + newStatus);
+        } catch (SQLException e) {
+            System.err.println("Errore nell'aggiornamento dello stato del commento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

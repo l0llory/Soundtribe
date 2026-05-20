@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -17,6 +18,11 @@
 <BorderPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.soundtribe.controller.AdminController"
             prefHeight="600.0" prefWidth="800.0">
+
+    <!-- Definizione del ToggleGroup usato dai ToggleButton -->
+    <fx:define>
+        <ToggleGroup fx:id="adminToggleGroup"/>
+    </fx:define>
 
     <top>
         <VBox spacing="8.0" BorderPane.alignment="CENTER">
@@ -142,10 +148,10 @@
 
             <HBox spacing="5.0" alignment="CENTER" style="-fx-background-color: -st-background-light; -fx-background-radius: 8; -fx-padding: 5;">
                 <children>
-                    <ToggleButton text="Moderazione" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" selected="true"/>
-                    <ToggleButton text="Gestione Utenti" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button"/>
-                    <ToggleButton text="Dizionari" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button"/>
-                    <ToggleButton text="Sistema" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button"/>
+                    <ToggleButton fx:id="tbModerazione" text="Moderazione" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" selected="true" toggleGroup="$adminToggleGroup"/>
+                    <ToggleButton fx:id="tbGestioneUtenti" text="Gestione Utenti" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
+                    <ToggleButton fx:id="tbDizionari" text="Dizionari" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
+                    <ToggleButton fx:id="tbSistema" text="Sistema" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
                 </children>
             </HBox>
 
