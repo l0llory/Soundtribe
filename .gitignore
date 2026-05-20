@@ -38,3 +38,8 @@ build/
 ### Database files ###
 *.db
 app.db
+
+### Security & Credentials ###
+# Ignora la classe con le credenziali del DB per non esporre dati sensibili
+**/CredDAO.java
+**/CredDAO.class
