@@ -2,7 +2,7 @@ package com.example.soundtribe.controller;
 
 import com.example.soundtribe.*;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.Esecution;
+import com.example.soundtribe.entità.Execution;
 import com.example.soundtribe.entità.User;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.CommentManager;
@@ -36,7 +36,7 @@ public class ExploreExecutionController {
     @FXML public Button btnPostComment;
     @FXML public VBox commentsContainer;
 
-    private Esecution currentExecution;
+    private Execution currentExecution;
     private UserDAO userDAO;
     private CommentManager commentManager;
 
@@ -51,7 +51,7 @@ public class ExploreExecutionController {
         precP_Exec.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
     }
 
-    public void setExecution(Esecution execution) {
+    public void setExecution(Execution execution) {
         this.currentExecution = execution;
         titleLabel.setText(execution.getTitle());
         executorsLabel.setText("Esecutori: " + execution.getExecutors());

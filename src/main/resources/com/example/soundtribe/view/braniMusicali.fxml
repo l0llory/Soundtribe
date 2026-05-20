@@ -96,11 +96,19 @@
                             <Font size="13.0"/>
                         </font>
                     </TextField>
+
                     <ComboBox fx:id="generiFilter" promptText="Tutti i generi" prefWidth="150.0" minHeight="30.0" styleClass="st-combo-box">
                         <padding>
                             <Insets top="2.0" bottom="2.0"/>
                         </padding>
                     </ComboBox>
+
+                    <ComboBox fx:id="strumentiFilter" promptText="Tutti gli strumenti" prefWidth="150.0" minHeight="30.0" styleClass="st-combo-box">
+                        <padding>
+                            <Insets top="2.0" bottom="2.0"/>
+                        </padding>
+                    </ComboBox>
+
                 </children>
             </HBox>
         </VBox>

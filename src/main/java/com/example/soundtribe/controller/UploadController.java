@@ -1,18 +1,14 @@
 package com.example.soundtribe.controller;
 
+import com.example.soundtribe.entità.*;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.dao.ConcertDAO;
-import com.example.soundtribe.dao.EsecutionDAO;
+import com.example.soundtribe.dao.ExecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.Concert;
-import com.example.soundtribe.entità.Esecution;
-import com.example.soundtribe.entità.Instrument;
-import com.example.soundtribe.entità.Song;
-import com.example.soundtribe.entità.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -81,7 +77,7 @@ public class UploadController {
     }
 
     private void setupInstrumentMenu() {
-        EsecutionDAO dao = new EsecutionDAO();
+        ExecutionDAO dao = new ExecutionDAO();
         List<Instrument> allInstruments = dao.getAllInstruments();
 
         menuStrumenti.getItems().clear();
@@ -94,22 +90,27 @@ public class UploadController {
         // 2. Aggiungi separatore
         menuStrumenti.getItems().add(new SeparatorMenuItem());
 
-        // 3. Aggiungi campo di testo per "Nuovo Strumento"
+        // 3. Campo di testo per "Nuovo Strumento"
         TextField txtNew = new TextField();
         txtNew.setPromptText("Aggiungi altro...");
-        // Stile per il campo di testo interno (testo scuro su sfondo chiaro o viceversa, per leggibilità)
         txtNew.setStyle("-fx-text-fill: black;");
 
         CustomMenuItem customItem = new CustomMenuItem(txtNew);
-        customItem.setHideOnClick(false); // Non chiudere il menu quando si clicca sul campo
+        customItem.setHideOnClick(false);
 
         txtNew.setOnAction(e -> {
             String newVal = txtNew.getText().trim();
             if (!newVal.isEmpty()) {
-                // Aggiungi il nuovo strumento in cima alla lista e selezionalo
-                addCheckItemToMenu(newVal);
+                // Controlla se esiste già per evitare duplicati nella lista
+                boolean exists = menuStrumenti.getItems().stream()
+                        .filter(item -> item instanceof CheckMenuItem)
+                        .anyMatch(item -> ((CheckMenuItem) item).getText().equalsIgnoreCase(newVal));
+
+                if (!exists) {
+                    addCheckItemToMenu(newVal);
+                    updateMenuLabel();
+                }
                 txtNew.clear();
-                updateMenuLabel(); // Aggiorna etichetta
             }
         });
 
@@ -118,12 +119,10 @@ public class UploadController {
 
     private void addCheckItemToMenu(String name) {
         CheckMenuItem item = new CheckMenuItem(name);
-        // Quando cambia lo stato, aggiorna l'etichetta del bottone
         item.selectedProperty().addListener((obs, oldVal, newVal) -> updateMenuLabel());
 
-        // Inserisci prima del separatore
-        int size = menuStrumenti.getItems().size();
-        int index = size > 2 ? size - 2 : 0;
+        // Inserisci prima del separatore (che è l'ultimo elemento prima del CustomMenuItem)
+        int index = Math.max(0, menuStrumenti.getItems().size() - 2);
         menuStrumenti.getItems().add(index, item);
     }
 
@@ -234,7 +233,7 @@ public class UploadController {
         // Recupera gli strumenti selezionati dal MenuButton
         String instrumentsString = getSelectedInstrumentsString();
 
-        Esecution newMedia = new Esecution(
+        Execution newMedia = new Execution(
                 0, songId, titoloEsecuzioneField.getText(),
                 isYoutubeMode ? youtubeLinkField.getText() : selectedFile.getAbsolutePath(),
                 comboTipoFile.getValue(), esecutoriField.getText(),
@@ -243,7 +242,7 @@ public class UploadController {
                 luogoField.getText(), false, chkSelfPerformer.isSelected(), userId
         );
 
-        EsecutionDAO mediaDAO = new EsecutionDAO();
+        ExecutionDAO mediaDAO = new ExecutionDAO();
         mediaDAO.addMedia(newMedia);
 
         AlertUtil.mostra("Successo", "Caricamento Completato", "Esecuzione caricata correttamente.", Alert.AlertType.INFORMATION);

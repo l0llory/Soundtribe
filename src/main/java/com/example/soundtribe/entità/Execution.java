@@ -2,7 +2,7 @@ package com.example.soundtribe.entità;
 
 import java.sql.Date;
 
-public class Esecution {
+public class Execution {
     private int id;
     private int songId;
     private String title;
@@ -18,9 +18,9 @@ public class Esecution {
     private boolean isSelfPerformer;
     private int uploaderId;
 
-    public Esecution() {}
+    public Execution() {}
 
-    public Esecution(int id, int songId, String title, String filePath, String fileType, String executors,
+    public Execution(int id, int songId, String title, String filePath, String fileType, String executors,
                      String instruments, String duration, boolean isLive, Date recordingDate,
                      String recordingPlace, boolean isConcert, boolean isSelfPerformer, int uploaderId) {
         this.id = id;

@@ -3,10 +3,10 @@ package com.example.soundtribe.controller;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
-import com.example.soundtribe.dao.EsecutionDAO;
+import com.example.soundtribe.dao.ExecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.Esecution;
+import com.example.soundtribe.entità.Execution;
 import com.example.soundtribe.entità.Song;
 import com.example.soundtribe.entità.User;
 import javafx.collections.FXCollections;
@@ -125,14 +125,14 @@ public class HomeController {
 
     private void loadRecentActivities() {
         SongDAO songDAO = new SongDAO();
-        EsecutionDAO execDAO = new EsecutionDAO();
+        ExecutionDAO execDAO = new ExecutionDAO();
         UserDAO userDAO = new UserDAO();
 
         List<RecentActivity> allActivities = new ArrayList<>();
 
         // 1. CARICA ESECUZIONI
-        List<Esecution> executions = execDAO.getAllExecutions();
-        for (Esecution e : executions) {
+        List<Execution> executions = execDAO.getAllExecutions();
+        for (Execution e : executions) {
             String title = (e.getTitle() != null && !e.getTitle().isEmpty()) ? e.getTitle() : "Esecuzione senza titolo";
             String detail;
 
@@ -225,11 +225,11 @@ public class HomeController {
         UserSession.getInstance().setLastSearchQuery(query);
 
         SongDAO songDAO = new SongDAO();
-        EsecutionDAO execDAO = new EsecutionDAO();
+        ExecutionDAO execDAO = new ExecutionDAO();
         UserDAO userDAO = new UserDAO();
 
         List<Song> foundSongs = songDAO.searchSongs(query);
-        List<Esecution> foundExecutions = execDAO.searchExecutions(query);
+        List<Execution> foundExecutions = execDAO.searchExecutions(query);
         List<User> foundUsers = userDAO.searchUsers(query);
 
         if (!foundSongs.isEmpty() || !foundExecutions.isEmpty()) {

@@ -1,14 +1,14 @@
 package com.example.soundtribe.controller;
 
+import com.example.soundtribe.entità.Concert;
 import com.example.soundtribe.entità.MusicItem;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.dao.ConcertDAO;
-import com.example.soundtribe.dao.EsecutionDAO;
+import com.example.soundtribe.dao.ExecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
-import com.example.soundtribe.entità.Concert;
-import com.example.soundtribe.entità.Esecution;
+import com.example.soundtribe.entità.Execution;
 import com.example.soundtribe.entità.Song;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -41,31 +41,44 @@ public class SongsController {
     @FXML public Button aggiungiBrano;
     @FXML public Button btnDizionari;
     @FXML public TextField searchBarSongs;
+
     @FXML public ComboBox<String> generiFilter;
+    @FXML public ComboBox<String> strumentiFilter; // NUOVO APPOSITO MENU A TENDINA PER GLI STRUMENTI
 
     @FXML public ListView<MusicItem> listaBrani;
 
     private SongDAO songDAO;
-    private EsecutionDAO execDAO;
+    private ExecutionDAO execDAO;
     private ConcertDAO concertDAO;
     private List<MusicItem> allMusicItems;
+
+    private boolean showOnlyCommented = false;
 
     @FXML
     public void initialize() {
         songDAO = new SongDAO();
-        execDAO = new EsecutionDAO();
+        execDAO = new ExecutionDAO();
         concertDAO = new ConcertDAO();
         allMusicItems = new ArrayList<>();
 
-        // 1. POPOLAMENTO MENU GENERI
+        // 1. POPOLAMENTO MENU GENERI DAL DIZIONARIO
+        generiFilter.getItems().clear();
         generiFilter.getItems().add("Tutti");
-        generiFilter.getItems().addAll(
-                "Afro", "Blues", "Folk", "Indie", "Jazz", "Musica classica",
-                "Pop", "Raggae", "Rap", "Reggetton", "Rock", "Trap", "Esecuzioni", "Concerti"
-        );
+        generiFilter.getItems().addAll(songDAO.getDistinctGenres());
+        generiFilter.getItems().addAll("Esecuzioni", "Concerti");
         generiFilter.getSelectionModel().selectFirst();
 
-        // 2. Setup Navigazione
+        // 2. POPOLAMENTO NUOVO MENU STRUMENTI DAL DIZIONARIO
+        if (strumentiFilter != null) {
+            strumentiFilter.getItems().clear();
+            strumentiFilter.getItems().add("Tutti");
+            // Estrae l'elenco dei nomi reali degli strumenti
+            List<String> listInst = execDAO.getDistinctInstruments();
+            strumentiFilter.getItems().addAll(listInst);
+            strumentiFilter.getSelectionModel().selectFirst();
+        }
+
+        // Setup Navigazione
         NavigationManager.navBack(precP_Songs);
         NavigationManager.navForward(nextP_Songs);
         NavigationManager.updateNavigationButtons(precP_Songs, nextP_Songs);
@@ -74,48 +87,58 @@ public class SongsController {
 
         setupCellFactory();
 
-        // 3. GESTIONE CARICAMENTO DATI
+        // 3. INTERCETTAZIONE E SMISTAMENTO DEI FILTRI DAL DIZIONARIO (O BARRA GLOBALE)
         String pendingSearch = UserSession.getInstance().getLastSearchQuery();
 
         if ("filter:commented_by_me".equals(pendingSearch)) {
+            showOnlyCommented = true;
             loadCommentedSongsOnly();
             UserSession.getInstance().setLastSearchQuery(null);
             searchBarSongs.setPromptText("Visualizzando i brani commentati da te");
         } else {
-            loadAllData();
+            showOnlyCommented = false;
+            loadAllData(); // Carica esecuzioni e concerti in memoria
+
             if (pendingSearch != null && !pendingSearch.isEmpty()) {
-                searchBarSongs.setText(pendingSearch);
+                if (pendingSearch.startsWith("genre:")) {
+                    // Smista nel menu a tendina dei generi
+                    generiFilter.setValue(pendingSearch.substring(6));
+                } else if (pendingSearch.startsWith("instrument:")) {
+                    // Smista nel menu a tendina degli strumenti
+                    if (strumentiFilter != null) {
+                        strumentiFilter.setValue(pendingSearch.substring(11));
+                    }
+                } else {
+                    // Se è un titolo o un autore rimasto puro, lo mette come testo libero
+                    searchBarSongs.setText(pendingSearch);
+                }
                 UserSession.getInstance().setLastSearchQuery(null);
             }
         }
 
         applyFilters();
 
-        // 4. LISTENERS
+        // 4. LISTENERS AGGIORNATI CON IL NUOVO FILTRO STRUMENTI
         searchBarSongs.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         generiFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        if (strumentiFilter != null) {
+            strumentiFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+        }
 
-        // 5. AZIONI BOTTONI
         aggiungiBrano.setOnAction(e -> SceneManager.changeScene(e, "aggiungiBrano.fxml", true));
-
-        // NUOVA AZIONE: APRI DIZIONARI
         if(btnDizionari != null) {
             btnDizionari.setOnAction(e -> SceneManager.changeScene(e, "dizionari.fxml", true));
         }
     }
 
-    // Carica TUTTO (Brani + Esecuzioni + Concerti)
     private void loadAllData() {
         allMusicItems.clear();
-        List<Song> songs = songDAO.getAllSongs();
-        for (Song s : songs) allMusicItems.add(new MusicItem(s));
-        List<Esecution> executions = execDAO.getAllExecutions();
-        for (Esecution e : executions) allMusicItems.add(new MusicItem(e));
+        List<Execution> executions = execDAO.getAllExecutions();
+        for (Execution e : executions) allMusicItems.add(new MusicItem(e));
         List<Concert> concerts = concertDAO.getAllConcerts();
         for (Concert c : concerts) allMusicItems.add(new MusicItem(c));
     }
 
-    // Carica SOLO i brani commentati
     private void loadCommentedSongsOnly() {
         allMusicItems.clear();
         int currentUserId = UserSession.getInstance().getUserId();
@@ -123,28 +146,93 @@ public class SongsController {
         for (Song s : commentedSongs) allMusicItems.add(new MusicItem(s));
     }
 
+    // --- LOGICA DI RICERCA TOTALMENTE OTTIMIZZATA PER LE TRE ENTITÀ ---
     private void applyFilters() {
-        if (allMusicItems == null) return;
         String query = searchBarSongs.getText().toLowerCase().trim();
         String selectedGenre = generiFilter.getValue();
+        String selectedInstrument = (strumentiFilter != null) ? strumentiFilter.getValue() : "Tutti";
 
-        List<MusicItem> filteredList = allMusicItems.stream()
-                .filter(item -> {
-                    boolean matchesText = query.isEmpty() ||
-                            item.getTitle().toLowerCase().contains(query) ||
-                            item.getArtist().toLowerCase().contains(query);
+        List<MusicItem> filteredList = new ArrayList<>();
 
-                    boolean matchesGenre = true;
-                    if (selectedGenre != null && !selectedGenre.equals("Tutti")) {
-                        if (selectedGenre.equals("Esecuzioni")) matchesGenre = item.isExecution();
-                        else if (selectedGenre.equals("Concerti")) matchesGenre = item.isConcert();
-                        else matchesGenre = item.isSong() && item.getSong().getGenre().equalsIgnoreCase(selectedGenre);
-                    }
-                    return matchesText && matchesGenre;
-                })
-                .sorted(Comparator.comparing(MusicItem::getTitle, String.CASE_INSENSITIVE_ORDER))
-                .collect(Collectors.toList());
+        if (showOnlyCommented) {
+            // Modalità ristretta "I miei commenti"
+            filteredList = allMusicItems.stream()
+                    .filter(item -> {
+                        boolean matchesText = query.isEmpty() ||
+                                item.getTitle().toLowerCase().contains(query) ||
+                                item.getArtist().toLowerCase().contains(query);
+                        boolean matchesGenre = selectedGenre == null || selectedGenre.equals("Tutti") ||
+                                (item.isSong() && item.getSong().getGenre().equalsIgnoreCase(selectedGenre));
+                        return matchesText && matchesGenre;
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            // 1. CARICAMENTO E RICERCA DEI BRANI (SONGS) DAL DATABASE
+            // Un brano (Song) viene mostrato solo se non stiamo filtrando specificatamente per categorie "Esecuzioni" o "Concerti",
+            // e solo se non stiamo filtrando per uno specifico strumento (visto che i brani strutturalmente non li hanno)
+            if ((selectedInstrument == null || selectedInstrument.equals("Tutti")) &&
+                    (selectedGenre == null || selectedGenre.equals("Tutti") ||
+                            (!selectedGenre.equals("Esecuzioni") && !selectedGenre.equals("Concerti")))) {
 
+                String genreForDb = (selectedGenre != null && !selectedGenre.equals("Tutti")) ? selectedGenre : null;
+                // La query avanzata ora cerca la stringa sia nel Titolo che nell'Autore del Brano
+                List<Song> dbSongs = songDAO.searchSongsAdvanced(query, null, genreForDb);
+                for (Song s : dbSongs) {
+                    filteredList.add(new MusicItem(s));
+                }
+            }
+
+            // 2. RICERCA E TRACCIAMENTO SU ESECUZIONI E CONCERTI IN MEMORIA
+            if (allMusicItems != null) {
+                allMusicItems.stream()
+                        .filter(item -> {
+                            if (item.isSong()) return false; // Già estratte via DB sopra
+
+                            // Ricerca testuale per titolo, artista o strumenti scritti nella riga
+                            boolean matchesText = query.isEmpty() ||
+                                    item.getTitle().toLowerCase().contains(query) ||
+                                    item.getArtist().toLowerCase().contains(query) ||
+                                    (item.isExecution() && item.getExecution().getInstruments() != null && item.getExecution().getInstruments().toLowerCase().contains(query));
+
+                            // Controllo filtri di Genere / Categoria
+                            boolean matchesGenre = true;
+                            if (selectedGenre != null && !selectedGenre.equals("Tutti")) {
+                                if (selectedGenre.equals("Esecuzioni")) matchesGenre = item.isExecution();
+                                else if (selectedGenre.equals("Concerti")) matchesGenre = item.isConcert();
+                                else {
+                                    // Se viene selezionato un genere specifico (es. Pop), verifichiamo se l'esecuzione è legata a una canzone di quel genere
+                                    if (item.isExecution() && item.getExecution().getSongId() > 0) {
+                                        Song linked = songDAO.getSongById(item.getExecution().getSongId());
+                                        matchesGenre = (linked != null && linked.getGenre() != null && linked.getGenre().equalsIgnoreCase(selectedGenre));
+                                    } else {
+                                        matchesGenre = false; // I concerti o gli inediti puri non hanno genere fisso
+                                    }
+                                }
+                            }
+
+                            // Controllo filtri del menu a tendina degli Strumenti Musicali
+                            boolean matchesInstrument = true;
+                            if (selectedInstrument != null && !selectedInstrument.equals("Tutti")) {
+                                if (item.isExecution()) {
+                                    matchesInstrument = item.getExecution().getInstruments() != null &&
+                                            item.getExecution().getInstruments().toLowerCase().contains(selectedInstrument.toLowerCase());
+                                } else if (item.isConcert()) {
+                                    // Verifica se lo strumento è menzionato nei dettagli/scaletta del concerto
+                                    matchesInstrument = item.getConcert().getDescription() != null &&
+                                            item.getConcert().getDescription().toLowerCase().contains(selectedInstrument.toLowerCase());
+                                } else {
+                                    matchesInstrument = false;
+                                }
+                            }
+
+                            return matchesText && matchesGenre && matchesInstrument;
+                        })
+                        .forEach(filteredList::add);
+            }
+        }
+
+        // Ordina il risultato unificato alfabeticamente per Titolo
+        filteredList.sort(Comparator.comparing(MusicItem::getTitle, String.CASE_INSENSITIVE_ORDER));
         listaBrani.setItems(FXCollections.observableArrayList(filteredList));
     }
 
@@ -205,7 +293,6 @@ public class SongsController {
 
                     exploreBtn.setOnAction(e -> {
                         try {
-                            // Non usare SceneManager qui perché dobbiamo passare i dati al controller
                             FXMLLoader loader = new FXMLLoader();
                             if (item.isSong()) {
                                 NavigationManager.navigateTo("esploraBrani.fxml");
@@ -221,8 +308,7 @@ public class SongsController {
                             }
 
                             Parent root = loader.load();
-                            
-                            // Passa l'oggetto al controller corrispondente
+
                             if (item.isSong()) {
                                 ExploreSongController controller = loader.getController();
                                 controller.setSong(item.getSong());
@@ -234,10 +320,9 @@ public class SongsController {
                                 controller.setConcert(item.getConcert());
                             }
 
-                            // Ottieni la scena corrente
                             Scene currentScene = ((Node) e.getSource()).getScene();
                             Stage stage = (Stage) currentScene.getWindow();
-                            
+
                             double width = currentScene.getWidth();
                             double height = currentScene.getHeight();
                             boolean isMaximized = stage.isMaximized();
@@ -246,11 +331,11 @@ public class SongsController {
                             newScene.getStylesheets().add(SceneManager.class.getResource("/com/example/soundtribe/css/style.css").toExternalForm());
 
                             stage.setScene(newScene);
-                            
+
                             if (isMaximized) {
                                 stage.setMaximized(true);
                             }
-                            
+
                             stage.show();
 
                         } catch (IOException ex) {
@@ -266,8 +351,7 @@ public class SongsController {
         });
     }
 
-    // --- HELPER ---
-    private Node createSongIcon(Song song) { /* ... codice esistente ... */ return createAvatar("🎵", Color.web("#3969da")); }
+    private Node createSongIcon(Song song) { return createAvatar("🎵", Color.web("#3969da")); }
     private Node createExecutionIcon() { return createAvatar("🎤", Color.web("#da3969")); }
     private Node createConcertIcon() { return createAvatar("🎸", Color.web("#8a2be2")); }
 
@@ -277,5 +361,4 @@ public class SongsController {
         Label icon = new Label(emoji); icon.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
         stack.getChildren().addAll(bg, icon); return stack;
     }
-
 }

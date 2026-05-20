@@ -44,7 +44,31 @@
                  styleClass="st-tab-pane"
                  BorderPane.alignment="CENTER">
 
-            <!-- TAB GENERI -->
+            <Tab text="📝 Titoli Brani">
+                <VBox spacing="20.0" style="-fx-padding: 20;">
+
+                    <VBox spacing="10.0" styleClass="st-card">
+                        <Label text="Nuovo Titolo" styleClass="st-label-blue"/>
+                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                            <TextField fx:id="newTitleField"
+                                       promptText="Es. Let it Be, Shape of You..."
+                                       styleClass="st-text-field"
+                                       HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="addTitleBtn" text="+ Aggiungi"
+                                    styleClass="st-button-primary"
+                                    prefHeight="40.0" minWidth="100.0"/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox spacing="5.0" VBox.vgrow="ALWAYS">
+                        <Label text="Titoli disponibili nel sistema:" styleClass="st-label-subtitle"/>
+                        <ListView fx:id="titleList"
+                                  VBox.vgrow="ALWAYS"
+                                  styleClass="st-list-view"/>
+                    </VBox>
+                </VBox>
+            </Tab>
+
             <Tab text="🎵 Generi Musicali">
                 <VBox spacing="20.0" style="-fx-padding: 20;">
 
@@ -70,7 +94,6 @@
                 </VBox>
             </Tab>
 
-            <!-- TAB STRUMENTI -->
             <Tab text="🎸 Strumenti">
                 <VBox spacing="20.0" style="-fx-padding: 20;">
 
@@ -96,7 +119,6 @@
                 </VBox>
             </Tab>
 
-            <!-- TAB AUTORI -->
             <Tab text="✍️ Autori">
                 <VBox spacing="20.0" style="-fx-padding: 20;">
 
@@ -126,4 +148,3 @@
     </center>
 
 </BorderPane>
-

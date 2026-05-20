@@ -2,7 +2,7 @@ package com.example.soundtribe.entità;
 
 public class MusicItem {
     private Song song;
-    private Esecution execution;
+    private Execution execution;
     private Concert concert; // NUOVO CAMPO
 
     // Enum per identificare il tipo in modo pulito
@@ -14,7 +14,7 @@ public class MusicItem {
         this.type = Type.SONG;
     }
 
-    public MusicItem(Esecution execution) {
+    public MusicItem(Execution execution) {
         this.execution = execution;
         this.type = Type.EXECUTION;
     }
@@ -29,7 +29,7 @@ public class MusicItem {
     public boolean isConcert() { return type == Type.CONCERT; } // NUOVO
 
     public Song getSong() { return song; }
-    public Esecution getExecution() { return execution; }
+    public Execution getExecution() { return execution; }
     public Concert getConcert() { return concert; } // NUOVO
 
     // Helper unificati per titolo e artista
