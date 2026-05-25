@@ -7,14 +7,13 @@ public class UserSession {
     private int userId;
     public boolean isAdmin;
     private User loggedUser;
-
     private String lastSearchQuery;
 
     private UserSession() {}
 
     public static UserSession getInstance() {
         if (instance == null) {
-            synchronized (UserSession.class) { // Double-checked locking per thread-safety
+            synchronized (UserSession.class) {
                 if (instance == null) instance = new UserSession();
             }
         }
@@ -38,18 +37,6 @@ public class UserSession {
         }
     }
 
-    // Vecchio metodo mantenuto per retrocompatibilità
-    public void setUser(int userId, boolean isAdmin) {
-        this.userId = userId;
-        this.isAdmin = isAdmin;
-        if (this.loggedUser == null) { // Se non è ancora stato impostato un oggetto User completo
-            this.loggedUser = new User(); // Creiamo un oggetto User "wrapper" temporaneo
-        }
-        // Aggiorniamo l'ID e lo stato di admin dell'oggetto User esistente o appena creato
-        this.loggedUser.setId(userId);
-        this.loggedUser.setAdmin(isAdmin); // This line was already there, but the previous diffs were a bit messy.
-    }
-
     public void cleanUserSession() {
         userId = 0;
         isAdmin = false;
@@ -71,11 +58,6 @@ public class UserSession {
         return lastSearchQuery;
     }
 
-    public User getLoggedUser() {
-        return loggedUser;
-    }
-
-    public void setLoggedUser(User loggedUser) { this.loggedUser = loggedUser; }
 
     public boolean isAdmin() {
         return isAdmin;
