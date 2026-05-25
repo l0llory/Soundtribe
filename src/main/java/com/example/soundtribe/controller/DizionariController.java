@@ -30,7 +30,6 @@ public class DizionariController {
     @FXML public Button nextP_Dict;
     @FXML public Button backHome_Dict;
     @FXML public Button Exit_Dict;
-    @FXML public Button goToSongsBtn;
     @FXML public TabPane tabPane;
 
     // Sostituiamo i tipi specifici con la nostra nuova classe DictionaryRow
@@ -51,8 +50,6 @@ public class DizionariController {
         NavigationManager.updateNavigationButtons(precP_Dict, nextP_Dict);
         NavigationManager.home(backHome_Dict);
         NavigationManager.exit(Exit_Dict);
-        goToSongsBtn.setOnAction(e -> SceneManager.changeScene(e, "braniMusicali.fxml", true));
-
         setupListCells();
         loadDictionaries();
     }

@@ -71,11 +71,6 @@
                     </Label>
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button fx:id="goToSongsBtn" text="Vai ai Brani" minWidth="130.0" minHeight="32.0" styleClass="st-button-primary">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
                 </children>
             </HBox>
         </VBox>
