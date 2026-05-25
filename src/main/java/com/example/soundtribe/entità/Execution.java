@@ -1,6 +1,8 @@
 package com.example.soundtribe.entità;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Execution {
     private int id;
@@ -17,6 +19,7 @@ public class Execution {
     private boolean isConcert;
     private boolean isSelfPerformer;
     private int uploaderId;
+    private List<ExecutionSegment> segments;
 
     public Execution() {}
 
@@ -37,6 +40,7 @@ public class Execution {
         this.isConcert = isConcert;
         this.isSelfPerformer = isSelfPerformer;
         this.uploaderId = uploaderId;
+        this.segments = new ArrayList<>();
     }
 
     // Metodo helper per ottenere l'oggetto Instrument (se è singolo)
@@ -86,4 +90,19 @@ public class Execution {
 
     public int getUploaderId() { return uploaderId; }
     public void setUploaderId(int uploaderId) { this.uploaderId = uploaderId; }
+
+    public List<ExecutionSegment> getSegments() {
+        return segments;
+    }
+
+    public void setSegments(List<ExecutionSegment> segments) {
+        this.segments = segments;
+    }
+
+    public void addSegment(ExecutionSegment segment) {
+        if (this.segments == null) {
+            this.segments = new ArrayList<>();
+        }
+        this.segments.add(segment);
+    }
 }

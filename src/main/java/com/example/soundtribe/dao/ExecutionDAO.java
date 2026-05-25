@@ -1,6 +1,7 @@
 package com.example.soundtribe.dao;
 
 import com.example.soundtribe.entità.Execution;
+import com.example.soundtribe.entità.ExecutionSegment;
 import com.example.soundtribe.entità.Instrument;
 import java.sql.*;
 import java.util.*;
@@ -19,7 +20,6 @@ public class ExecutionDAO {
     }
 
     private void initTable() {
-        // INGEGNERIA DEL SOFTWARE: La tabella base non contiene più la colonna "instruments" testuale
         String sqlMedia = "CREATE TABLE IF NOT EXISTS media_files (" +
                 "id SERIAL PRIMARY KEY, " +
                 "song_id INT, " +
@@ -37,12 +37,10 @@ public class ExecutionDAO {
                 "FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE SET NULL" +
                 ")";
 
-        // 1. LA TABELLA DIZIONARIO PER GLI STRUMENTI (Primary Key)
         String sqlInstruments = "CREATE TABLE IF NOT EXISTS instruments (" +
                 "name VARCHAR(100) PRIMARY KEY" +
                 ")";
 
-        // 2. TABELLA PONTE MOLTI-A-MOLTI (Esecuzione <-> Strumenti)
         String sqlExecInst = "CREATE TABLE IF NOT EXISTS execution_instruments (" +
                 "execution_id INT, " +
                 "instrument_name VARCHAR(100), " +
@@ -51,18 +49,30 @@ public class ExecutionDAO {
                 "FOREIGN KEY (instrument_name) REFERENCES instruments(name) ON DELETE CASCADE" +
                 ")";
 
+        // NUOVA TABELLA PER I SEGMENTI DELLE ESECUZIONI
+        String sqlSegments = "CREATE TABLE IF NOT EXISTS execution_segments (" +
+                "id SERIAL PRIMARY KEY, " +
+                "execution_id INT, " +
+                "user_id INT, " +
+                "start_time VARCHAR(10), " +
+                "end_time VARCHAR(10), " +
+                "notes TEXT, " +
+                "FOREIGN KEY (execution_id) REFERENCES media_files(id) ON DELETE CASCADE" +
+                ")";
+
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(sqlMedia);
             stmt.execute(sqlInstruments);
             stmt.execute(sqlExecInst);
+            stmt.execute(sqlSegments); // Creazione tabella segmenti
 
             // Popola il dizionario di base
             for (String inst : PRESET_STRUMENTI) {
                 try {
                     stmt.execute("INSERT INTO instruments (name) VALUES ('" + inst.replace("'", "''") + "') ON CONFLICT DO NOTHING");
-                } catch (SQLException ignore) {} // Ignora se esiste già
+                } catch (SQLException ignore) {}
             }
         } catch (SQLException e) {
             System.err.println("Errore tabelle esecuzioni: " + e.getMessage());
@@ -70,7 +80,6 @@ public class ExecutionDAO {
     }
 
     public void addMedia(Execution media) {
-        // Query di inserimento corretta (12 parametri, senza la colonna instruments ridondante)
         String sql = "INSERT INTO media_files (song_id, title, file_path, file_type, executors, duration, is_live, recording_date, recording_place, is_concert, is_self_performer, uploader_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
@@ -96,7 +105,6 @@ public class ExecutionDAO {
             if (rs.next()) {
                 int newExecutionId = rs.getInt(1);
 
-                // --- LOGICA DI SALVATAGGIO RELAZIONALE ---
                 if (media.getInstruments() != null && !media.getInstruments().isEmpty()) {
                     String[] insts = media.getInstruments().split(",");
                     String insertDict = "INSERT INTO instruments (name) VALUES (?) ON CONFLICT DO NOTHING";
@@ -108,12 +116,8 @@ public class ExecutionDAO {
                         for (String inst : insts) {
                             String cleanInst = inst.trim();
                             if (cleanInst.isEmpty()) continue;
-
-                            // 1. Assicurati che lo strumento esista nel dizionario master
                             psDict.setString(1, cleanInst);
                             psDict.executeUpdate();
-
-                            // 2. Crea il collegamento nella tabella ponte
                             psRel.setInt(1, newExecutionId);
                             psRel.setString(2, cleanInst);
                             psRel.executeUpdate();
@@ -128,7 +132,6 @@ public class ExecutionDAO {
 
     public List<Execution> getAllExecutions() {
         List<Execution> mediaList = new ArrayList<>();
-        // Ingegneria del SW: Ricostruiamo la stringa degli strumenti "al volo" tramite STRING_AGG per passarla all'interfaccia UI
         String sql = "SELECT m.*, " +
                 "(SELECT STRING_AGG(instrument_name, ', ') FROM execution_instruments WHERE execution_id = m.id) AS inst_list " +
                 "FROM media_files m ORDER BY id DESC";
@@ -157,7 +160,6 @@ public class ExecutionDAO {
 
     public List<Execution> searchExecutions(String query) {
         List<Execution> results = new ArrayList<>();
-        // Ricerca Globale: Cerca nel titolo, negli esecutori OPPURE direttamente tramite subquery nella tabella ponte degli strumenti
         String sql = "SELECT m.*, " +
                 "(SELECT STRING_AGG(instrument_name, ', ') FROM execution_instruments WHERE execution_id = m.id) AS inst_list " +
                 "FROM media_files m " +
@@ -188,7 +190,7 @@ public class ExecutionDAO {
                 rs.getString("file_path"),
                 rs.getString("file_type"),
                 rs.getString("executors"),
-                null, // Lo valorizziamo sotto
+                null,
                 rs.getString("duration"),
                 rs.getBoolean("is_live"),
                 rs.getDate("recording_date"),
@@ -198,17 +200,15 @@ public class ExecutionDAO {
                 rs.getInt("uploader_id")
         );
 
-        // Estraiamo la lista degli strumenti aggregata dal database
         try {
             String instList = rs.getString("inst_list");
             e.setInstruments(instList != null ? instList : "");
         } catch (SQLException ex) {
-            e.setInstruments(""); // Fallback sicuro
+            e.setInstruments("");
         }
         return e;
     }
 
-    // IL VERO DIZIONARIO DEGLI STRUMENTI (Recupera dalla tabella dedicata)
     public List<Instrument> getAllInstruments() {
         List<Instrument> list = new ArrayList<>();
         String sql = "SELECT name FROM instruments ORDER BY name ASC";
@@ -224,10 +224,6 @@ public class ExecutionDAO {
         return list;
     }
 
-    /**
-     * Recupera l'elenco dei nomi di tutti gli strumenti presenti nel dizionario.
-     * Restituisce una lista di Stringhe ideale per popolare ComboBox o menu a tendina.
-     */
     public List<String> getDistinctInstruments() {
         List<String> list = new ArrayList<>();
         String sql = "SELECT name FROM instruments ORDER BY name ASC";
@@ -244,5 +240,46 @@ public class ExecutionDAO {
         }
 
         return list;
+    }
+
+    // --- NUOVI METODI PER LA GESTIONE DEI SEGMENTI ANNOTATI ---
+
+    public void addSegmentToExecution(ExecutionSegment segment) {
+        String sql = "INSERT INTO execution_segments (execution_id, user_id, start_time, end_time, notes) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, segment.getExecutionId());
+            pstmt.setInt(2, segment.getUserId());
+            pstmt.setString(3, segment.getStartTime());
+            pstmt.setString(4, segment.getEndTime());
+            pstmt.setString(5, segment.getNotes());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Errore inserimento segmento esecuzione: " + e.getMessage());
+        }
+    }
+
+    public List<ExecutionSegment> getSegmentsForExecution(int executionId) {
+        List<ExecutionSegment> segments = new ArrayList<>();
+        String sql = "SELECT * FROM execution_segments WHERE execution_id = ? ORDER BY start_time ASC";
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, executionId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    ExecutionSegment seg = new ExecutionSegment();
+                    seg.setId(rs.getInt("id"));
+                    seg.setExecutionId(rs.getInt("execution_id"));
+                    seg.setUserId(rs.getInt("user_id"));
+                    seg.setStartTime(rs.getString("start_time"));
+                    seg.setEndTime(rs.getString("end_time"));
+                    seg.setNotes(rs.getString("notes"));
+                    segments.add(seg);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return segments;
     }
 }
