@@ -8,6 +8,7 @@ import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entità.Comment;
 import com.example.soundtribe.entità.User;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -38,7 +39,6 @@ public class AdminController {
     @FXML private ToggleButton tbCaricaMateriale;
     @FXML private ToggleButton tbContenutoCaricato;
 
-    // Aree contenuto
     @FXML private VBox moderationPanel;
     @FXML private VBox gestioneUtentiPanel;
     @FXML private VBox caricaMaterialePanel;
@@ -52,6 +52,7 @@ public class AdminController {
 
     @FXML
     public void initialize() {
+
         NavigationManager.navBack(precP_Admin);
         NavigationManager.navForward(nextP_Admin);
         NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);

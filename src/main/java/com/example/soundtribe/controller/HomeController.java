@@ -61,7 +61,14 @@ public class HomeController {
         handleBraniMusicali.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
         handleUtenti.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
         handleCaricaMateriale.setOnAction(event -> SceneManager.changeScene(event, "caricaMateriale.fxml", true));
-        handleAmministrazione.setOnAction(event -> SceneManager.changeScene(event, "Amministrazione.fxml", true));
+        handleAmministrazione.setOnAction( e-> {
+
+            if(UserSession.getInstance().isAdmin()){
+                SceneManager.changeScene(e, "Amministrazione.fxml", true);
+            }else{
+                SceneManager.changeScene(e, "AmministrazioneUtente.fxml", true);
+            }
+        });
 
         // AZIONE: Naviga ai brani commentati
         handleMyComments.setOnAction(event -> {
