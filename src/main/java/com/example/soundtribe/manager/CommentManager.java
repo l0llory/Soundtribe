@@ -56,9 +56,6 @@ public class CommentManager {
     public void loadComments() {
         commentsContainer.getChildren().clear();
 
-        // NOTA: Qui il DAO dovrebbe avere un metodo generico o specifico in base al tipo.
-        // Per semplicità uso un metodo ipotetico 'getCommentsByResource' che accetta tipo e ID.
-        // Se il tuo DAO ha metodi separati, usa uno switch(resourceType).
         List<Comment> rootComments = commentDAO.getCommentsByResource(resourceType, resourceId);
 
         if (rootComments.isEmpty()) {
@@ -91,13 +88,18 @@ public class CommentManager {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // Like Button con cuore pieno/vuoto
         Button likeBtn = new Button();
         boolean isLiked = commentDAO.hasUserLiked(currentUserId, c.getId());
         updateLikeButtonStyle(likeBtn, isLiked, c.getLikes());
 
         likeBtn.setOnAction(e -> {
-            commentDAO.toggleLike(currentUserId, c.getId());
-            loadComments(); // Ricarica parziale o totale
+            if (commentDAO.hasUserLiked(currentUserId, c.getId())) {
+                commentDAO.removeLike(currentUserId, c.getId());
+            } else {
+                commentDAO.toggleLike(currentUserId, c.getId());
+            }
+            loadComments();
         });
 
         header.getChildren().addAll(userLbl, spacer, likeBtn);
@@ -111,6 +113,34 @@ public class CommentManager {
         Button replyBtn = new Button("Rispondi ↲");
         replyBtn.getStyleClass().addAll("st-button-secondary", "st-button-small");
         replyBtn.setStyle("-fx-border-color: transparent;");
+
+        // DELETE Button (Mostra solo se sei il proprietario della risorsa)
+        Button deleteBtn = new Button("🗑 Elimina");
+        deleteBtn.getStyleClass().addAll("st-button-danger", "st-button-small");
+        deleteBtn.setStyle("-fx-border-color: transparent;");
+
+        // Controlla se l'utente corrente è il proprietario della risorsa
+        boolean canDelete = commentDAO.canDeleteComment(c.getId(), currentUserId);
+        deleteBtn.setVisible(canDelete);
+        deleteBtn.setManaged(canDelete);
+
+        deleteBtn.setOnAction(e -> {
+            // Chiedi conferma
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Conferma Eliminazione");
+            alert.setHeaderText("Eliminare questo commento?");
+            alert.setContentText("Questa azione non può essere annullata.");
+
+            java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+                commentDAO.deleteComment(c.getId());
+                loadComments(); // Ricarica la lista
+            }
+        });
+
+        // HBox per i bottoni (Reply e Delete)
+        HBox buttonsBox = new HBox(8);
+        buttonsBox.getChildren().addAll(replyBtn, deleteBtn);
 
         // Reply Area (Hidden)
         VBox replyArea = new VBox(5);
@@ -142,7 +172,7 @@ public class CommentManager {
             if(isVisible) replyInput.requestFocus();
         });
 
-        commentBox.getChildren().addAll(header, contentLbl, replyBtn, replyArea);
+        commentBox.getChildren().addAll(header, contentLbl, buttonsBox, replyArea);
         commentsContainer.getChildren().add(commentBox);
 
         for (Comment reply : c.getReplies()) {
@@ -152,15 +182,18 @@ public class CommentManager {
 
     private void updateLikeButtonStyle(Button btn, boolean isLiked, int count) {
         if (isLiked) {
+            // Cuore pieno ❤
             btn.setText("❤ " + count);
             btn.getStyleClass().removeAll("st-button-outline");
             btn.getStyleClass().add("st-button-danger");
             btn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
         } else {
+            // Cuore vuoto ♡
             btn.setText("♡ " + count);
             btn.getStyleClass().removeAll("st-button-danger");
             btn.getStyleClass().add("st-button-outline");
             btn.setStyle("-fx-border-color: transparent;");
+
         }
     }
 
@@ -180,14 +213,13 @@ public class CommentManager {
     private void saveComment(String content, Integer parentId) {
         User me = userDAO.getUserById(currentUserId);
         String username = (me != null) ? me.getName() : "Utente";
-        
+
         int songId = (resourceType == ResourceType.SONG) ? resourceId : 0;
         int execId = (resourceType == ResourceType.EXECUTION) ? resourceId : 0;
         int concId = (resourceType == ResourceType.CONCERT) ? resourceId : 0;
-        
+
         Comment newC = new Comment(0, songId, execId, concId, currentUserId, username, content, 0, parentId, "Pending");
 
-        // Passiamo al DAO l'onere di salvare nella tabella giusta o con i flag giusti
         commentDAO.addComment(newC, resourceType, resourceId);
     }
 }
