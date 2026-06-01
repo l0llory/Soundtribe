@@ -103,10 +103,10 @@ public class AdminController {
     }
 
     private void populateModerationList() {
-        List<Comment> pendingComments = commentDAO.getPendingComments();
+        List<Comment> BannedComments = commentDAO.getCommentsListByStatus("Banned");
         ObservableList<HBox> items = FXCollections.observableArrayList();
 
-        for (Comment comment : pendingComments) {
+        for (Comment comment : BannedComments) {
             HBox commentRow = createCommentRow(comment);
             items.add(commentRow);
         }
@@ -133,12 +133,20 @@ public class AdminController {
         commentInfo.setPrefWidth(450);
 
         // Sezione destra: bottoni
-        Button banButton = new Button("🚫 Banna");
-        banButton.setStyle("-fx-padding: 8px 16px; -fx-font-size: 11; -fx-text-fill: #ef4444; -fx-background-color: transparent; -fx-border-color: #ef4444;");
-        banButton.setOnAction(e -> {
-            commentDAO.updateCommentStatus(comment.getId(), "Banned");
-            populateModerationList();
-            refreshStats();
+        Button deleteButton = new Button("🗑️ Elimina definitivo");
+        deleteButton.setStyle("-fx-padding: 8px 16px; -fx-font-size: 11; -fx-text-fill: #ef4444; -fx-background-color: transparent; -fx-border-color: #ef4444;");
+        deleteButton.setOnAction(e -> {
+            Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmDialog.setTitle("Conferma eliminazione");
+            confirmDialog.setHeaderText("Eliminare definitivamente il commento?");
+            confirmDialog.setContentText("Il commento e tutte le risposte associate verranno eliminati dal database.");
+
+            Optional<ButtonType> result = confirmDialog.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                commentDAO.deleteComment(comment.getId());
+                populateModerationList();
+                refreshStats();
+            }
         });
 
         Button verifyButton = new Button("✓ Verifica");
@@ -150,7 +158,7 @@ public class AdminController {
         });
 
         HBox buttonsBox = new HBox(8);
-        buttonsBox.getChildren().addAll(banButton, verifyButton);
+        buttonsBox.getChildren().addAll(deleteButton, verifyButton);
 
         Region spacer = new Region();
         row.getChildren().addAll(commentInfo, spacer, buttonsBox);

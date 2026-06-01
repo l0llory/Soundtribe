@@ -84,8 +84,7 @@ public class CommentDAO {
             case EXECUTION -> "execution_id";
             case CONCERT -> "concert_id";
         };
-        String sql = "SELECT * FROM comments WHERE parent_id IS NULL AND " + column + " = ? ORDER BY id ASC";
-        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT * FROM comments WHERE parent_id IS NULL AND " + column + " = ? AND status != 'Banned' ORDER BY id ASC";        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, resourceId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -100,8 +99,7 @@ public class CommentDAO {
 
     private List<Comment> getReplies(int parentId) {
         List<Comment> replies = new ArrayList<>();
-        String sql = "SELECT * FROM comments WHERE parent_id = ? ORDER BY id ASC";
-        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt =prepareStatement(sql, conn)) {
+        String sql = "SELECT * FROM comments WHERE parent_id = ? AND status != 'Banned' ORDER BY id ASC";        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt =prepareStatement(sql, conn)) {
             pstmt.setInt(1, parentId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -124,16 +122,15 @@ public class CommentDAO {
 
         String sqlSongs = "SELECT c.*, s.title AS resource_title FROM comments c " +
                 "JOIN songs s ON c.song_id = s.id " +
-                "WHERE s.uploaded_by = ? AND c.user_id != ? ORDER BY c.id DESC";
+                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' ORDER BY c.id DESC";
 
         String sqlExecutions = "SELECT c.*, m.title AS resource_title FROM comments c " +
                 "JOIN media_files m ON c.execution_id = m.id " +
-                "WHERE m.uploader_id = ? AND c.user_id != ? ORDER BY c.id DESC";
+                "WHERE m.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' ORDER BY c.id DESC";
 
         String sqlConcerts = "SELECT c.*, con.title AS resource_title FROM comments c " +
                 "JOIN concerts con ON c.concert_id = con.id " +
-                "WHERE con.uploader_id = ? AND c.user_id != ? ORDER BY c.id DESC";
-
+                "WHERE con.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' ORDER BY c.id DESC";
         try (Connection conn = CredDAO.getConnection()) {
             fetchAndMapComments(conn, sqlSongs, uploaderId, "Brano: ", moderationMap);
             fetchAndMapComments(conn, sqlExecutions, uploaderId, "Esecuzione: ", moderationMap);
@@ -285,16 +282,22 @@ public class CommentDAO {
         return 0;
     }
 
-    public List<Comment> getPendingComments() {
+    public List<Comment> getCommentsListByStatus(String status) {
         List<Comment> comments = new ArrayList<>();
-        String sql = "SELECT * FROM comments WHERE status = 'Pending' ORDER BY id DESC";
+        String sql = "SELECT * FROM comments WHERE status = ? ORDER BY id ASC";
         try (Connection conn = CredDAO.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                comments.add(mapRow(rs));
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, status);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Comment c = mapRow(rs);
+                    c.setReplies(getReplies(c.getId())); // getReplies dovrebbe già escludere Banned
+                    comments.add(c);
+                }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return comments;
     }
 
@@ -324,5 +327,6 @@ public class CommentDAO {
                 rs.getString("content"), rs.getInt("likes"),
                 parentId, status
         );
+
     }
 }

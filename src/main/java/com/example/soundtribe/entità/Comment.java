@@ -35,8 +35,7 @@ public class Comment {
         this.content = content;
         this.likes = likes;
         this.parentId = parentId;
-        this.status = "Pending";
-    }
+        this.status = status != null ? status : "Pending";    }
 
     // Costruttore di compatibilità (Utile se crei commenti al volo solo per Canzoni)
     public Comment(int id, int songId, int userId, String username, String content, int likes, Integer parentId, String status) {

@@ -31,9 +31,9 @@ public class SongDAO {
                 "audio_path TEXT, " +
                 "youtube_url TEXT, " +
                 "cover_path TEXT, " +
-                "uploaded_by INT, " +
+                "uploader_id INT, " +
                 "description TEXT, " +
-                "FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL" +
+                "FOREIGN KEY (uploader_id) REFERENCES users(id) ON DELETE SET NULL" +
                 ")";
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -45,7 +45,7 @@ public class SongDAO {
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS audio_path TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS youtube_url TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS cover_path TEXT");
-                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS uploaded_by INT");
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS uploader_id INT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS description TEXT");
             } catch (SQLException ignore) {}
 
@@ -78,7 +78,7 @@ public class SongDAO {
                 rs.getString("audio_path"),
                 rs.getString("youtube_url"),
                 rs.getString("cover_path"),
-                rs.getInt("uploaded_by"),
+                rs.getInt("uploader_id"),
                 uploaderName,
                 uploaderSurname,
                 rs.getString("description")
@@ -90,7 +90,7 @@ public class SongDAO {
         // Query ottimizzata con JOIN relazionale per raccogliere i dati anagrafici dell'uploader
         String sql = "SELECT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
-                "LEFT JOIN users u ON s.uploaded_by = u.id";
+                "LEFT JOIN users u ON s.uploader_id = u.id";
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -107,7 +107,7 @@ public class SongDAO {
         List<Song> songs = new ArrayList<>();
         String sql = "SELECT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
-                "LEFT JOIN users u ON s.uploaded_by = u.id " +
+                "LEFT JOIN users u ON s.uploader_id = u.id " +
                 "WHERE s.title ILIKE ? OR s.artist ILIKE ?";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -127,7 +127,7 @@ public class SongDAO {
 
     public void addSong(Song song) {
         // Query di inserimento corretta senza le colonne ridondanti uploader_name e uploader_surname
-        String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url, cover_path, uploaded_by, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO songs (title, artist, genre, pdf_sheet_path, audio_path, youtube_url, cover_path, uploader_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -158,7 +158,7 @@ public class SongDAO {
         Song song = null;
         String sql = "SELECT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
-                "LEFT JOIN users u ON s.uploaded_by = u.id " +
+                "LEFT JOIN users u ON s.uploader_id = u.id " +
                 "WHERE s.id = ?";
 
         try (Connection conn = CredDAO.getConnection();
@@ -183,7 +183,7 @@ public class SongDAO {
         String sql = "SELECT DISTINCT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
                 "JOIN comments c ON s.id = c.song_id " +
-                "LEFT JOIN users u ON s.uploaded_by = u.id " +
+                "LEFT JOIN users u ON s.uploader_id = u.id " +
                 "WHERE c.user_id = ?";
 
         try (Connection conn = CredDAO.getConnection();
@@ -243,7 +243,7 @@ public class SongDAO {
         List<Song> songs = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
-                "LEFT JOIN users u ON s.uploaded_by = u.id " +
+                "LEFT JOIN users u ON s.uploaded_ id= u.id " +
                 "WHERE 1=1");
         List<Object> parameters = new ArrayList<>();
 

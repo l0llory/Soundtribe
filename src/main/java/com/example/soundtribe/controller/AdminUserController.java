@@ -91,22 +91,24 @@ public class AdminUserController {
 
                 textDetails.getChildren().addAll(commentLbl, infoLbl);
 
-                Button deleteBtn = new Button("Rimuovi ✖");
-                deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
-                deleteBtn.setOnAction(e -> deleteInappropriateComment(comment.getId()));
+                Button banBtn = new Button("🚫 Segnala");
+                banBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+                banBtn.setOnAction(e -> flagInappropriateComment(comment.getId()));
 
-                row.getChildren().addAll(textDetails, deleteBtn);
+                row.getChildren().addAll(textDetails, banBtn);
                 publicationBox.getChildren().add(row);
+
+
             }
 
             commentsContainer.getChildren().add(publicationBox);
         }
     }
 
-    private void deleteInappropriateComment(int commentId) {
-        // Usiamo il metodo deleteComment già presente nel tuo CommentDAO!
-        commentDAO.deleteComment(commentId);
-        AlertUtil.mostra("Successo", "Commento rimosso", "Il commento inappropriato è stato eliminato con successo.", Alert.AlertType.INFORMATION);
-        loadModerationView(); // Ricarica la vista
+    private void flagInappropriateComment(int commentId) {
+        commentDAO.updateCommentStatus(commentId, "Banned");
+        AlertUtil.mostra("Successo", "Commento segnalato", "Il commento è stato marcato come non pertinente e nascosto. L'amministratore deciderà il suo destino finale.", Alert.AlertType.INFORMATION);
+        loadModerationView();
     }
+
 }
