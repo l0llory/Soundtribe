@@ -95,7 +95,11 @@ public class AdminUserController {
                 banBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
                 banBtn.setOnAction(e -> flagInappropriateComment(comment.getId()));
 
-                row.getChildren().addAll(textDetails, banBtn);
+                Button verifyBtn = new Button(" ✔ Verifica");
+                verifyBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+                verifyBtn.setOnAction(e -> commentDAO.updateCommentStatus(comment.getId(), "Verified"));
+
+                row.getChildren().addAll(textDetails, banBtn, verifyBtn);
                 publicationBox.getChildren().add(row);
 
 

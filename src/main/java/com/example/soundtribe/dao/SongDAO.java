@@ -140,8 +140,8 @@ public class SongDAO {
             pstmt.setString(6, song.getYoutubeUrl());
             pstmt.setString(7, song.getCoverPath());
 
-            if (song.getUploadedBy() > 0) {
-                pstmt.setInt(8, song.getUploadedBy());
+            if (song.getUploader_id() > 0) {
+                pstmt.setInt(8, song.getUploader_id());
             } else {
                 pstmt.setNull(8, Types.INTEGER);
             }
@@ -243,7 +243,7 @@ public class SongDAO {
         List<Song> songs = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
-                "LEFT JOIN users u ON s.uploaded_ id= u.id " +
+                "LEFT JOIN users u ON s.uploader_id= u.id " +
                 "WHERE 1=1");
         List<Object> parameters = new ArrayList<>();
 

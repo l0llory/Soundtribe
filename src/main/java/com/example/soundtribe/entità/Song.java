@@ -10,7 +10,7 @@ public class Song {
     private String youtubeUrl;
     private String coverPath;
 
-    private int uploadedBy;      // ID dell'utente che carica
+    private int uploader_id;      // ID dell'utente che carica
     private String uploaderName; // Nome di chi carica (cache per visualizzazione veloce)
     private String uploaderSurname; // Cognome di chi carica
     private String description;  // Descrizione testuale del brano
@@ -19,7 +19,7 @@ public class Song {
 
     public Song(int id, String title, String artist, String genre, String pdfSheetPath,
                 String audioPath, String youtubeUrl, String coverPath,
-                int uploadedBy, String uploaderName, String uploaderSurname, String description) {
+                int uploade_id, String uploaderName, String uploaderSurname, String description) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -28,7 +28,7 @@ public class Song {
         this.audioPath = audioPath;
         this.youtubeUrl = youtubeUrl;
         this.coverPath = coverPath;
-        this.uploadedBy = uploadedBy;
+        this.uploader_id = uploader_id;
         this.uploaderName = uploaderName;
         this.uploaderSurname = uploaderSurname;
         this.description = description;
@@ -60,8 +60,8 @@ public class Song {
     public void setCoverPath(String coverPath) { this.coverPath = coverPath; }
 
     // Nuovi Getters e Setters
-    public int getUploadedBy() { return uploadedBy; }
-    public void setUploadedBy(int uploadedBy) { this.uploadedBy = uploadedBy; }
+    public int getUploader_id() { return uploader_id; }
+    public void setUploader_id(int uploader_id) { this.uploader_id = uploader_id; }
 
     public String getUploaderName() { return uploaderName; }
     public void setUploaderName(String uploaderName) { this.uploaderName = uploaderName; }
