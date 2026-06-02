@@ -104,10 +104,9 @@ public class CommentManager {
 
         header.getChildren().addAll(userLbl, spacer, likeBtn);
 
-        // Content
-        Label contentLbl = new Label(c.getContent());
+        // Content (Inizializzato vuoto, verrà popolato in base allo status)
+        Label contentLbl = new Label();
         contentLbl.setWrapText(true);
-        contentLbl.getStyleClass().add("st-label");
 
         // Reply Button
         Button replyBtn = new Button("Rispondi ↲");
@@ -137,6 +136,35 @@ public class CommentManager {
                 loadComments(); // Ricarica la lista
             }
         });
+
+
+        if ("Banned".equals(c.getStatus())) {
+            contentLbl.setText("🚫 Questo commento è stato bannato dall'amministratore.");
+            contentLbl.setStyle(
+                    "-fx-font-style: italic; " +
+                            "-fx-text-fill: #9ca3af; " + // Grigio chiaro
+                            "-fx-font-size: 11px;"
+            );
+            // Disabilita le interazioni per i commenti bannati
+            likeBtn.setDisable(true);
+            replyBtn.setDisable(true);
+            deleteBtn.setDisable(true);
+
+        } else if ("Reported".equals(c.getStatus())) {
+            contentLbl.setText("⚠️ Questo commento è stato segnalato ed è in fase di revisione.");
+            contentLbl.setStyle(
+                    "-fx-font-style: italic; " +
+                            "-fx-text-fill: #f59e0b; " + // Giallo/Arancione ambra per l'avviso
+                            "-fx-font-size: 11px;"
+            );
+            // Lasciamo i bottoni attivi nel caso di una semplice segnalazione, cambia solo il font
+
+        } else {
+            // Stato standard (Verified o Pending)
+            contentLbl.setText(c.getContent());
+            contentLbl.getStyleClass().add("st-label"); // Ripristina lo stile CSS globale del progetto
+        }
+        // =================================================================
 
         // HBox per i bottoni (Reply e Delete)
         HBox buttonsBox = new HBox(8);
@@ -193,7 +221,6 @@ public class CommentManager {
             btn.getStyleClass().removeAll("st-button-danger");
             btn.getStyleClass().add("st-button-outline");
             btn.setStyle("-fx-border-color: transparent;");
-
         }
     }
 

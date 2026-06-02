@@ -97,7 +97,8 @@ public class AdminUserController {
 
                 Button verifyBtn = new Button(" ✔ Verifica");
                 verifyBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
-                verifyBtn.setOnAction(e -> commentDAO.updateCommentStatus(comment.getId(), "Verified"));
+                verifyBtn.setOnAction(e -> flagApprovedComment(comment.getId()));
+
 
                 row.getChildren().addAll(textDetails, banBtn, verifyBtn);
                 publicationBox.getChildren().add(row);
@@ -110,8 +111,14 @@ public class AdminUserController {
     }
 
     private void flagInappropriateComment(int commentId) {
-        commentDAO.updateCommentStatus(commentId, "Banned");
+        commentDAO.updateCommentStatus(commentId, "Reported");
         AlertUtil.mostra("Successo", "Commento segnalato", "Il commento è stato marcato come non pertinente e nascosto. L'amministratore deciderà il suo destino finale.", Alert.AlertType.INFORMATION);
+        loadModerationView();
+    }
+
+    private void flagApprovedComment(int commentId){
+        commentDAO.updateCommentStatus(commentId, "Verified");
+        AlertUtil.mostra("Successo", "Commento verificato", "Il commento è stato verificato e potrà essere definitivamente visualizzato dagli altri utenti.", Alert.AlertType.INFORMATION);
         loadModerationView();
     }
 
