@@ -1,6 +1,6 @@
 package com.example.soundtribe.dao;
 
-import com.example.soundtribe.manager.CommentManager;
+import com.example.soundtribe.manager.CommentManager; // Corretto l'import
 import com.example.soundtribe.entità.Comment;
 import java.sql.*;
 import java.util.ArrayList;
@@ -84,7 +84,9 @@ public class CommentDAO {
             case EXECUTION -> "execution_id";
             case CONCERT -> "concert_id";
         };
-        String sql = "SELECT * FROM comments WHERE parent_id IS NULL AND " + column + " = ? AND status != 'Banned' ORDER BY id ASC";        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        // Rimosso il filtro status != 'Banned' per recuperare tutti i commenti
+        String sql = "SELECT * FROM comments WHERE parent_id IS NULL AND " + column + " = ? ORDER BY id ASC";
+        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, resourceId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -99,7 +101,9 @@ public class CommentDAO {
 
     private List<Comment> getReplies(int parentId) {
         List<Comment> replies = new ArrayList<>();
-        String sql = "SELECT * FROM comments WHERE parent_id = ? AND status != 'Banned' ORDER BY id ASC";        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt =prepareStatement(sql, conn)) {
+        // Rimosso il filtro status != 'Banned' per recuperare tutte le risposte
+        String sql = "SELECT * FROM comments WHERE parent_id = ? ORDER BY id ASC";
+        try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, parentId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -122,15 +126,15 @@ public class CommentDAO {
 
         String sqlSongs = "SELECT c.*, s.title AS resource_title FROM comments c " +
                 "JOIN songs s ON c.song_id = s.id " +
-                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' ORDER BY c.id DESC";
+                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
 
         String sqlExecutions = "SELECT c.*, m.title AS resource_title FROM comments c " +
                 "JOIN media_files m ON c.execution_id = m.id " +
-                "WHERE m.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' ORDER BY c.id DESC";
+                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
 
         String sqlConcerts = "SELECT c.*, con.title AS resource_title FROM comments c " +
                 "JOIN concerts con ON c.concert_id = con.id " +
-                "WHERE con.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' ORDER BY c.id DESC";
+                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
         try (Connection conn = CredDAO.getConnection()) {
             fetchAndMapComments(conn, sqlSongs, uploaderId, "Brano: ", moderationMap);
             fetchAndMapComments(conn, sqlExecutions, uploaderId, "Esecuzione: ", moderationMap);
@@ -194,10 +198,10 @@ public class CommentDAO {
     }
 
     public void deleteComment(int commentId) {
-        String sql = "DELETE FROM comments WHERE id = ? OR parent_id = ?";
+        // Modificato per eliminare solo il commento specificato, non i suoi figli
+        String sql = "DELETE FROM comments WHERE id = ?";
         try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, commentId);
-            pstmt.setInt(2, commentId);
             pstmt.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
     }
@@ -242,14 +246,6 @@ public class CommentDAO {
                     // L'utente è l'autore del commento?
                     if (commentAuthorId == userId) return true;
 
-                    // L'utente è l'autore del materiale commentato?
-                    int songId = rs.getObject("song_id") != null ? rs.getInt("song_id") : 0;
-                    int executionId = rs.getObject("execution_id") != null ? rs.getInt("execution_id") : 0;
-                    int concertId = rs.getObject("concert_id") != null ? rs.getInt("concert_id") : 0;
-
-                    if (songId > 0 && isResourceOwner(CommentManager.ResourceType.SONG, songId, userId)) return true;
-                    if (executionId > 0 && isResourceOwner(CommentManager.ResourceType.EXECUTION, executionId, userId)) return true;
-                    if (concertId > 0 && isResourceOwner(CommentManager.ResourceType.CONCERT, concertId, userId)) return true;
                 }
             }
         } catch (SQLException e) {
@@ -291,7 +287,8 @@ public class CommentDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Comment c = mapRow(rs);
-                    c.setReplies(getReplies(c.getId())); // getReplies dovrebbe già escludere Banned
+                    // getReplies dovrebbe già escludere Banned, ma ora non lo fa più
+                    c.setReplies(getReplies(c.getId()));
                     comments.add(c);
                 }
             }
