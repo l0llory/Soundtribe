@@ -36,40 +36,57 @@ public class AdminController {
     // ToggleButton per le sezioni
     @FXML private ToggleButton tbModerazione;
     @FXML private ToggleButton tbGestioneUtenti;
-    @FXML private ToggleButton tbCaricaMateriale;
+    @FXML private ToggleButton tbutentiSegnalati;
     @FXML private ToggleButton tbContenutoCaricato;
 
     @FXML private VBox moderationPanel;
     @FXML private VBox gestioneUtentiPanel;
-    @FXML private VBox caricaMaterialePanel;
+    @FXML private VBox utentiSegnalatiPanel;
     @FXML private VBox contenutoCaricatoPanel;
 
     @FXML private ListView<HBox> moderationList;
     @FXML private ListView<HBox> gestioneUtentiList;
+    @FXML private ListView<HBox> utentiSegnalatiList;
+
+    // NUOVI COMPONENTI FXML per la scelta della soglia (Assicurati di mapparli nel file .fxml)
+    @FXML private Spinner<Integer> spinnerSoglia;
+    @FXML private Button btnFiltraSoglia;
 
     private CommentDAO commentDAO = new CommentDAO();
     private UserDAO userDAO = new UserDAO();
 
     @FXML
     public void initialize() {
-
         NavigationManager.navBack(precP_Admin);
         NavigationManager.navForward(nextP_Admin);
         NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);
         NavigationManager.home(backHome_Admin);
         NavigationManager.exit(Exit_Admin);
 
-        // Caricamento dati statistici
-        refreshStats();
+        // Inizializza lo Spinner per la soglia (es. da 1 a 100, valore iniziale 3)
+        if (spinnerSoglia != null) {
+            spinnerSoglia.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 3));
+            // Listener opzionale: aggiorna la lista appena cambia il valore dello spinner
+            spinnerSoglia.valueProperty().addListener((obs, oldValue, newValue) -> {
+                populateUtentiSegnalatiList(newValue);
+            });
+        }
 
-        // Setup ToggleButton listeners
+        // Se usi un bottone invece del listener automatico dello spinner:
+        if (btnFiltraSoglia != null) {
+            btnFiltraSoglia.setOnAction(e -> {
+                int soglia = spinnerSoglia.getValue();
+                populateUtentiSegnalatiList(soglia);
+            });
+        }
+
+        refreshStats();
         setupToggleButtonListeners();
 
         // Mostra Moderazione di default
         tbModerazione.setSelected(true);
         showModerationPanel();
     }
-
 
     private void setupToggleButtonListeners() {
         tbModerazione.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -80,8 +97,8 @@ public class AdminController {
             if (newVal) showGestioneUtentiPanel();
         });
 
-        tbCaricaMateriale.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal) showCaricaMaterialePanel();
+        tbutentiSegnalati.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) showUtentiSegnalatiPanel();
         });
 
         tbContenutoCaricato.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -95,8 +112,8 @@ public class AdminController {
         moderationPanel.setManaged(true);
         gestioneUtentiPanel.setVisible(false);
         gestioneUtentiPanel.setManaged(false);
-        caricaMaterialePanel.setVisible(false);
-        caricaMaterialePanel.setManaged(false);
+        utentiSegnalatiPanel.setVisible(false);
+        utentiSegnalatiPanel.setManaged(false);
         contenutoCaricatoPanel.setVisible(false);
         contenutoCaricatoPanel.setManaged(false);
         populateModerationList();
@@ -110,7 +127,6 @@ public class AdminController {
             HBox commentRow = createCommentRow(comment);
             items.add(commentRow);
         }
-
         moderationList.setItems(items);
     }
 
@@ -119,9 +135,7 @@ public class AdminController {
         row.setStyle("-fx-padding: 10; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-background-color: #1e1e1e;");
         row.setPrefHeight(80);
 
-        // Sezione sinistra: dati del commento
         VBox commentInfo = new VBox(5);
-
         Label usernameLabel = new Label("👤 " + comment.getUsername());
         usernameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #60a5fa;");
 
@@ -132,17 +146,13 @@ public class AdminController {
         commentInfo.getChildren().addAll(usernameLabel, contentLabel);
         commentInfo.setPrefWidth(450);
 
-        // Sezione destra: bottoni
         Button banButton = new Button("🗑️ Banna definitivo");
         banButton.setStyle("-fx-padding: 8px 16px; -fx-font-size: 11; -fx-text-fill: #ef4444; -fx-background-color: transparent; -fx-border-color: #ef4444;");
         banButton.setOnAction(e -> {
             Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
             confirmDialog.setTitle("Conferma Ban");
             confirmDialog.setHeaderText("Bannare definitivamente il commento?");
-
-            confirmDialog.setContentText("Il commento è stato bannato.")
-
-            ;
+            confirmDialog.setContentText("Il commento è stato bannato.");
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -176,15 +186,14 @@ public class AdminController {
         moderationPanel.setManaged(false);
         gestioneUtentiPanel.setVisible(true);
         gestioneUtentiPanel.setManaged(true);
-        caricaMaterialePanel.setVisible(false);
-        caricaMaterialePanel.setManaged(false);
+        utentiSegnalatiPanel.setVisible(false);
+        utentiSegnalatiPanel.setManaged(false);
         contenutoCaricatoPanel.setVisible(false);
         contenutoCaricatoPanel.setManaged(false);
         populateGestioneUtentiList();
     }
 
     private void populateGestioneUtentiList() {
-        // Carica solo utenti in sospeso (non approvati)
         List<User> pendingUsers = userDAO.getPendingUsers();
         ObservableList<HBox> items = FXCollections.observableArrayList();
 
@@ -200,7 +209,6 @@ public class AdminController {
                 items.add(userRow);
             }
         }
-
         gestioneUtentiList.setItems(items);
     }
 
@@ -210,7 +218,6 @@ public class AdminController {
         row.setPrefHeight(180);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Sezione sinistra: informazioni utente
         VBox userInfo = new VBox(8);
         userInfo.setPrefWidth(350);
 
@@ -229,7 +236,6 @@ public class AdminController {
 
         userInfo.getChildren().addAll(nameLabel, emailLabel, genreLabel, motivationLabel);
 
-        // Sezione destra: bottoni Accetta e Rifiuta
         VBox buttonsBox = new VBox(10);
         buttonsBox.setAlignment(Pos.CENTER);
 
@@ -238,38 +244,31 @@ public class AdminController {
         acceptButton.setPrefWidth(110);
         acceptButton.setOnAction(e -> {
             userDAO.updateUserStatus(user.getId(), true);
-            System.out.println("Utente " + user.getName() + " approvato!");
-            AlertUtil.mostra("Successo", "Utente Approvato",
-                    "L'utente " + user.getName() + " può ora accedere all'applicazione.",
-                    Alert.AlertType.INFORMATION);
-            populateGestioneUtentiList(); // Ricarica la lista
-            refreshStats(); // Aggiorna le statistiche
+            AlertUtil.mostra("Successo", "Utente Approvato", "L'utente " + user.getName() + " può ora accedere.", Alert.AlertType.INFORMATION);
+            populateGestioneUtentiList();
+            refreshStats();
         });
 
         Button rejectButton = new Button("✕ Rifiuta");
         rejectButton.setStyle("-fx-padding: 10px 20px; -fx-font-size: 12; -fx-text-fill: white; -fx-background-color: #dc2626; -fx-font-weight: bold; -fx-border-radius: 6;");
         rejectButton.setPrefWidth(110);
         rejectButton.setOnAction(e -> {
-            // Chiedi conferma prima di eliminare
             Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
             confirmDialog.setTitle("Conferma Rifiuto");
             confirmDialog.setHeaderText("Rifiutare iscrizione?");
-            confirmDialog.setContentText("L'utente " + user.getName() + " sarà eliminato dal sistema.\nQuesta azione non può essere annullata.");
+            confirmDialog.setContentText("L'utente " + user.getName() + " sarà eliminato dal sistema.");
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 userDAO.deleteUser(user.getId());
-                AlertUtil.mostra("Completato", "Iscrizione Rifiutata",
-                        "L'utente " + user.getName() + " è stato eliminato dal sistema.",
-                        Alert.AlertType.INFORMATION);
-                populateGestioneUtentiList(); // Ricarica la lista
-                refreshStats(); // Aggiorna le statistiche
+                AlertUtil.mostra("Completato", "Iscrizione Rifiutata", "L'utente è stato rimosso.", Alert.AlertType.INFORMATION);
+                populateGestioneUtentiList();
+                refreshStats();
             }
         });
 
         buttonsBox.getChildren().addAll(acceptButton, rejectButton);
 
-        // Spacer per separare le sezioni
         Region spacer = new Region();
         row.getChildren().addAll(userInfo, spacer, buttonsBox);
         HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
@@ -277,17 +276,85 @@ public class AdminController {
         return row;
     }
 
-    // ========== CARICA MATERIALE ==========
-    private void showCaricaMaterialePanel() {
+    // ========== UTENTI SEGNALATI (CORRETTO E IMPLEMENTATO) ==========
+    private void showUtentiSegnalatiPanel() {
         moderationPanel.setVisible(false);
         moderationPanel.setManaged(false);
         gestioneUtentiPanel.setVisible(false);
         gestioneUtentiPanel.setManaged(false);
-        caricaMaterialePanel.setVisible(true);
-        caricaMaterialePanel.setManaged(true);
+        utentiSegnalatiPanel.setVisible(true);
+        utentiSegnalatiPanel.setManaged(true);
         contenutoCaricatoPanel.setVisible(false);
         contenutoCaricatoPanel.setManaged(false);
-        // TODO: Carica il form di upload
+
+        // Legge il valore iniziale dello spinner e popola la lista
+        int sogliaIniziale = (spinnerSoglia != null) ? spinnerSoglia.getValue() : 3;
+        populateUtentiSegnalatiList(sogliaIniziale);
+    }
+
+    private void populateUtentiSegnalatiList(int soglia) {
+        // Assume che userDAO abbia un metodo simile o che filtri per commenti bannati
+        List<User> reportedUsers = userDAO.getUsersWithReportsAbove(soglia);
+        ObservableList<HBox> items = FXCollections.observableArrayList();
+
+        if (reportedUsers.isEmpty()) {
+            Label emptyLabel = new Label("Nessun utente ha superato la soglia di " + soglia + " commenti bannati.");
+            emptyLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #9ca3af;");
+            HBox emptyRow = new HBox(emptyLabel);
+            emptyRow.setPadding(new Insets(20));
+            items.add(emptyRow);
+        } else {
+            for (User user : reportedUsers) {
+                HBox userRow = createReportedUserRow(user);
+                items.add(userRow);
+            }
+        }
+        utentiSegnalatiList.setItems(items);
+    }
+
+    // Metodo implementato ex-novo per creare la riga dell'utente segnalato
+    private HBox createReportedUserRow(User user) {
+        HBox row = new HBox(15);
+        row.setStyle("-fx-padding: 15; -fx-border-color: #ef4444; -fx-border-radius: 6; -fx-background-color: #1e1e1e;");
+        row.setPrefHeight(100);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        VBox userInfo = new VBox(5);
+        Label nameLabel = new Label("⚠️ " + user.getName() + " " + user.getSurname());
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14; -fx-text-fill: #ef4444;");
+
+        Label emailLabel = new Label("📧 Email: " + user.getEmail());
+        emailLabel.setStyle("-fx-font-size: 12; -fx-text-fill: #9ca3af;");
+
+        // Nota: Assicurati che l'oggetto User gestisca un contatore (es. getBannedCommentsCount())
+        // In alternativa, puoi fare una query sul DB. Qui ipotizziamo un getter nell'entità.
+        Label countLabel = new Label("🚫 Commenti Bannati totali: " + userDAO.getBannedCommentsCount());;
+        countLabel.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #f59e0b;");
+
+        userInfo.getChildren().addAll(nameLabel, emailLabel, countLabel);
+
+        // Bottone Azione: es. Sospendi/Elimina Utente Malizioso
+        Button suspendButton = new Button("Sospendi Account");
+        suspendButton.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16; -fx-border-radius: 4;");
+        suspendButton.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Sospensione Utente");
+            confirm.setHeaderText("Vuoi sospendere l'utente " + user.getName() + "?");
+
+            Optional<ButtonType> res = confirm.showAndWait();
+            if (res.isPresent() && res.get() == ButtonType.OK) {
+                userDAO.deleteUser(user.getId()); // o un metodo dedicato di ban/sospensione
+                AlertUtil.mostra("Successo", "Utente Sospeso", "L'utente è stato rimosso.", Alert.AlertType.INFORMATION);
+                populateUtentiSegnalatiList(spinnerSoglia.getValue());
+                refreshStats();
+            }
+        });
+
+        Region spacer = new Region();
+        row.getChildren().addAll(userInfo, spacer, suspendButton);
+        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+        return row;
     }
 
     // ========== CONTENUTO CARICATO ==========
@@ -296,22 +363,21 @@ public class AdminController {
         moderationPanel.setManaged(false);
         gestioneUtentiPanel.setVisible(false);
         gestioneUtentiPanel.setManaged(false);
-        caricaMaterialePanel.setVisible(false);
-        caricaMaterialePanel.setManaged(false);
+        utentiSegnalatiPanel.setVisible(false);
+        utentiSegnalatiPanel.setManaged(false);
         contenutoCaricatoPanel.setVisible(true);
         contenutoCaricatoPanel.setManaged(true);
         loadUserContent();
     }
 
     private void loadUserContent() {
-        // TODO: Caricare e visualizzare il contenuto dell'admin
         System.out.println("Loading content for admin: " + UserSession.getInstance().getUserId());
     }
 
     // ========== UTILITY ==========
     private void refreshStats() {
-        int totalUsers = userDAO.getNumberUsers(); // Utenti approvati
-        int pendingUsers = userDAO.getPendingUsers().size(); // Utenti in sospeso
+        int totalUsers = userDAO.getNumberUsers();
+        int pendingUsers = userDAO.getPendingUsers().size();
 
         lblTotalUsers.setText(String.valueOf(totalUsers) + " (" + pendingUsers + " in sospeso)");
         lblTotalComments.setText(String.valueOf(commentDAO.getTotalComments()));

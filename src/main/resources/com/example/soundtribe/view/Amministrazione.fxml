@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -86,7 +87,6 @@
                 <Insets top="10.0" right="15.0" bottom="15.0" left="15.0"/>
             </padding>
 
-            <!-- Statistiche -->
             <GridPane hgap="15.0" vgap="15.0">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -141,16 +141,15 @@
                 </children>
             </GridPane>
 
-            <!-- Toggle Buttons -->
             <HBox spacing="5.0" alignment="CENTER" style="-fx-background-color: -st-background-light; -fx-background-radius: 8; -fx-padding: 5;">
                 <children>
                     <ToggleButton fx:id="tbModerazione" text="Moderazione" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" selected="true" toggleGroup="$adminToggleGroup"/>
-                    <ToggleButton fx:id="tbGestioneUtenti" text="Gestione Utenti" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>                    <ToggleButton fx:id="tbCaricaMateriale" text="Carica Materiale" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
+                    <ToggleButton fx:id="tbGestioneUtenti" text="Gestione Utenti" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
+                    <ToggleButton fx:id="tbutentiSegnalati" text="Utenti Segnalati" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
                     <ToggleButton fx:id="tbContenutoCaricato" text="Contenuto Caricato" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
                 </children>
             </HBox>
 
-            <!-- MODERAZIONE Panel -->
             <VBox fx:id="moderationPanel" spacing="10.0" VBox.vgrow="ALWAYS" styleClass="st-panel-secondary">
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -162,7 +161,6 @@
                 </children>
             </VBox>
 
-            <!-- GESTIONE UTENTI Panel -->
             <VBox fx:id="gestioneUtentiPanel" spacing="10.0" VBox.vgrow="ALWAYS" styleClass="st-panel-secondary">
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -170,20 +168,27 @@
                             <font><Font name="System Bold" size="14.0"/></font>
                         </Label>
                     </HBox>
-                    <ListView fx:id="gestioneUtentiList" VBox.vgrow="ALWAYS" prefHeight="400" styleClass="st-list-view"/>                </children>
-            </VBox>
-
-            <!-- CARICA MATERIALE Panel -->
-            <VBox fx:id="caricaMaterialePanel" spacing="10.0" VBox.vgrow="ALWAYS" styleClass="st-panel-secondary">
-                <children>
-                    <Label text="📤 Carica Materiale" styleClass="st-label-subtitle">
-                        <font><Font name="System Bold" size="14.0"/></font>
-                    </Label>
-                    <Label text="Form di caricamento qui" style="-fx-text-fill: #666;"/>
+                    <ListView fx:id="gestioneUtentiList" VBox.vgrow="ALWAYS" prefHeight="400" styleClass="st-list-view"/>
                 </children>
             </VBox>
 
-            <!-- CONTENUTO CARICATO Panel -->
+            <VBox fx:id="utentiSegnalatiPanel" spacing="10.0" VBox.vgrow="ALWAYS" styleClass="st-panel-secondary">
+                <children>
+                    <HBox alignment="CENTER_LEFT" spacing="15.0">
+                        <children>
+                            <Label text="🚨 Utenti Segnalati" styleClass="st-label-subtitle">
+                                <font><Font name="System Bold" size="14.0"/></font>
+                            </Label>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label text="Soglia commenti bannati:" style="-fx-text-fill: #9ca3af; -fx-font-size: 12;"/>
+                            <Spinner fx:id="spinnerSoglia" prefWidth="80.0"/>
+                            <Button fx:id="btnFiltraSoglia" text="Filtra" styleClass="st-button-outline"/>
+                        </children>
+                    </HBox>
+                    <ListView fx:id="utentiSegnalatiList" VBox.vgrow="ALWAYS" styleClass="st-list-view"/>
+                </children>
+            </VBox>
+
             <VBox fx:id="contenutoCaricatoPanel" spacing="10.0" VBox.vgrow="ALWAYS" styleClass="st-panel-secondary">
                 <children>
                     <Label text="💾 Contenuto Caricato" styleClass="st-label-subtitle">

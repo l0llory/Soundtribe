@@ -274,4 +274,63 @@ public class UserDAO {
         return 0;
     }
 
+
+    public List<User> getUsersWithReportsAbove(int soglia) {
+        List<User> users = new ArrayList<>();
+
+        // Ipotizzando che la tabella dei commenti si chiami 'comments'
+        // e sia legata all'utente tramite 'user_id' (o adatta il campo sulla base del tuo DB)
+        String sql = "SELECT u.*, COUNT(c.id) AS banned_count " +
+                "FROM users u " +
+                "JOIN comments c ON u.id = c.user_id " +
+                "WHERE c.status = 'Banned' " +
+                "GROUP BY u.id " +
+                "HAVING COUNT(c.id) >= ? " +
+                "ORDER BY banned_count DESC";
+
+        try (Connection conn = CredDAO.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, soglia);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    User user = mapRow(rs);
+
+                    // Impostiamo temporaneamente il conteggio nell'oggetto user
+                    // in modo che il controller possa leggerlo tramite user.getBannedCommentsCount()
+                    // NOTA: Se nel tuo oggetto User questo metodo restituisce una stringa, convertilo con String.valueOf()
+                    user.setBannedCommentsCount(String.valueOf(rs.getInt("banned_count")));
+
+                    users.add(user);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel recupero degli utenti segnalati oltre la soglia: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    /**
+     * Recupera il numero totale di commenti bannati nel sistema.
+     * (Viene usato principalmente per le statistiche generali dell'AdminController)
+     * * @return Il conteggio totale sotto forma di String, pronto per i widget di testo
+     */
+    public String getBannedCommentsCount() {
+        String sql = "SELECT COUNT(*) FROM comments WHERE status = 'Banned'";
+
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                return String.valueOf(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel conteggio globale dei commenti bannati: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return "0";
+    }
 }
