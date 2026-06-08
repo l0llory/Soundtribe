@@ -260,10 +260,21 @@ public class AdminController {
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                // Modificato: ora aggiorna lo stato in "Banned" invece di eliminare il record
-                userDAO.updateUserStatus(user.getId(), "Banned");
+                // Chiedi motivo con TextInputDialog e aggiorna lo stato con la motivazione
+                TextInputDialog reasonDialog = new TextInputDialog();
+                reasonDialog.setTitle("Motivo Ban");
+                reasonDialog.setHeaderText("Inserisci il motivo del ban per " + user.getName() + " " + user.getSurname());
+                reasonDialog.setContentText("Motivo:");
 
-                // Aggiornato il testo dell'alert di conferma
+                Optional<String> reasonOpt = reasonDialog.showAndWait();
+                String reason = "Bannato dall'admin";
+                if (reasonOpt.isPresent()) {
+                    String r = reasonOpt.get().trim();
+                    if (!r.isEmpty()) reason = r;
+                }
+
+                userDAO.updateUserStatus(user.getId(), "Banned", reason);
+
                 AlertUtil.mostra("Completato", "Utente Bannato", "L'utente è stato contrassegnato come Bannato.", Alert.AlertType.INFORMATION);
 
                 populateGestioneUtentiList();
@@ -309,8 +320,20 @@ public class AdminController {
             items.add(emptyRow);
         } else {
             for (User user : reportedUsers) {
-                HBox userRow = createReportedUserRow(user);
-                items.add(userRow);
+                // Aggiungi solo se l'utente ha status "Verified"
+                if ("Verified".equals(user.getStatus())) {
+                    HBox userRow = createReportedUserRow(user);
+                    items.add(userRow);
+                }
+            }
+
+            // Se dopo il filtro non ci sono utenti, mostra messaggio vuoto
+            if (items.isEmpty()) {
+                Label emptyLabel = new Label("Nessun utente ha superato la soglia di " + soglia + " commenti bannati.");
+                emptyLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #9ca3af;");
+                HBox emptyRow = new HBox(emptyLabel);
+                emptyRow.setPadding(new Insets(20));
+                items.add(emptyRow);
             }
         }
         utentiSegnalatiList.setItems(items);
@@ -332,7 +355,7 @@ public class AdminController {
 
         // Nota: Assicurati che l'oggetto User gestisca un contatore (es. getBannedCommentsCount())
         // In alternativa, puoi fare una query sul DB. Qui ipotizziamo un getter nell'entità.
-        Label countLabel = new Label("🚫 Commenti Bannati totali: " + userDAO.getBannedCommentsCount());;
+        Label countLabel = new Label("🚫 Commenti Bannati totali: " + userDAO.getBannedCommentsCount());
         countLabel.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #f59e0b;");
 
         userInfo.getChildren().addAll(nameLabel, emailLabel, countLabel);
@@ -347,12 +370,26 @@ public class AdminController {
 
             Optional<ButtonType> res = confirm.showAndWait();
             if (res.isPresent() && res.get() == ButtonType.OK) {
-                userDAO.updateUserStatus(user.getId(), "Banned");// o un metodo dedicato di ban/sospensione
+                // Chiedi motivo prima di bannare
+                TextInputDialog reasonDialog = new TextInputDialog();
+                reasonDialog.setTitle("Motivo Sospensione");
+                reasonDialog.setHeaderText("Inserisci il motivo per sospendere " + user.getName() + " " + user.getSurname());
+                reasonDialog.setContentText("Motivo:");
+
+                Optional<String> reasonOpt = reasonDialog.showAndWait();
+                String reason = "Sospeso per segnalazioni";
+                if (reasonOpt.isPresent()) {
+                    String r = reasonOpt.get().trim();
+                    if (!r.isEmpty()) reason = r;
+                }
+
+                userDAO.updateUserStatus(user.getId(), "Banned", reason);
                 AlertUtil.mostra("Successo", "Utente Sospeso", "L'utente è stato bannato.", Alert.AlertType.INFORMATION);
                 populateUtentiSegnalatiList(spinnerSoglia.getValue());
                 refreshStats();
             }
         });
+
 
         Region spacer = new Region();
         row.getChildren().addAll(userInfo, spacer, suspendButton);
@@ -380,7 +417,7 @@ public class AdminController {
 
     // ========== UTILITY ==========
     private void refreshStats() {
-        int totalUsers = userDAO.getNumberUsersByStatus("Verified");
+        int totalUsers = userDAO.getNumberUsers();
         int pendingUsers = userDAO.getNumberUsersByStatus("Pending");
 
         lblTotalUsers.setText(String.valueOf(totalUsers) + " (" + pendingUsers + " in sospeso)");

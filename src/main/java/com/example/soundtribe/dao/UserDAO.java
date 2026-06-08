@@ -20,7 +20,7 @@ public class UserDAO {
                 "email VARCHAR(150) UNIQUE NOT NULL, " +
                 "password VARCHAR(100) NOT NULL, " +
                 "is_admin BOOLEAN DEFAULT FALSE, " +
-                "status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Verified', 'Banned')), " + // Nuova colonna con vincolo CHECK
+                "status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Verified', 'Banned')), " +
                 "profile_pic_path TEXT, " +
                 "favorite_genre TEXT, " +
                 "motivation TEXT" +
@@ -72,7 +72,7 @@ public class UserDAO {
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            if (e.getSQLState().equals("23505")) {
+            if ("23505".equals(e.getSQLState())) {
                 System.err.println("Errore: Email già registrata.");
             } else {
                 e.printStackTrace();
@@ -118,19 +118,41 @@ public class UserDAO {
     }
 
     // 4. UPDATE STATUS (Per approvare, rifiutare o bannare un utente)
+    // Wrapper per compatibilità
     public void updateUserStatus(int userId, String status) {
-        String sql = "UPDATE users SET status = ? WHERE id = ?";
+        updateUserStatus(userId, status, null);
+    }
+
+    // Nuova variante: se lo status è "Banned" e viene fornita una adminReason,
+    // aggiorna anche la colonna 'motivation'.
+    public void updateUserStatus(int userId, String status, String adminReason) {
+        String sql;
+        boolean setMotivation = "Banned".equals(status) && adminReason != null;
+
+        if (setMotivation) {
+            sql = "UPDATE users SET status = ?, motivation = ? WHERE id = ?";
+        } else {
+            sql = "UPDATE users SET status = ? WHERE id = ?";
+        }
+
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, status);
-            pstmt.setInt(2, userId);
+
+            if (setMotivation) {
+                pstmt.setString(2, adminReason);
+                pstmt.setInt(3, userId);
+            } else {
+                pstmt.setInt(2, userId);
+            }
+
             pstmt.executeUpdate();
         } catch (SQLException e) {
+            System.err.println("Errore aggiornamento status utente: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
-
 
     // 5. UPDATE PROFILE
     public boolean updateUser(User user) {
@@ -258,13 +280,17 @@ public class UserDAO {
         }
         return 0;
     }
+
+    // Corretto per usare PreparedStatement e passare il parametro status
     public int getNumberUsersByStatus(String status){
         String sql = "SELECT COUNT(*) FROM users WHERE status = ?";
         try (Connection conn = CredDAO.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, status);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Errore nel recupero del numero  di utenti con stato: " + e.getMessage());

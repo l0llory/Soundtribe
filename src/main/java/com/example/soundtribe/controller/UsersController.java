@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UsersController {
@@ -254,6 +255,7 @@ public class UsersController {
     }
 
     // --- DIALOG DI VALUTAZIONE ---
+// --- DIALOG DI VALUTAZIONE ---
     private void showEvaluationDialog(User user) {
         Stage dialog = new Stage();
         dialog.setTitle("Valutazione Richiesta");
@@ -289,8 +291,21 @@ public class UsersController {
         Button btnApprove = new Button("Approva Iscrizione");
         btnApprove.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-cursor: hand;");
 
+        // --- handler per Rifiuta: chiedi motivo con TextInputDialog e poi banna
         btnReject.setOnAction(e -> {
-            userDAO.updateUserStatus(user.getId(),"Banend");
+            TextInputDialog reasonDialog = new TextInputDialog();
+            reasonDialog.setTitle("Motivo Rifiuto");
+            reasonDialog.setHeaderText("Inserisci il motivo per cui rifiuti la richiesta di " + user.getName() + " " + user.getSurname());
+            reasonDialog.setContentText("Motivo:");
+
+            Optional<String> reasonOpt = reasonDialog.showAndWait();
+            String reason = "Rifiutato durante valutazione iscrizione";
+            if (reasonOpt.isPresent()) {
+                String r = reasonOpt.get().trim();
+                if (!r.isEmpty()) reason = r;
+            }
+
+            userDAO.updateUserStatus(user.getId(), "Banned", reason);
             refreshData();
             AlertUtil.mostra("Rifiutato", "Utente rimosso", "La richiesta è stata respinta.", Alert.AlertType.INFORMATION);
             dialog.close();
