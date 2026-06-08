@@ -51,12 +51,23 @@ public class UserProfileViewController {
         }
 
         // 3. Rendering visivo dello Stato Account
-        if (user.isApproved()) {
-            statusLabel.setText("✔ Attivo");
-            statusLabel.setTextFill(Color.web("#27ae60"));
-        } else {
-            statusLabel.setText("⏳ In Attesa");
-            statusLabel.setTextFill(Color.web("#f39c12"));
+        switch (user.getStatus() != null ? user.getStatus() : "Pending") {
+            case "Verified" -> {
+                statusLabel.setText("✔ Attivo");
+                statusLabel.setTextFill(Color.web("#27ae60"));
+            }
+            case "Pending" -> {
+                statusLabel.setText("⏳ In Attesa");
+                statusLabel.setTextFill(Color.web("#f39c12"));
+            }
+            case "Banned" -> {
+                statusLabel.setText("❌ Bannato");
+                statusLabel.setTextFill(Color.web("#e74c3c"));
+            }
+            default -> {
+                statusLabel.setText("❓ Sconosciuto");
+                statusLabel.setTextFill(Color.web("#7f8c8d"));
+            }
         }
 
         // 4. Caricamento Immagine Profilo Dedicata

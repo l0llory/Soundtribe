@@ -20,10 +20,10 @@ public class UserDAO {
                 "email VARCHAR(150) UNIQUE NOT NULL, " +
                 "password VARCHAR(100) NOT NULL, " +
                 "is_admin BOOLEAN DEFAULT FALSE, " +
-                "is_approved BOOLEAN DEFAULT FALSE, " + // Colonna Approvazione
+                "status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Verified', 'Banned')), " + // Nuova colonna con vincolo CHECK
                 "profile_pic_path TEXT, " +
                 "favorite_genre TEXT, " +
-                "motivation TEXT" + // NUOVA COLONNA
+                "motivation TEXT" +
                 ")";
 
         try (Connection conn = CredDAO.getConnection();
@@ -32,12 +32,13 @@ public class UserDAO {
             // 1. Crea la tabella base se non c'è
             stmt.execute(sql);
 
-            // 2. Migrazione sicura: aggiunge colonne se mancano (per database esistenti)
+            // 2. Migrazione sicura per database esistenti
             try {
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic_path TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_genre TEXT");
-                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE");
-                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS motivation TEXT"); // Migrazione Motivazione
+                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS motivation TEXT");
+                // Aggiunge la colonna status se non esiste già
+                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Pending'");
             } catch (SQLException ignore) {
                 // Colonne già presenti
             }
@@ -51,8 +52,8 @@ public class UserDAO {
 
     // 1. REGISTRAZIONE (Create)
     public boolean registerUser(User user) {
-        // Inseriamo anche i nuovi campi. is_approved sarà FALSE per default.
-        String sql = "INSERT INTO users (name, surname, email, password, is_admin, is_approved, favorite_genre, profile_pic_path, motivation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Inseriamo il campo status al posto di is_approved
+        String sql = "INSERT INTO users (name, surname, email, password, is_admin, status, favorite_genre, profile_pic_path, motivation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -61,17 +62,17 @@ public class UserDAO {
             pstmt.setString(2, user.getSurname());
             pstmt.setString(3, user.getEmail());
             pstmt.setString(4, user.getPassword());
-            pstmt.setBoolean(5, user.isAdmin());      // false
-            pstmt.setBoolean(6, user.isApproved());   // false (da costruttore)
+            pstmt.setBoolean(5, user.isAdmin());
+            pstmt.setString(6, user.getStatus());     // Passa la stringa ("Pending" di default)
             pstmt.setString(7, user.getFavoriteGenre());
             pstmt.setString(8, user.getProfilePicPath());
-            pstmt.setString(9, user.getMotivation()); // NUOVO
+            pstmt.setString(9, user.getMotivation());
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            if (e.getSQLState().equals("23505")) { // Codice errore PostgreSQL per "Unique Violation"
+            if (e.getSQLState().equals("23505")) {
                 System.err.println("Errore: Email già registrata.");
             } else {
                 e.printStackTrace();
@@ -81,10 +82,10 @@ public class UserDAO {
     }
 
     // 2. GET ALL USERS (Read - Lista Principale)
-    // Ritorna SOLO gli utenti APPROVATI (is_approved = TRUE)
+    // Ritorna SOLO gli utenti VERIFICATI (status = 'Verified')
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE is_approved = TRUE ORDER BY name ASC";
+        String sql = "SELECT * FROM users WHERE status = 'Verified' ORDER BY name ASC";
 
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
@@ -99,10 +100,10 @@ public class UserDAO {
     }
 
     // 3. GET PENDING USERS (Read - Lista Richieste)
-    // Ritorna SOLO gli utenti NON APPROVATI (is_approved = FALSE)
+    // Ritorna SOLO gli utenti IN ATTESA (status = 'Pending')
     public List<User> getPendingUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE is_approved = FALSE ORDER BY id ASC";
+        String sql = "SELECT * FROM users WHERE status = 'Pending' ORDER BY id ASC";
 
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
@@ -116,12 +117,12 @@ public class UserDAO {
         return users;
     }
 
-    // 4. UPDATE STATUS (Per approvare utente)
-    public void updateUserStatus(int userId, boolean approved) {
-        String sql = "UPDATE users SET is_approved = ? WHERE id = ?";
+    // 4. UPDATE STATUS (Per approvare, rifiutare o bannare un utente)
+    public void updateUserStatus(int userId, String status) {
+        String sql = "UPDATE users SET status = ? WHERE id = ?";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setBoolean(1, approved);
+            pstmt.setString(1, status);
             pstmt.setInt(2, userId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -129,19 +130,9 @@ public class UserDAO {
         }
     }
 
-    // 5. DELETE USER (Per rifiutare richiesta o eliminare account)
-    public void deleteUser(int userId) {
-        String sql = "DELETE FROM users WHERE id = ?";
-        try (Connection conn = CredDAO.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
-    // 6. UPDATE PROFILE (Aggiornamento utente loggato)
+
+    // 5. UPDATE PROFILE
     public boolean updateUser(User user) {
         String sql = "UPDATE users SET name = ?, password = ?, profile_pic_path = ?, favorite_genre = ? WHERE id = ?";
 
@@ -163,7 +154,7 @@ public class UserDAO {
         }
     }
 
-    // 7. LOGIN
+    // 6. LOGIN
     public User login(String email, String password) {
         String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
@@ -175,13 +166,7 @@ public class UserDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    User u = mapRow(rs);
-                    // Controllo di sicurezza: se non è approvato, login fallito
-                    if (!u.isApproved()) {
-                        System.out.println("Login bloccato: utente non approvato.");
-                        return null;
-                    }
-                    return u;
+                    return mapRow(rs);
                 }
             }
         } catch (SQLException e) {
@@ -190,11 +175,11 @@ public class UserDAO {
         return null;
     }
 
-    // 8. RICERCA
+    // 7. RICERCA
     public List<User> searchUsers(String query) {
         List<User> users = new ArrayList<>();
-        // Cerca solo tra gli utenti approvati
-        String sql = "SELECT * FROM users WHERE is_approved = TRUE AND (name ILIKE ? OR surname ILIKE ? OR email ILIKE ?)";
+        // Cerca solo tra gli utenti verificati
+        String sql = "SELECT * FROM users WHERE status = 'Verified' AND (name ILIKE ? OR surname ILIKE ? OR email ILIKE ?)";
 
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -215,7 +200,7 @@ public class UserDAO {
         return users;
     }
 
-    // 9. GET BY ID
+    // 8. GET BY ID
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try (Connection conn = CredDAO.getConnection();
@@ -243,17 +228,17 @@ public class UserDAO {
         user.setProfilePicPath(rs.getString("profile_pic_path"));
         user.setFavoriteGenre(rs.getString("favorite_genre"));
 
-        // Lettura sicura della motivazione (potrebbe non esistere in vecchi record)
         try {
             user.setMotivation(rs.getString("motivation"));
         } catch (SQLException e) {
             user.setMotivation("");
         }
 
+        // Lettura sicura del nuovo campo stringa 'status'
         try {
-            user.setApproved(rs.getBoolean("is_approved"));
+            user.setStatus(rs.getString("status"));
         } catch (SQLException e) {
-            user.setApproved(true); // Fallback
+            user.setStatus("Pending"); // Fallback di sicurezza
         }
 
         return user;
@@ -273,13 +258,24 @@ public class UserDAO {
         }
         return 0;
     }
-
+    public int getNumberUsersByStatus(String status){
+        String sql = "SELECT COUNT(*) FROM users WHERE status = ?";
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel recupero del numero  di utenti con stato: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
     public List<User> getUsersWithReportsAbove(int soglia) {
         List<User> users = new ArrayList<>();
 
-        // Ipotizzando che la tabella dei commenti si chiami 'comments'
-        // e sia legata all'utente tramite 'user_id' (o adatta il campo sulla base del tuo DB)
         String sql = "SELECT u.*, COUNT(c.id) AS banned_count " +
                 "FROM users u " +
                 "JOIN comments c ON u.id = c.user_id " +
@@ -296,12 +292,7 @@ public class UserDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     User user = mapRow(rs);
-
-                    // Impostiamo temporaneamente il conteggio nell'oggetto user
-                    // in modo che il controller possa leggerlo tramite user.getBannedCommentsCount()
-                    // NOTA: Se nel tuo oggetto User questo metodo restituisce una stringa, convertilo con String.valueOf()
                     user.setBannedCommentsCount(String.valueOf(rs.getInt("banned_count")));
-
                     users.add(user);
                 }
             }
@@ -312,11 +303,6 @@ public class UserDAO {
         return users;
     }
 
-    /**
-     * Recupera il numero totale di commenti bannati nel sistema.
-     * (Viene usato principalmente per le statistiche generali dell'AdminController)
-     * * @return Il conteggio totale sotto forma di String, pronto per i widget di testo
-     */
     public String getBannedCommentsCount() {
         String sql = "SELECT COUNT(*) FROM comments WHERE status = 'Banned'";
 

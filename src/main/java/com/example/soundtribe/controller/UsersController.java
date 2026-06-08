@@ -290,14 +290,14 @@ public class UsersController {
         btnApprove.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-cursor: hand;");
 
         btnReject.setOnAction(e -> {
-            userDAO.deleteUser(user.getId());
+            userDAO.updateUserStatus(user.getId(),"Banend");
             refreshData();
             AlertUtil.mostra("Rifiutato", "Utente rimosso", "La richiesta è stata respinta.", Alert.AlertType.INFORMATION);
             dialog.close();
         });
 
         btnApprove.setOnAction(e -> {
-            userDAO.updateUserStatus(user.getId(), true);
+            userDAO.updateUserStatus(user.getId(), "Verified");
             refreshData();
             AlertUtil.mostra("Approvato", "Successo", "L'utente è ora attivo.", Alert.AlertType.INFORMATION);
             dialog.close();

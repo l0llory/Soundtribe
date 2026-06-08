@@ -243,7 +243,7 @@ public class AdminController {
         acceptButton.setStyle("-fx-padding: 10px 20px; -fx-font-size: 12; -fx-text-fill: white; -fx-background-color: #10b981; -fx-font-weight: bold; -fx-border-radius: 6;");
         acceptButton.setPrefWidth(110);
         acceptButton.setOnAction(e -> {
-            userDAO.updateUserStatus(user.getId(), true);
+            userDAO.updateUserStatus(user.getId(), "Verified");
             AlertUtil.mostra("Successo", "Utente Approvato", "L'utente " + user.getName() + " può ora accedere.", Alert.AlertType.INFORMATION);
             populateGestioneUtentiList();
             refreshStats();
@@ -260,8 +260,12 @@ public class AdminController {
 
             Optional<ButtonType> result = confirmDialog.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                userDAO.deleteUser(user.getId());
-                AlertUtil.mostra("Completato", "Iscrizione Rifiutata", "L'utente è stato rimosso.", Alert.AlertType.INFORMATION);
+                // Modificato: ora aggiorna lo stato in "Banned" invece di eliminare il record
+                userDAO.updateUserStatus(user.getId(), "Banned");
+
+                // Aggiornato il testo dell'alert di conferma
+                AlertUtil.mostra("Completato", "Utente Bannato", "L'utente è stato contrassegnato come Bannato.", Alert.AlertType.INFORMATION);
+
                 populateGestioneUtentiList();
                 refreshStats();
             }
@@ -343,8 +347,8 @@ public class AdminController {
 
             Optional<ButtonType> res = confirm.showAndWait();
             if (res.isPresent() && res.get() == ButtonType.OK) {
-                userDAO.deleteUser(user.getId()); // o un metodo dedicato di ban/sospensione
-                AlertUtil.mostra("Successo", "Utente Sospeso", "L'utente è stato rimosso.", Alert.AlertType.INFORMATION);
+                userDAO.updateUserStatus(user.getId(), "Banned");// o un metodo dedicato di ban/sospensione
+                AlertUtil.mostra("Successo", "Utente Sospeso", "L'utente è stato bannato.", Alert.AlertType.INFORMATION);
                 populateUtentiSegnalatiList(spinnerSoglia.getValue());
                 refreshStats();
             }
@@ -376,8 +380,8 @@ public class AdminController {
 
     // ========== UTILITY ==========
     private void refreshStats() {
-        int totalUsers = userDAO.getNumberUsers();
-        int pendingUsers = userDAO.getPendingUsers().size();
+        int totalUsers = userDAO.getNumberUsersByStatus("Verified");
+        int pendingUsers = userDAO.getNumberUsersByStatus("Pending");
 
         lblTotalUsers.setText(String.valueOf(totalUsers) + " (" + pendingUsers + " in sospeso)");
         lblTotalComments.setText(String.valueOf(commentDAO.getTotalComments()));

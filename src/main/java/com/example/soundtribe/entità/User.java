@@ -10,7 +10,7 @@ public class User {
     private String email;
     private String password;
     private boolean isAdmin;
-    private boolean isApproved; // Campo per gestire "In Attesa" vs "Attivo"
+    private String status; // Sostituito boolean con String ("Pending", "Verified", "Banned")
     private String bannedCommentsCount;
 
     // Dati opzionali profilo
@@ -20,11 +20,11 @@ public class User {
     // NUOVO CAMPO: Motivazione iscrizione
     private String motivation;
 
-    // 1. Costruttore Vuoto (Necessario per alcune operazioni)
+    // 1. Costruttore Vuoto
     public User() {
     }
 
-    // 2. Costruttore per Registrazione (Senza ID, perché lo genera il DB)
+    // 2. Costruttore per Registrazione (Senza ID, status di default a "Pending")
     public User(String name, String surname, String email, String password, String favoriteGenre) {
         this.name = name;
         this.surname = surname;
@@ -32,20 +32,20 @@ public class User {
         this.password = password;
         this.favoriteGenre = favoriteGenre;
         this.isAdmin = false;
-        this.isApproved = false;
-        this.motivation = ""; // Default vuoto
+        this.status = "Pending"; // Stato iniziale di default
+        this.motivation = "";
     }
 
     // 3. Costruttore Completo (Usato dal DAO quando legge dal DB)
     public User(int id, String name, String surname, String email, String password,
-                boolean isAdmin, boolean isApproved, String profilePicPath, String favoriteGenre, String motivation) {
+                boolean isAdmin, String status, String profilePicPath, String favoriteGenre, String motivation) {
         this.id = id;
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.password = password;
         this.isAdmin = isAdmin;
-        this.isApproved = isApproved;
+        this.status = status;
         this.profilePicPath = profilePicPath;
         this.favoriteGenre = favoriteGenre;
         this.motivation = motivation;
@@ -101,13 +101,12 @@ public class User {
         isAdmin = admin;
     }
 
-    // Fondamentali per la gestione richieste
-    public boolean isApproved() {
-        return isApproved;
+    public String getStatus() {
+        return status;
     }
 
-    public void setApproved(boolean approved) {
-        isApproved = approved;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getProfilePicPath() {
@@ -141,7 +140,6 @@ public class User {
         return name + " " + surname;
     }
 
-    // Override corretto di equals per confrontare gli utenti (basato su ID e Email)
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -155,10 +153,8 @@ public class User {
     }
 
     public String getBannedCommentsCount() {
-        // Se il valore è null (es. l'utente non è stato caricato tramite la lista dei segnalati), restituisce "0"
         return (this.bannedCommentsCount != null) ? this.bannedCommentsCount : "0";
     }
-
 
     @Override
     public int hashCode() {
