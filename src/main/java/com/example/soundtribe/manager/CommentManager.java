@@ -1,10 +1,9 @@
 package com.example.soundtribe.manager;
 
 import com.example.soundtribe.item.UserSession;
-import com.example.soundtribe.dao.CommentDAO;
-import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.Comment;
 import com.example.soundtribe.entita.User;
+import com.example.soundtribe.dao.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

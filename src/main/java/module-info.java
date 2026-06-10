@@ -15,4 +15,6 @@ module com.example.soundtribe {
     opens com.example.soundtribe.manager to javafx.fxml;
     exports com.example.soundtribe.item;
     opens com.example.soundtribe.item to javafx.fxml;
+    exports com.example.soundtribe.dao;
+    opens com.example.soundtribe.dao to javafx.fxml;
 }

@@ -2,7 +2,7 @@ package com.example.soundtribe.controller;
 
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.SceneManager;
-import com.example.soundtribe.dao.UserDAO;
+import com.example.soundtribe.dao.*;
 import com.example.soundtribe.entita.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

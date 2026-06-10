@@ -2,10 +2,8 @@ package com.example.soundtribe.controller;
 
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
+import com.example.soundtribe.dao.*;
 import com.example.soundtribe.item.UserSession;
-import com.example.soundtribe.dao.ExecutionDAO;
-import com.example.soundtribe.dao.SongDAO;
-import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.Execution;
 import com.example.soundtribe.entita.Song;
 import com.example.soundtribe.entita.User;

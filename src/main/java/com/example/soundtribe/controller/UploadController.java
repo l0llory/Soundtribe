@@ -1,14 +1,11 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.entita.*;
+import com.example.soundtribe.dao.*;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
-import com.example.soundtribe.dao.ConcertDAO;
-import com.example.soundtribe.dao.ExecutionDAO;
-import com.example.soundtribe.dao.SongDAO;
-import com.example.soundtribe.dao.UserDAO;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;

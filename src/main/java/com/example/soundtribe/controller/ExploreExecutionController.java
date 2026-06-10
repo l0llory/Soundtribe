@@ -1,11 +1,10 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.*;
-import com.example.soundtribe.dao.ExecutionDAO;
-import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.Execution;
 import com.example.soundtribe.entita.ExecutionSegment;
 import com.example.soundtribe.entita.User;
+import com.example.soundtribe.dao.*;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.manager.CommentManager;

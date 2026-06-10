@@ -1,7 +1,7 @@
 package com.example.soundtribe.controller;
 
-import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.entita.Comment;
+import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.manager.NavigationManager;

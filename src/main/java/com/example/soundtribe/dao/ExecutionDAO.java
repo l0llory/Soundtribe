@@ -3,8 +3,11 @@ package com.example.soundtribe.dao;
 import com.example.soundtribe.entita.Execution;
 import com.example.soundtribe.entita.ExecutionSegment;
 import com.example.soundtribe.entita.Instrument;
+
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ExecutionDAO {
 
