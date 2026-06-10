@@ -1,7 +1,7 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.*;
-import com.example.soundtribe.entità.Song;
+import com.example.soundtribe.entita.Song;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.CommentManager;
 import com.example.soundtribe.manager.NavigationManager;

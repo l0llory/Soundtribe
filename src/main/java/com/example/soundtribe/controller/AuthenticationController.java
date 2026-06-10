@@ -4,7 +4,7 @@ import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.User;
+import com.example.soundtribe.entita.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;

@@ -1,4 +1,4 @@
-package com.example.soundtribe.entità;
+package com.example.soundtribe.entita;
 
 import java.sql.Date;
 import java.util.ArrayList;

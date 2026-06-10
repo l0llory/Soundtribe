@@ -1,6 +1,6 @@
 package com.example.soundtribe.controller;
 
-import com.example.soundtribe.entità.*;
+import com.example.soundtribe.entita.*;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;

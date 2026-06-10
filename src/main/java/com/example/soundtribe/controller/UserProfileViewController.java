@@ -1,7 +1,7 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.manager.SceneManager;
-import com.example.soundtribe.entità.User;
+import com.example.soundtribe.entita.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;

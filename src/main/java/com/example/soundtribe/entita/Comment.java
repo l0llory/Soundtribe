@@ -1,4 +1,4 @@
-package com.example.soundtribe.entità;
+package com.example.soundtribe.entita;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.example.soundtribe.dao;
 
 import com.example.soundtribe.manager.CommentManager; // Corretto l'import
-import com.example.soundtribe.entità.Comment;
+import com.example.soundtribe.entita.Comment;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

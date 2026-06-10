@@ -5,7 +5,7 @@ import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.User;
+import com.example.soundtribe.entita.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

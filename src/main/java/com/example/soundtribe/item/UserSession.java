@@ -1,6 +1,6 @@
 package com.example.soundtribe.item;
 
-import com.example.soundtribe.entità.User;
+import com.example.soundtribe.entita.User;
 
 public class UserSession {
     private static volatile UserSession instance;

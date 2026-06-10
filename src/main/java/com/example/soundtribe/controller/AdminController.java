@@ -1,14 +1,12 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.manager.NavigationManager;
-import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.Comment;
-import com.example.soundtribe.entità.User;
-import javafx.application.Platform;
+import com.example.soundtribe.entita.Comment;
+import com.example.soundtribe.entita.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;

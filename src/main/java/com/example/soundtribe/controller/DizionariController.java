@@ -6,7 +6,7 @@ import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.dao.ExecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
-import com.example.soundtribe.entità.Song;
+import com.example.soundtribe.entita.Song;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

@@ -1,4 +1,4 @@
-package com.example.soundtribe.entità;
+package com.example.soundtribe.entita;
 
 public class ExecutionSegment {
     private int id;

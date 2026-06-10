@@ -1,8 +1,8 @@
 package com.example.soundtribe.dao;
 
-import com.example.soundtribe.entità.Execution;
-import com.example.soundtribe.entità.ExecutionSegment;
-import com.example.soundtribe.entità.Instrument;
+import com.example.soundtribe.entita.Execution;
+import com.example.soundtribe.entita.ExecutionSegment;
+import com.example.soundtribe.entita.Instrument;
 import java.sql.*;
 import java.util.*;
 

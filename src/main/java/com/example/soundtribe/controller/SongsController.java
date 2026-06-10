@@ -1,15 +1,15 @@
 package com.example.soundtribe.controller;
 
-import com.example.soundtribe.entità.Concert;
-import com.example.soundtribe.entità.MusicItem;
+import com.example.soundtribe.entita.Concert;
+import com.example.soundtribe.entita.MusicItem;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.dao.ConcertDAO;
 import com.example.soundtribe.dao.ExecutionDAO;
 import com.example.soundtribe.dao.SongDAO;
-import com.example.soundtribe.entità.Execution;
-import com.example.soundtribe.entità.Song;
+import com.example.soundtribe.entita.Execution;
+import com.example.soundtribe.entita.Song;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

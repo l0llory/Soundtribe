@@ -1,8 +1,4 @@
-package com.example.soundtribe.entità;
-
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
+package com.example.soundtribe.entita;
 
 
 public class ConcertTrack {

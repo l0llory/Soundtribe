@@ -1,7 +1,7 @@
 package com.example.soundtribe.dao;
 
-import com.example.soundtribe.entità.Concert;
-import com.example.soundtribe.entità.*;
+import com.example.soundtribe.entita.Concert;
+import com.example.soundtribe.entita.*;
 
 import java.sql.*;
 import java.util.ArrayList;

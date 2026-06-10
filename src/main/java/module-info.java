@@ -7,8 +7,8 @@ module com.example.soundtribe {
 
     opens com.example.soundtribe to javafx.fxml;
     exports com.example.soundtribe;
-    exports com.example.soundtribe.entità;
-    opens com.example.soundtribe.entità to javafx.fxml;
+    exports com.example.soundtribe.entita;
+    opens com.example.soundtribe.entita to javafx.fxml;
     exports com.example.soundtribe.controller;
     opens com.example.soundtribe.controller to javafx.fxml;
     exports com.example.soundtribe.manager;

@@ -1,14 +1,14 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.dao.ConcertDAO;
-import com.example.soundtribe.entità.Concert;
-import com.example.soundtribe.entità.ConcertTrack;
+import com.example.soundtribe.entita.Concert;
+import com.example.soundtribe.entita.ConcertTrack;
 import com.example.soundtribe.manager.CommentManager;
 import com.example.soundtribe.Launcher;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.manager.SceneManager;
 import com.example.soundtribe.dao.UserDAO;
-import com.example.soundtribe.entità.User;
+import com.example.soundtribe.entita.User;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
