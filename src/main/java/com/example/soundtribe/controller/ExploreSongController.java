@@ -162,7 +162,7 @@ public class ExploreSongController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- NUOVA FUNZIONE SCARICA ---
+
     private void handleDownloadFile(String sourcePath) {
         File sourceFile = new File(sourcePath);
         if (!sourceFile.exists()) {
@@ -174,7 +174,6 @@ public class ExploreSongController {
         fileChooser.setTitle("Salva file come...");
         fileChooser.setInitialFileName(sourceFile.getName());
 
-        // Imposta estensione corretta
         String ext = "";
         int i = sourcePath.lastIndexOf('.');
         if (i > 0) ext = sourcePath.substring(i+1);
