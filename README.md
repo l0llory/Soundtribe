@@ -124,5 +124,5 @@ Prima di avviare l'applicazione, è obbligatorio configurare il database locale:
    ```
 In alternativa, è possibile eseguire entrambi i comandi in un'unica riga:
 ```sh
-mvn clean javafx:run
+.\mvnw.cmd clean javafx:run
 ```

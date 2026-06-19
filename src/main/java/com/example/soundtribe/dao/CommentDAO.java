@@ -131,11 +131,11 @@ public class CommentDAO {
 
         String sqlExecutions = "SELECT c.*, m.title AS resource_title FROM comments c " +
                 "JOIN media_files m ON c.execution_id = m.id " +
-                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
+                "WHERE m.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
 
         String sqlConcerts = "SELECT c.*, con.title AS resource_title FROM comments c " +
                 "JOIN concerts con ON c.concert_id = con.id " +
-                "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
+                "WHERE con.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
         try (Connection conn = CredDAO.getConnection()) {
             fetchAndMapComments(conn, sqlSongs, uploaderId, "Brano: ", moderationMap);
             fetchAndMapComments(conn, sqlExecutions, uploaderId, "Esecuzione: ", moderationMap);

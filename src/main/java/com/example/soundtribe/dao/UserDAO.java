@@ -328,21 +328,4 @@ public class UserDAO {
         }
         return users;
     }
-
-    public String getBannedCommentsCount() {
-        String sql = "SELECT COUNT(*) FROM comments WHERE status = 'Banned'";
-
-        try (Connection conn = CredDAO.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            if (rs.next()) {
-                return String.valueOf(rs.getInt(1));
-            }
-        } catch (SQLException e) {
-            System.err.println("Errore nel conteggio globale dei commenti bannati: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return "0";
-    }
 }

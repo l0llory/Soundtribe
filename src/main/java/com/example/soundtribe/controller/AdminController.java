@@ -1,7 +1,6 @@
 package com.example.soundtribe.controller;
 
 import com.example.soundtribe.manager.NavigationManager;
-import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.dao.*;
 import com.example.soundtribe.entita.Comment;
@@ -28,18 +27,16 @@ public class AdminController {
     @FXML private Label lblTotalUsers;
     @FXML private Label lblTotalComments;
     @FXML private Label lblTotalReports;
-    @FXML private Label lblStorageUsed;
+    @FXML private Label lblCommentiSegnalati;
 
     // ToggleButton per le sezioni
     @FXML private ToggleButton tbModerazione;
     @FXML private ToggleButton tbGestioneUtenti;
     @FXML private ToggleButton tbutentiSegnalati;
-    @FXML private ToggleButton tbContenutoCaricato;
 
     @FXML private VBox moderationPanel;
     @FXML private VBox gestioneUtentiPanel;
     @FXML private VBox utentiSegnalatiPanel;
-    @FXML private VBox contenutoCaricatoPanel;
 
     @FXML private ListView<HBox> moderationList;
     @FXML private ListView<HBox> gestioneUtentiList;
@@ -97,10 +94,6 @@ public class AdminController {
         tbutentiSegnalati.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) showUtentiSegnalatiPanel();
         });
-
-        tbContenutoCaricato.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal) showContenutoCaricatoPanel();
-        });
     }
 
     // ========== MODERAZIONE ==========
@@ -111,8 +104,6 @@ public class AdminController {
         gestioneUtentiPanel.setManaged(false);
         utentiSegnalatiPanel.setVisible(false);
         utentiSegnalatiPanel.setManaged(false);
-        contenutoCaricatoPanel.setVisible(false);
-        contenutoCaricatoPanel.setManaged(false);
         populateModerationList();
     }
 
@@ -185,8 +176,6 @@ public class AdminController {
         gestioneUtentiPanel.setManaged(true);
         utentiSegnalatiPanel.setVisible(false);
         utentiSegnalatiPanel.setManaged(false);
-        contenutoCaricatoPanel.setVisible(false);
-        contenutoCaricatoPanel.setManaged(false);
         populateGestioneUtentiList();
     }
 
@@ -296,8 +285,6 @@ public class AdminController {
         gestioneUtentiPanel.setManaged(false);
         utentiSegnalatiPanel.setVisible(true);
         utentiSegnalatiPanel.setManaged(true);
-        contenutoCaricatoPanel.setVisible(false);
-        contenutoCaricatoPanel.setManaged(false);
 
         // Legge il valore iniziale dello spinner e popola la lista
         int sogliaIniziale = (spinnerSoglia != null) ? spinnerSoglia.getValue() : 3;
@@ -350,9 +337,7 @@ public class AdminController {
         Label emailLabel = new Label("📧 Email: " + user.getEmail());
         emailLabel.setStyle("-fx-font-size: 12; -fx-text-fill: #9ca3af;");
 
-        // Nota: Assicurati che l'oggetto User gestisca un contatore (es. getBannedCommentsCount())
-        // In alternativa, puoi fare una query sul DB. Qui ipotizziamo un getter nell'entità.
-        Label countLabel = new Label("🚫 Commenti Bannati totali: " + userDAO.getBannedCommentsCount());
+        Label countLabel = new Label("🚫 Commenti Bannati: " + user.getBannedCommentsCount());
         countLabel.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #f59e0b;");
 
         userInfo.getChildren().addAll(nameLabel, emailLabel, countLabel);
@@ -395,23 +380,6 @@ public class AdminController {
         return row;
     }
 
-    // ========== CONTENUTO CARICATO ==========
-    private void showContenutoCaricatoPanel() {
-        moderationPanel.setVisible(false);
-        moderationPanel.setManaged(false);
-        gestioneUtentiPanel.setVisible(false);
-        gestioneUtentiPanel.setManaged(false);
-        utentiSegnalatiPanel.setVisible(false);
-        utentiSegnalatiPanel.setManaged(false);
-        contenutoCaricatoPanel.setVisible(true);
-        contenutoCaricatoPanel.setManaged(true);
-        loadUserContent();
-    }
-
-    private void loadUserContent() {
-        System.out.println("Loading content for admin: " + UserSession.getInstance().getUserId());
-    }
-
     // ========== UTILITY ==========
     private void refreshStats() {
         int totalUsers = userDAO.getNumberUsers();
@@ -420,6 +388,6 @@ public class AdminController {
         lblTotalUsers.setText(String.valueOf(totalUsers) + " (" + pendingUsers + " in sospeso)");
         lblTotalComments.setText(String.valueOf(commentDAO.getTotalComments()));
         lblTotalReports.setText(String.valueOf(commentDAO.getCommentsByStatus("Banned")));
-        lblStorageUsed.setText("2.3 GB");
+        lblCommentiSegnalati.setText(String.valueOf(commentDAO.getCommentsByStatus("Reported")));
     }
 }

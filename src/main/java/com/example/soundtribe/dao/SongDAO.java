@@ -87,7 +87,8 @@ public class SongDAO {
         // Query ottimizzata con JOIN relazionale per raccogliere i dati anagrafici dell'uploader
         String sql = "SELECT s.*, u.name AS uploader_name, u.surname AS uploader_surname " +
                 "FROM songs s " +
-                "LEFT JOIN users u ON s.uploader_id = u.id";
+                "LEFT JOIN users u ON s.uploader_id = u.id " +
+                "ORDER BY s.id";
         try (Connection conn = CredDAO.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {

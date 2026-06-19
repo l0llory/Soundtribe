@@ -8,9 +8,11 @@ import com.example.soundtribe.entita.Comment;
 import com.example.soundtribe.entita.Song;
 import com.example.soundtribe.entita.User;
 import com.example.soundtribe.item.UserSession;
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +33,15 @@ public class CommentManagerTest {
     private VBox mockContainer;
     private TextArea mockCommentArea;
     private Button mockButton;
+
+    @BeforeAll
+    public static void initToolkit() {
+        try {
+            Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Toolkit già avviato
+        }
+    }
 
     @BeforeEach
     public void setUp() {

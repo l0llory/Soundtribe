@@ -130,10 +130,10 @@
                     </VBox>
                     <VBox alignment="CENTER" spacing="5.0" styleClass="st-card" GridPane.columnIndex="3">
                         <children>
-                            <Label fx:id="lblStorageUsed" text="0 GB" styleClass="st-label-blue">
+                            <Label fx:id="lblCommentiSegnalati" text="0" textFill="#f59e0b">
                                 <font><Font name="System Bold" size="24.0"/></font>
                             </Label>
-                            <Label text="Storage Utilizzato" styleClass="st-label-subtitle">
+                            <Label text="Commenti Segnalati" styleClass="st-label-subtitle">
                                 <font><Font size="12.0"/></font>
                             </Label>
                         </children>
@@ -146,7 +146,6 @@
                     <ToggleButton fx:id="tbModerazione" text="Moderazione" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" selected="true" toggleGroup="$adminToggleGroup"/>
                     <ToggleButton fx:id="tbGestioneUtenti" text="Gestione Utenti" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
                     <ToggleButton fx:id="tbutentiSegnalati" text="Utenti Segnalati" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
-                    <ToggleButton fx:id="tbContenutoCaricato" text="Contenuto Caricato" maxWidth="Infinity" HBox.hgrow="ALWAYS" minHeight="35.0" styleClass="st-toggle-button" toggleGroup="$adminToggleGroup"/>
                 </children>
             </HBox>
 
@@ -186,15 +185,6 @@
                         </children>
                     </HBox>
                     <ListView fx:id="utentiSegnalatiList" VBox.vgrow="ALWAYS" styleClass="st-list-view"/>
-                </children>
-            </VBox>
-
-            <VBox fx:id="contenutoCaricatoPanel" spacing="10.0" VBox.vgrow="ALWAYS" styleClass="st-panel-secondary">
-                <children>
-                    <Label text="💾 Contenuto Caricato" styleClass="st-label-subtitle">
-                        <font><Font name="System Bold" size="14.0"/></font>
-                    </Label>
-                    <Label text="Contenuto caricato qui" style="-fx-text-fill: #666;"/>
                 </children>
             </VBox>
 
