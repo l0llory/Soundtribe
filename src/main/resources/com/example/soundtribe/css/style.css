@@ -346,6 +346,122 @@
 }
 
 /* ========================================
+   DARK ALERT / DIALOG
+======================================== */
+
+.st-alert {
+    -fx-background-color: #1e1e1e;
+    -fx-padding: 0;
+}
+
+.st-alert .header-panel {
+    -fx-background-color: #181818;
+    -fx-border-color: transparent transparent #2d2d2d transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 14 20 14 20;
+}
+
+.st-alert .header-panel .label {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.st-alert .content.label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+    -fx-padding: 16 28 16 28;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+    -fx-wrap-text: true;
+}
+
+.st-alert .button-bar {
+    -fx-background-color: #181818;
+    -fx-border-color: #2d2d2d transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 16;
+}
+
+.st-alert .button {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e7eb;
+    -fx-border-color: #444444;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 18;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+
+.st-alert .button:hover {
+    -fx-background-color: #3d3d3d;
+    -fx-text-fill: white;
+}
+
+.st-alert .button:focused {
+    -fx-background-color: #3d3d3d;
+}
+
+.st-alert .button:default {
+    -fx-background-color: #3969da;
+    -fx-text-fill: white;
+    -fx-border-color: #3969da;
+}
+
+.st-alert .button:default:hover {
+    -fx-background-color: #2563eb;
+}
+
+/* Campo testo nei TextInputDialog */
+.st-alert .text-field {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e7eb;
+    -fx-border-color: #444444;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-prompt-text-fill: #6b7280;
+    -fx-padding: 8 10;
+}
+
+.st-alert .text-field:focused {
+    -fx-border-color: #3969da;
+    -fx-background-color: #3d3d3d;
+}
+
+/* ========================================
+   DICT TAB PILL BUTTONS
+======================================== */
+
+.st-dict-tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-border-color: #3d3d3d;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 8 22 8 22;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+}
+
+.st-dict-tab:hover {
+    -fx-background-color: rgba(57, 105, 218, 0.12);
+    -fx-text-fill: #a0b8ff;
+    -fx-border-color: #3969da;
+}
+
+.st-dict-tab:selected {
+    -fx-background-color: #3969da;
+    -fx-text-fill: white;
+    -fx-border-color: #3969da;
+    -fx-effect: dropshadow(gaussian, rgba(57, 105, 218, 0.55), 12, 0.3, 0, 2);
+}
+
+/* ========================================
    TOGGLE BUTTON (Admin Tabs)
 ======================================== */
 

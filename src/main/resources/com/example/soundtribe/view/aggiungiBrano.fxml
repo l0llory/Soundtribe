@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -23,31 +24,34 @@
             prefHeight="600.0" prefWidth="900.0">
 
     <top>
-        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+        <VBox spacing="15.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets bottom="10.0" left="20.0" right="20.0" top="20.0" />
+                <Insets bottom="10.0" left="25.0" right="25.0" top="20.0" />
             </padding>
             <HBox alignment="CENTER_LEFT" spacing="15.0">
-                <children>
-                    <HBox alignment="CENTER_LEFT" spacing="5.0">
-                        <children>
-                            <Button fx:id="backBtn" minHeight="30.0" minWidth="40.0" text="◀" styleClass="st-button-outline"/>
-                            <Button fx:id="homeBtn" minHeight="30.0" minWidth="40.0" text="🏠" styleClass="st-button-outline"/>
-                        </children>
-                    </HBox>
-                    <VBox spacing="2.0" HBox.hgrow="ALWAYS">
-                        <children>
-                            <Label text="SoundTribe" styleClass="st-label-title">
-                                <font><Font name="System Bold" size="22.0" /></font>
-                            </Label>
-                            <Label text="Gestione collezione musicale" styleClass="st-label-subtitle"/>
-                        </children>
-                        <HBox.margin>
-                            <Insets left="15.0" />
-                        </HBox.margin>
-                    </VBox>
-                    <Button fx:id="exitBtn" minHeight="30.0" minWidth="70.0" text="Esci" styleClass="st-button-outline"/>
-                </children>
+               <HBox alignment="CENTER_LEFT" spacing="5.0">
+                  <Button fx:id="backBtn" minHeight="30.0" minWidth="40.0" text="◀" styleClass="st-button-outline"/>
+                  <Button fx:id="homeBtn" minHeight="30.0" minWidth="40.0" text="🏠" styleClass="st-button-outline"/>
+               </HBox>
+               <HBox alignment="CENTER_LEFT" spacing="12.0">
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
+                     <image><Image url="@../img/soundtribe-logo.png" /></image>
+                  </ImageView>
+                  <VBox spacing="0.0" alignment="CENTER_LEFT">
+                     <Label text="SoundTribe" styleClass="st-label-title">
+                        <font><Font name="System Bold" size="26.0"/></font>
+                     </Label>
+                     <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
+                        <font><Font size="12.0"/></font>
+                     </Label>
+                  </VBox>
+               </HBox>
+               <Region HBox.hgrow="ALWAYS"/>
+               <Button fx:id="exitBtn" text="Esci" styleClass="st-button-outline" style="-fx-border-color: transparent;">
+                  <graphic>
+                     <Label text="🚪" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>
+                  </graphic>
+               </Button>
             </HBox>
 
             <HBox alignment="CENTER_LEFT">

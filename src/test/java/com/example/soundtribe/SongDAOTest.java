@@ -101,7 +101,8 @@ public class SongDAOTest {
 
     @Test
     @DisplayName("Ricerca brani per artista")
-    public void testSearchSongsByArtist() {
+    public void
+    testSearchSongsByArtist() {
         Song song = new Song(
                 0, "Imagine", "John Lennon", "Rock",
                 "", "", "", "",

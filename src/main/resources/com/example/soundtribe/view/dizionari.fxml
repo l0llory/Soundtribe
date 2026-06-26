@@ -4,8 +4,9 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -18,103 +19,113 @@
             prefHeight="600.0" prefWidth="800.0">
 
     <top>
-        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+        <VBox spacing="15.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+                <Insets top="20.0" right="25.0" bottom="10.0" left="25.0"/>
             </padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <children>
-                    <HBox spacing="5.0" alignment="CENTER_LEFT">
-                        <children>
-                            <Button fx:id="precP_Dict" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="nextP_Dict" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="backHome_Dict" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                        </children>
-                    </HBox>
-
-                    <VBox spacing="3.0" HBox.hgrow="ALWAYS">
-                        <children>
-                            <Label text="SoundTribe" styleClass="st-label-title">
-                                <font>
-                                    <Font name="System Bold" size="22.0"/>
-                                </font>
-                            </Label>
-                            <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
-                                <font>
-                                    <Font size="11.0"/>
-                                </font>
-                            </Label>
-                        </children>
-                        <HBox.margin>
-                            <Insets left="15.0"/>
-                        </HBox.margin>
-                    </VBox>
-
-                    <Button fx:id="Exit_Dict" text="Esci" minWidth="70.0" minHeight="30.0" styleClass="st-button-outline">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
-                </children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <HBox spacing="5.0" alignment="CENTER_LEFT">
+                  <Button fx:id="precP_Dict" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="nextP_Dict" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="backHome_Dict" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+               </HBox>
+               <HBox alignment="CENTER_LEFT" spacing="12.0">
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
+                     <image><Image url="@../img/soundtribe-logo.png" /></image>
+                  </ImageView>
+                  <VBox spacing="0.0" alignment="CENTER_LEFT">
+                     <Label text="SoundTribe" styleClass="st-label-title">
+                        <font><Font name="System Bold" size="26.0"/></font>
+                     </Label>
+                     <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
+                        <font><Font size="12.0"/></font>
+                     </Label>
+                  </VBox>
+               </HBox>
+               <Region HBox.hgrow="ALWAYS"/>
+               <Button fx:id="Exit_Dict" text="Esci" styleClass="st-button-outline" style="-fx-border-color: transparent;">
+                  <graphic>
+                     <Label text="🚪" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>
+                  </graphic>
+               </Button>
             </HBox>
 
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <padding>
-                    <Insets top="8.0" bottom="5.0"/>
-                </padding>
-                <children>
-                    <Label text="Dizionari" styleClass="st-label-blue">
-                        <font>
-                            <Font name="System Bold" size="18.0"/>
-                        </font>
-                    </Label>
-                    <Region HBox.hgrow="ALWAYS"/>
-
-                </children>
-            </HBox>
         </VBox>
     </top>
 
     <center>
-        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" styleClass="st-tab-pane" BorderPane.alignment="CENTER">
-            <tabs>
-                <Tab>
-                    <graphic>
-                        <Label text="Titoli" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                    </graphic>
-                    <content>
-                        <ListView fx:id="titleList" styleClass="st-list-view"/>
-                    </content>
-                </Tab>
+        <VBox style="-fx-background-color: #121212;" BorderPane.alignment="CENTER">
 
-                <Tab>
-                    <graphic>
-                        <Label text="Generi" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                    </graphic>
-                    <content>
-                        <ListView fx:id="genreList" styleClass="st-list-view"/>
-                    </content>
-                </Tab>
+            <!-- Pill navigation bar, centered -->
+            <HBox alignment="CENTER" spacing="10.0"
+                  style="-fx-padding: 20 30 20 30; -fx-background-color: #181818; -fx-border-color: transparent transparent #222222 transparent; -fx-border-width: 0 0 1 0;">
+                <ToggleButton fx:id="btnTitoli" text="📖  Titoli" selected="true" styleClass="st-dict-tab"/>
+                <ToggleButton fx:id="btnGeneri" text="🎼  Generi" styleClass="st-dict-tab"/>
+                <ToggleButton fx:id="btnStrumenti" text="🥁  Strumenti" styleClass="st-dict-tab"/>
+                <ToggleButton fx:id="btnAutori" text="👤  Autori" styleClass="st-dict-tab"/>
+            </HBox>
 
-                <Tab>
-                    <graphic>
-                        <Label text="Strumenti" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                    </graphic>
-                    <content>
-                        <ListView fx:id="instrumentList" styleClass="st-list-view"/>
-                    </content>
-                </Tab>
+            <!-- Titoli pane -->
+            <VBox fx:id="paneTitle" VBox.vgrow="ALWAYS" style="-fx-background-color: #121212;">
+                <HBox alignment="CENTER_LEFT" spacing="14.0"
+                      style="-fx-padding: 14 24 12 24; -fx-background-color: #181818; -fx-border-color: transparent transparent #222222 transparent; -fx-border-width: 0 0 1 0;">
+                    <Label text="📖" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2.0">
+                        <Label text="Titoli dei Brani" style="-fx-text-fill: #e5e7eb; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        <Label text="Tutti i titoli catalogati nella collezione" style="-fx-text-fill: #6b7280; -fx-font-size: 11px;"/>
+                    </VBox>
+                </HBox>
+                <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 10 16 16 16;">
+                    <ListView fx:id="titleList" styleClass="st-list-view" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </VBox>
 
-                <Tab>
-                    <graphic>
-                        <Label text="Autori" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                    </graphic>
-                    <content>
-                        <ListView fx:id="authorList" styleClass="st-list-view"/>
-                    </content>
-                </Tab>
-            </tabs>
-        </TabPane>
+            <!-- Generi pane -->
+            <VBox fx:id="paneGenre" VBox.vgrow="ALWAYS" visible="false" managed="false" style="-fx-background-color: #121212;">
+                <HBox alignment="CENTER_LEFT" spacing="14.0"
+                      style="-fx-padding: 14 24 12 24; -fx-background-color: #181818; -fx-border-color: transparent transparent #222222 transparent; -fx-border-width: 0 0 1 0;">
+                    <Label text="🎼" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2.0">
+                        <Label text="Generi Musicali" style="-fx-text-fill: #e5e7eb; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        <Label text="Generi presenti nella collezione" style="-fx-text-fill: #6b7280; -fx-font-size: 11px;"/>
+                    </VBox>
+                </HBox>
+                <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 10 16 16 16;">
+                    <ListView fx:id="genreList" styleClass="st-list-view" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </VBox>
+
+            <!-- Strumenti pane -->
+            <VBox fx:id="paneStrumenti" VBox.vgrow="ALWAYS" visible="false" managed="false" style="-fx-background-color: #121212;">
+                <HBox alignment="CENTER_LEFT" spacing="14.0"
+                      style="-fx-padding: 14 24 12 24; -fx-background-color: #181818; -fx-border-color: transparent transparent #222222 transparent; -fx-border-width: 0 0 1 0;">
+                    <Label text="🥁" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2.0">
+                        <Label text="Strumenti Musicali" style="-fx-text-fill: #e5e7eb; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        <Label text="Strumenti documentati nelle esecuzioni" style="-fx-text-fill: #6b7280; -fx-font-size: 11px;"/>
+                    </VBox>
+                </HBox>
+                <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 10 16 16 16;">
+                    <ListView fx:id="instrumentList" styleClass="st-list-view" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </VBox>
+
+            <!-- Autori pane -->
+            <VBox fx:id="paneAutori" VBox.vgrow="ALWAYS" visible="false" managed="false" style="-fx-background-color: #121212;">
+                <HBox alignment="CENTER_LEFT" spacing="14.0"
+                      style="-fx-padding: 14 24 12 24; -fx-background-color: #181818; -fx-border-color: transparent transparent #222222 transparent; -fx-border-width: 0 0 1 0;">
+                    <Label text="👤" style="-fx-font-size: 24px;"/>
+                    <VBox spacing="2.0">
+                        <Label text="Autori e Artisti" style="-fx-text-fill: #e5e7eb; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        <Label text="Artisti e compositori nella collezione" style="-fx-text-fill: #6b7280; -fx-font-size: 11px;"/>
+                    </VBox>
+                </HBox>
+                <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 10 16 16 16;">
+                    <ListView fx:id="authorList" styleClass="st-list-view" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </VBox>
+
+        </VBox>
     </center>
 </BorderPane>

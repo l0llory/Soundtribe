@@ -48,8 +48,6 @@ public class ExploreConcertController {
         userDAO = new UserDAO();
         concertDAO = new ConcertDAO();
 
-        NavigationManager.navBack(precP_Concert);
-        NavigationManager.navForward(nextP_Concert);
         NavigationManager.updateNavigationButtons(precP_Concert, nextP_Concert);
         NavigationManager.home(backHome_Concert);
         NavigationManager.exit(Exit_Concert);

@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -22,25 +24,34 @@
             prefHeight="600.0" prefWidth="800.0">
 
     <top>
-        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+        <VBox spacing="15.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+                <Insets top="20.0" right="25.0" bottom="10.0" left="25.0"/>
             </padding>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <Button fx:id="backBtn" text="◀" minWidth="40.0" styleClass="st-button-outline"/>
-                <Button fx:id="homeBtn" text="🏠" minWidth="40.0" styleClass="st-button-outline"/>
-
-                <Label text="Il Tuo Profilo" styleClass="st-label-title">
-                    <font>
-                        <Font name="System Bold" size="22.0"/>
-                    </font>
-                    <HBox.margin>
-                        <Insets left="15.0"/>
-                    </HBox.margin>
-                </Label>
-
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="logoutBtn" text="Logout (Esci)" styleClass="st-button-danger"/>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <HBox spacing="5.0" alignment="CENTER_LEFT">
+                  <Button fx:id="backBtn" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="homeBtn" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+               </HBox>
+               <HBox alignment="CENTER_LEFT" spacing="12.0">
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
+                     <image><Image url="@../img/soundtribe-logo.png" /></image>
+                  </ImageView>
+                  <VBox spacing="0.0" alignment="CENTER_LEFT">
+                     <Label text="SoundTribe" styleClass="st-label-title">
+                        <font><Font name="System Bold" size="26.0"/></font>
+                     </Label>
+                     <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
+                        <font><Font size="12.0"/></font>
+                     </Label>
+                  </VBox>
+               </HBox>
+               <Region HBox.hgrow="ALWAYS"/>
+               <Button fx:id="logoutBtn" text="Esci" styleClass="st-button-outline" style="-fx-border-color: transparent;">
+                  <graphic>
+                     <Label text="🚪" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>
+                  </graphic>
+               </Button>
             </HBox>
         </VBox>
     </top>

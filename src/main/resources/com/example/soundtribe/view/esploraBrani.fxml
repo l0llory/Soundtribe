@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -19,32 +20,35 @@
             prefHeight="600.0" prefWidth="800.0">
 
     <top>
-        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+        <VBox spacing="15.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+                <Insets top="20.0" right="25.0" bottom="10.0" left="25.0"/>
             </padding>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <children>
-                    <HBox spacing="5.0" alignment="CENTER_LEFT">
-                        <children>
-                            <Button fx:id="precP_Riproduci" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="nextP_Riproduci" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="backHome_Riproduci" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                        </children>
-                    </HBox>
-                    <VBox spacing="3.0" HBox.hgrow="ALWAYS">
-                        <children>
-                            <Label text="SoundTribe" styleClass="st-label-title">
-                                <font><Font name="System Bold" size="22.0"/></font>
-                            </Label>
-                            <Label text="Dettagli e Riproduzione" styleClass="st-label-subtitle">
-                                <font><Font size="11.0"/></font>
-                            </Label>
-                        </children>
-                        <HBox.margin><Insets left="15.0"/></HBox.margin>
-                    </VBox>
-                    <Button fx:id="Exit_Riproduci" text="Esci" minWidth="70.0" minHeight="30.0" styleClass="st-button-outline"/>
-                </children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <HBox spacing="5.0" alignment="CENTER_LEFT">
+                  <Button fx:id="precP_Riproduci" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="nextP_Riproduci" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="backHome_Riproduci" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+               </HBox>
+               <HBox alignment="CENTER_LEFT" spacing="12.0">
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
+                     <image><Image url="@../img/soundtribe-logo.png" /></image>
+                  </ImageView>
+                  <VBox spacing="0.0" alignment="CENTER_LEFT">
+                     <Label text="SoundTribe" styleClass="st-label-title">
+                        <font><Font name="System Bold" size="26.0"/></font>
+                     </Label>
+                     <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
+                        <font><Font size="12.0"/></font>
+                     </Label>
+                  </VBox>
+               </HBox>
+               <Region HBox.hgrow="ALWAYS"/>
+               <Button fx:id="Exit_Riproduci" text="Esci" styleClass="st-button-outline" style="-fx-border-color: transparent;">
+                  <graphic>
+                     <Label text="🚪" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>
+                  </graphic>
+               </Button>
             </HBox>
             <Separator styleClass="st-separator"/>
         </VBox>
@@ -59,12 +63,10 @@
                     </padding>
 
                     <HBox spacing="20.0" alignment="CENTER_LEFT">
-                        <VBox fx:id="coverContainer" alignment="CENTER" prefHeight="100.0" prefWidth="100.0" minWidth="100.0" minHeight="100.0"
-                              style="-fx-background-color: -st-blue-light; -fx-background-radius: 10; -fx-border-color: -st-blue-primary; -fx-border-radius: 10;">
+                        <VBox fx:id="coverContainer" alignment="CENTER" prefHeight="120.0" prefWidth="120.0" minWidth="120.0" minHeight="120.0"
+                              style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #3969da, #1e3a8a); -fx-background-radius: 18; -fx-border-color: #6d9af5; -fx-border-width: 1.5; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, #3969da, 16, 0.3, 0, 4);">
                             <children>
-                                <ImageView fx:id="songCoverImageView" fitHeight="100.0" fitWidth="100.0" preserveRatio="false" visible="false" managed="false"/>
-                                <Label fx:id="defaultIconLabel" text="♫" textFill="#2f5fd3"> <font><Font size="48.0"/></font>
-                                </Label>
+                                <Label fx:id="defaultIconLabel" text="🎵" style="-fx-font-size: 54px;"/>
                             </children>
                         </VBox>
 

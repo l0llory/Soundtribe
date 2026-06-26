@@ -7,6 +7,8 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -25,45 +27,36 @@
     </fx:define>
 
     <top>
-        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+        <VBox spacing="15.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
+                <Insets top="20.0" right="25.0" bottom="10.0" left="25.0"/>
             </padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <children>
-                    <HBox spacing="5.0" alignment="CENTER_LEFT">
-                        <children>
-                            <Button fx:id="precP_Admin" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="nextP_Admin" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                            <Button fx:id="backHome_Admin" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
-                        </children>
-                    </HBox>
-
-                    <VBox spacing="3.0" HBox.hgrow="ALWAYS">
-                        <children>
-                            <Label text="SoundTribe" styleClass="st-label-title">
-                                <font>
-                                    <Font name="System Bold" size="22.0"/>
-                                </font>
-                            </Label>
-                            <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
-                                <font>
-                                    <Font size="11.0"/>
-                                </font>
-                            </Label>
-                        </children>
-                        <HBox.margin>
-                            <Insets left="15.0"/>
-                        </HBox.margin>
-                    </VBox>
-
-                    <Button fx:id="Exit_Admin" text="Esci" minWidth="70.0" minHeight="30.0" styleClass="st-button-outline">
-                        <font>
-                            <Font size="13.0"/>
-                        </font>
-                    </Button>
-                </children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <HBox spacing="5.0" alignment="CENTER_LEFT">
+                  <Button fx:id="precP_Admin" text="◀" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="nextP_Admin" text="▶" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+                  <Button fx:id="backHome_Admin" text="🏠" minWidth="40.0" minHeight="30.0" styleClass="st-button-outline"/>
+               </HBox>
+               <HBox alignment="CENTER_LEFT" spacing="12.0">
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
+                     <image><Image url="@../img/soundtribe-logo.png" /></image>
+                  </ImageView>
+                  <VBox spacing="0.0" alignment="CENTER_LEFT">
+                     <Label text="SoundTribe" styleClass="st-label-title">
+                        <font><Font name="System Bold" size="26.0"/></font>
+                     </Label>
+                     <Label text="Gestione collezione musicale" styleClass="st-label-subtitle">
+                        <font><Font size="12.0"/></font>
+                     </Label>
+                  </VBox>
+               </HBox>
+               <Region HBox.hgrow="ALWAYS"/>
+               <Button fx:id="Exit_Admin" text="Esci" styleClass="st-button-outline" style="-fx-border-color: transparent;">
+                  <graphic>
+                     <Label text="🚪" style="-fx-text-fill: -st-blue-primary; -fx-font-size: 16px;"/>
+                  </graphic>
+               </Button>
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="10.0">

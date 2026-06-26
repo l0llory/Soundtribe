@@ -29,9 +29,17 @@ public class DizionariController {
     @FXML public Button nextP_Dict;
     @FXML public Button backHome_Dict;
     @FXML public Button Exit_Dict;
-    @FXML public TabPane tabPane;
 
-    // Sostituiamo i tipi specifici con la nostra nuova classe DictionaryRow
+    @FXML public ToggleButton btnTitoli;
+    @FXML public ToggleButton btnGeneri;
+    @FXML public ToggleButton btnStrumenti;
+    @FXML public ToggleButton btnAutori;
+
+    @FXML public VBox paneTitle;
+    @FXML public VBox paneGenre;
+    @FXML public VBox paneStrumenti;
+    @FXML public VBox paneAutori;
+
     @FXML public ListView<DictionaryRow> titleList;
     @FXML public ListView<DictionaryRow> genreList;
     @FXML public ListView<DictionaryRow> authorList;
@@ -45,12 +53,34 @@ public class DizionariController {
         songDAO = new SongDAO();
         esecutionDAO = new ExecutionDAO();
 
-        // Setup Navigazione
         NavigationManager.updateNavigationButtons(precP_Dict, nextP_Dict);
         NavigationManager.home(backHome_Dict);
         NavigationManager.exit(Exit_Dict);
+
+        setupTabGroup();
         setupListCells();
         loadDictionaries();
+    }
+
+    private void setupTabGroup() {
+        ToggleGroup group = new ToggleGroup();
+        btnTitoli.setToggleGroup(group);
+        btnGeneri.setToggleGroup(group);
+        btnStrumenti.setToggleGroup(group);
+        btnAutori.setToggleGroup(group);
+        btnTitoli.setSelected(true);
+
+        group.selectedToggleProperty().addListener((obs, oldT, newT) -> {
+            if (newT == null) { group.selectToggle(oldT); return; }
+            paneTitle.setVisible(newT == btnTitoli);
+            paneTitle.setManaged(newT == btnTitoli);
+            paneGenre.setVisible(newT == btnGeneri);
+            paneGenre.setManaged(newT == btnGeneri);
+            paneStrumenti.setVisible(newT == btnStrumenti);
+            paneStrumenti.setManaged(newT == btnStrumenti);
+            paneAutori.setVisible(newT == btnAutori);
+            paneAutori.setManaged(newT == btnAutori);
+        });
     }
 
     private void loadDictionaries() {
@@ -124,7 +154,17 @@ public class DizionariController {
 
     private Button createActionButton(String text) {
         Button btn = new Button(text);
-        btn.getStyleClass().addAll("st-button-small", "st-button-primary");
+        String base = "-fx-background-color: transparent; -fx-text-fill: #3969da; " +
+            "-fx-border-color: #3969da; -fx-border-width: 1.5; " +
+            "-fx-border-radius: 20; -fx-background-radius: 20; " +
+            "-fx-padding: 4 14; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand;";
+        String hover = "-fx-background-color: #3969da; -fx-text-fill: white; " +
+            "-fx-border-color: #3969da; -fx-border-width: 1.5; " +
+            "-fx-border-radius: 20; -fx-background-radius: 20; " +
+            "-fx-padding: 4 14; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand;";
+        btn.setStyle(base);
+        btn.setOnMouseEntered(e -> btn.setStyle(hover));
+        btn.setOnMouseExited(e -> btn.setStyle(base));
         return btn;
     }
 
@@ -188,22 +228,25 @@ public class DizionariController {
                 setStyle("-fx-background-color: transparent;");
             }
             else if (item.isHeader) {
-                // DISEGNA LA LETTERA DELL'ALFABETO (Stile Intestazione)
                 Label letterLabel = new Label(item.text);
-                // Colore grigio chiaro, grande e in grassetto per distinguerla dai dati
-                letterLabel.setStyle("-fx-text-fill: #A0A0A0; -fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 10 0 0 5;");
+                letterLabel.setStyle(
+                    "-fx-text-fill: #3969da; -fx-font-size: 16px; -fx-font-weight: bold; " +
+                    "-fx-padding: 10 0 4 6;"
+                );
 
-                VBox box = new VBox(letterLabel);
+                Region divider = new Region();
+                divider.setPrefHeight(1.5);
+                divider.setMaxHeight(1.5);
+                divider.setStyle(
+                    "-fx-background-color: linear-gradient(from 0% 0% to 100% 0%, " +
+                    "transparent, rgba(57,105,218,0.55), transparent);"
+                );
+
+                VBox box = new VBox(2, letterLabel, divider);
                 box.setAlignment(Pos.CENTER_LEFT);
-
-                // Opzionale: Aggiungiamo una riga divisoria sotto la lettera
-                Separator sep = new Separator();
-                sep.setStyle("-fx-background-color: #555;");
-                box.getChildren().add(sep);
 
                 setGraphic(box);
                 setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-                // Impedisce che la lettera sembri selezionabile dall'utente
                 setMouseTransparent(true);
             }
             else {

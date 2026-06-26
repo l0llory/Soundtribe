@@ -54,8 +54,6 @@ public class ExploreExecutionController {
         userDAO = new UserDAO();
         executionDAO = new ExecutionDAO();
 
-        NavigationManager.navBack(precP_Exec);
-        NavigationManager.navForward(nextP_Exec);
         NavigationManager.updateNavigationButtons(precP_Exec, nextP_Exec);
         NavigationManager.home(backHome_Exec);
         NavigationManager.exit(Exit_Exec);

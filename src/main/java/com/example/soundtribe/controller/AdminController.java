@@ -51,8 +51,6 @@ public class AdminController {
 
     @FXML
     public void initialize() {
-        NavigationManager.navBack(precP_Admin);
-        NavigationManager.navForward(nextP_Admin);
         NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);
         NavigationManager.home(backHome_Admin);
         NavigationManager.exit(Exit_Admin);
@@ -137,13 +135,9 @@ public class AdminController {
         Button banButton = new Button("🗑️ Banna definitivo");
         banButton.setStyle("-fx-padding: 8px 16px; -fx-font-size: 11; -fx-text-fill: #ef4444; -fx-background-color: transparent; -fx-border-color: #ef4444;");
         banButton.setOnAction(e -> {
-            Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmDialog.setTitle("Conferma Ban");
-            confirmDialog.setHeaderText("Bannare definitivamente il commento?");
-            confirmDialog.setContentText("Il commento è stato bannato.");
-
-            Optional<ButtonType> result = confirmDialog.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (AlertUtil.chiediConferma("Conferma Ban",
+                    "Bannare definitivamente il commento?",
+                    "Il commento verrà rimosso dalla visibilità pubblica.")) {
                 commentDAO.updateCommentStatus(comment.getId(), "Banned");
                 populateModerationList();
                 refreshStats();
@@ -239,30 +233,17 @@ public class AdminController {
         rejectButton.setStyle("-fx-padding: 10px 20px; -fx-font-size: 12; -fx-text-fill: white; -fx-background-color: #dc2626; -fx-font-weight: bold; -fx-border-radius: 6;");
         rejectButton.setPrefWidth(110);
         rejectButton.setOnAction(e -> {
-            Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmDialog.setTitle("Conferma Rifiuto");
-            confirmDialog.setHeaderText("Rifiutare iscrizione?");
-            confirmDialog.setContentText("L'utente " + user.getName() + " sarà eliminato dal sistema.");
-
-            Optional<ButtonType> result = confirmDialog.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                // Chiedi motivo con TextInputDialog e aggiorna lo stato con la motivazione
-                TextInputDialog reasonDialog = new TextInputDialog();
-                reasonDialog.setTitle("Motivo Ban");
-                reasonDialog.setHeaderText("Inserisci il motivo del ban per " + user.getName() + " " + user.getSurname());
-                reasonDialog.setContentText("Motivo:");
-
-                Optional<String> reasonOpt = reasonDialog.showAndWait();
-                String reason = "Bannato dall'admin";
-                if (reasonOpt.isPresent()) {
-                    String r = reasonOpt.get().trim();
-                    if (!r.isEmpty()) reason = r;
-                }
-
+            if (AlertUtil.chiediConferma("Conferma Rifiuto",
+                    "Rifiutare iscrizione?",
+                    "L'utente " + user.getName() + " sarà eliminato dal sistema.")) {
+                String reason = AlertUtil.chiediTesto(
+                        "Motivo Ban",
+                        "Inserisci il motivo del ban per " + user.getName() + " " + user.getSurname(),
+                        "Motivo:");
+                if (reason == null) reason = "Bannato dall'admin";
                 userDAO.updateUserStatus(user.getId(), "Banned", reason);
-
-                AlertUtil.mostra("Completato", "Utente Bannato", "L'utente è stato contrassegnato come Bannato.", Alert.AlertType.INFORMATION);
-
+                AlertUtil.mostra("Completato", "Utente Bannato",
+                        "L'utente è stato contrassegnato come Bannato.", Alert.AlertType.INFORMATION);
                 populateGestioneUtentiList();
                 refreshStats();
             }
@@ -346,27 +327,17 @@ public class AdminController {
         Button suspendButton = new Button("Sospendi Account");
         suspendButton.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16; -fx-border-radius: 4;");
         suspendButton.setOnAction(e -> {
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Sospensione Utente");
-            confirm.setHeaderText("Vuoi sospendere l'utente " + user.getName() + "?");
-
-            Optional<ButtonType> res = confirm.showAndWait();
-            if (res.isPresent() && res.get() == ButtonType.OK) {
-                // Chiedi motivo prima di bannare
-                TextInputDialog reasonDialog = new TextInputDialog();
-                reasonDialog.setTitle("Motivo Sospensione");
-                reasonDialog.setHeaderText("Inserisci il motivo per sospendere " + user.getName() + " " + user.getSurname());
-                reasonDialog.setContentText("Motivo:");
-
-                Optional<String> reasonOpt = reasonDialog.showAndWait();
-                String reason = "Sospeso per segnalazioni";
-                if (reasonOpt.isPresent()) {
-                    String r = reasonOpt.get().trim();
-                    if (!r.isEmpty()) reason = r;
-                }
-
+            if (AlertUtil.chiediConferma("Sospensione Utente",
+                    "Vuoi sospendere l'utente " + user.getName() + "?",
+                    "L'account verrà disabilitato immediatamente.")) {
+                String reason = AlertUtil.chiediTesto(
+                        "Motivo Sospensione",
+                        "Inserisci il motivo per sospendere " + user.getName() + " " + user.getSurname(),
+                        "Motivo:");
+                if (reason == null) reason = "Sospeso per segnalazioni";
                 userDAO.updateUserStatus(user.getId(), "Banned", reason);
-                AlertUtil.mostra("Successo", "Utente Sospeso", "L'utente è stato bannato.", Alert.AlertType.INFORMATION);
+                AlertUtil.mostra("Successo", "Utente Sospeso",
+                        "L'utente è stato bannato.", Alert.AlertType.INFORMATION);
                 populateUtentiSegnalatiList(spinnerSoglia.getValue());
                 refreshStats();
             }

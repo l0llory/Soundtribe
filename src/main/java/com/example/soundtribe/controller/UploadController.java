@@ -269,7 +269,6 @@ public class UploadController {
     }
 
     private void setupNavigation() {
-        NavigationManager.navBack(precP_Upload); NavigationManager.navForward(nextP_Upload);
         NavigationManager.updateNavigationButtons(precP_Upload, nextP_Upload);
         NavigationManager.home(backHome_Upload); NavigationManager.exit(Exit_Upload);
     }

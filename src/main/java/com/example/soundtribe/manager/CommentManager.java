@@ -1,5 +1,6 @@
 package com.example.soundtribe.manager;
 
+import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.entita.Comment;
 import com.example.soundtribe.dao.*;
@@ -11,7 +12,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 import java.util.List;
 
@@ -60,35 +64,49 @@ public class CommentManager {
             commentsContainer.getChildren().add(placeholder);
         } else {
             for (Comment c : rootComments) {
-                renderCommentRecursive(c, 0);
+                renderCommentRecursive(c, 0, null);
             }
         }
     }
 
-    private void renderCommentRecursive(Comment c, int level) {
-        VBox commentBox = new VBox(5);
-        commentBox.setPadding(new Insets(10, 10, 10, 10 + (level * 20)));
+    private void renderCommentRecursive(Comment c, int level, String parentAuthorName) {
+        VBox commentBox = new VBox(6);
+        commentBox.setPadding(new Insets(10, 12, 10, 12 + (level * 28)));
 
         if (level == 0) {
             commentBox.getStyleClass().add("st-card");
         } else {
-            commentBox.setStyle("-fx-border-color: #2d2d2d; -fx-border-width: 0 0 0 2;");
+            commentBox.setStyle(
+                "-fx-border-color: " + levelBorderColor(level) + "; " +
+                "-fx-border-width: 0 0 0 3; " +
+                "-fx-background-color: " + levelBgColor(level) + "; " +
+                "-fx-background-radius: 0 8 8 0;"
+            );
         }
 
-        // Header
+        // Header: avatar + autore (con eventuale "↳ risposta a") + spacer + like
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane avatar = buildAvatar(c.getAuthorName(), level);
+
+        VBox authorCol = new VBox(1);
+        authorCol.setAlignment(Pos.CENTER_LEFT);
+        if (parentAuthorName != null) {
+            Label replyTag = new Label("↳ risposta a " + parentAuthorName);
+            replyTag.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 10px; -fx-font-style: italic;");
+            authorCol.getChildren().add(replyTag);
+        }
         Label userLbl = new Label(c.getAuthorName());
         userLbl.getStyleClass().add("st-label-blue");
+        authorCol.getChildren().add(userLbl);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Like Button con cuore pieno/vuoto
         Button likeBtn = new Button();
         boolean isLiked = commentDAO.hasUserLiked(currentUserId, c.getId());
         updateLikeButtonStyle(likeBtn, isLiked, c.getLikes());
-
         likeBtn.setOnAction(e -> {
             if (commentDAO.hasUserLiked(currentUserId, c.getId())) {
                 commentDAO.removeLike(currentUserId, c.getId());
@@ -98,75 +116,49 @@ public class CommentManager {
             loadComments();
         });
 
-        header.getChildren().addAll(userLbl, spacer, likeBtn);
+        header.getChildren().addAll(avatar, authorCol, spacer, likeBtn);
 
-        // Content (Inizializzato vuoto, verrà popolato in base allo status)
         Label contentLbl = new Label();
         contentLbl.setWrapText(true);
 
-        // Reply Button
         Button replyBtn = new Button("Rispondi ↲");
         replyBtn.getStyleClass().addAll("st-button-secondary", "st-button-small");
         replyBtn.setStyle("-fx-border-color: transparent;");
 
-        // DELETE Button (Mostra solo se sei il proprietario della risorsa)
         Button deleteBtn = new Button("🗑 Elimina");
         deleteBtn.getStyleClass().addAll("st-button-danger", "st-button-small");
         deleteBtn.setStyle("-fx-border-color: transparent;");
 
-        // Controlla se l'utente corrente è il proprietario della risorsa
         boolean canDelete = commentDAO.canDeleteComment(c.getId(), currentUserId);
         deleteBtn.setVisible(canDelete);
         deleteBtn.setManaged(canDelete);
 
         deleteBtn.setOnAction(e -> {
-            // Chiedi conferma
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Conferma Eliminazione");
-            alert.setHeaderText("Eliminare questo commento?");
-            alert.setContentText("Questa azione non può essere annullata.");
-
-            java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+            if (AlertUtil.chiediConferma("Conferma Eliminazione",
+                    "Eliminare questo commento?",
+                    "Questa azione non può essere annullata.")) {
                 commentDAO.deleteComment(c.getId());
-                loadComments(); // Ricarica la lista
+                loadComments();
             }
         });
 
-
         if ("Banned".equals(c.getStatus())) {
             contentLbl.setText("🚫 Questo commento è stato bannato dall'amministratore.");
-            contentLbl.setStyle(
-                    "-fx-font-style: italic; " +
-                            "-fx-text-fill: #9ca3af; " + // Grigio chiaro
-                            "-fx-font-size: 11px;"
-            );
-            // Disabilita le interazioni per i commenti bannati
+            contentLbl.setStyle("-fx-font-style: italic; -fx-text-fill: #9ca3af; -fx-font-size: 11px;");
             likeBtn.setDisable(true);
             replyBtn.setDisable(true);
             deleteBtn.setDisable(true);
-
         } else if ("Reported".equals(c.getStatus())) {
             contentLbl.setText("⚠️ Questo commento è stato segnalato ed è in fase di revisione.");
-            contentLbl.setStyle(
-                    "-fx-font-style: italic; " +
-                            "-fx-text-fill: #f59e0b; " + // Giallo/Arancione ambra per l'avviso
-                            "-fx-font-size: 11px;"
-            );
-            // Lasciamo i bottoni attivi nel caso di una semplice segnalazione, cambia solo il font
-
+            contentLbl.setStyle("-fx-font-style: italic; -fx-text-fill: #f59e0b; -fx-font-size: 11px;");
         } else {
-            // Stato standard (Verified o Pending)
             contentLbl.setText(c.getContent());
-            contentLbl.getStyleClass().add("st-label"); // Ripristina lo stile CSS globale del progetto
+            contentLbl.getStyleClass().add("st-label");
         }
-        // =================================================================
 
-        // HBox per i bottoni (Reply e Delete)
         HBox buttonsBox = new HBox(8);
         buttonsBox.getChildren().addAll(replyBtn, deleteBtn);
 
-        // Reply Area (Hidden)
         VBox replyArea = new VBox(5);
         replyArea.setVisible(false);
         replyArea.setManaged(false);
@@ -179,12 +171,9 @@ public class CommentManager {
 
         Button sendReplyBtn = new Button("Invia Risposta");
         sendReplyBtn.getStyleClass().addAll("st-button-primary", "st-button-small");
-
         sendReplyBtn.setOnAction(e -> {
             String replyText = replyInput.getText().trim();
-            if (!replyText.isEmpty()) {
-                postReply(c.getId(), replyText);
-            }
+            if (!replyText.isEmpty()) postReply(c.getId(), replyText);
         });
 
         replyArea.getChildren().addAll(replyInput, sendReplyBtn);
@@ -193,15 +182,43 @@ public class CommentManager {
             boolean isVisible = !replyArea.isVisible();
             replyArea.setVisible(isVisible);
             replyArea.setManaged(isVisible);
-            if(isVisible) replyInput.requestFocus();
+            if (isVisible) replyInput.requestFocus();
         });
 
         commentBox.getChildren().addAll(header, contentLbl, buttonsBox, replyArea);
         commentsContainer.getChildren().add(commentBox);
 
         for (Comment reply : c.getReplies()) {
-            renderCommentRecursive(reply, level + 1);
+            renderCommentRecursive(reply, level + 1, c.getAuthorName());
         }
+    }
+
+    private StackPane buildAvatar(String name, int level) {
+        StackPane stack = new StackPane();
+        double radius = level == 0 ? 18 : 14;
+        Circle bg = new Circle(radius);
+        bg.setFill(Color.web(levelBorderColor(level)));
+        String initial = (name != null && !name.isEmpty()) ? name.substring(0, 1).toUpperCase() : "?";
+        Label lbl = new Label(initial);
+        lbl.setStyle("-fx-text-fill: white; -fx-font-size: " + (level == 0 ? "14" : "11") + "px; -fx-font-weight: bold;");
+        stack.getChildren().addAll(bg, lbl);
+        return stack;
+    }
+
+    private String levelBorderColor(int level) {
+        return switch (level) {
+            case 0, 1 -> "#3969da";
+            case 2    -> "#8a2be2";
+            default   -> "#da3969";
+        };
+    }
+
+    private String levelBgColor(int level) {
+        return switch (level) {
+            case 1  -> "#1a1a2e";
+            case 2  -> "#1e1528";
+            default -> "#1e1618";
+        };
     }
 
     private void updateLikeButtonStyle(Button btn, boolean isLiked, int count) {

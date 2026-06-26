@@ -38,6 +38,7 @@ public class UserDAO {
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_genre TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS motivation TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Pending'");
+                stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()");
             } catch (SQLException ignore) {}
 
         } catch (SQLException e) {

@@ -8,6 +8,7 @@ public class UserSession {
     public boolean isAdmin;
     private User loggedUser;
     private String lastSearchQuery;
+    private String lastUserSearchQuery;
 
     private UserSession() {}
 
@@ -41,7 +42,8 @@ public class UserSession {
         userId = 0;
         isAdmin = false;
         loggedUser = null;
-        lastSearchQuery = null; // Puliamo anche la ricerca
+        lastSearchQuery = null;
+        lastUserSearchQuery = null;
     }
 
     public int getUserId() {
@@ -58,6 +60,13 @@ public class UserSession {
         return lastSearchQuery;
     }
 
+    public void setLastUserSearchQuery(String query) {
+        this.lastUserSearchQuery = query;
+    }
+
+    public String getLastUserSearchQuery() {
+        return lastUserSearchQuery;
+    }
 
     public boolean isAdmin() {
         return isAdmin;

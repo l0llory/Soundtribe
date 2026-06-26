@@ -58,8 +58,6 @@ public class UsersController {
         isAdmin = UserSession.getInstance().isAdmin();
 
         // Setup Navigazione
-        NavigationManager.navBack(precP2);
-        NavigationManager.navForward(nextP2);
         NavigationManager.updateNavigationButtons(precP2, nextP2);
         NavigationManager.home(backHome1);
         NavigationManager.exit(Exit2);
@@ -94,6 +92,13 @@ public class UsersController {
         barraRicerca.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         tuttiRuoli.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         tuttiStati.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+
+        // Pre-popola la ricerca se arrivati dalla home con una query utente
+        String pendingUserQuery = UserSession.getInstance().getLastUserSearchQuery();
+        if (pendingUserQuery != null && !pendingUserQuery.isEmpty()) {
+            barraRicerca.setText(pendingUserQuery);
+            UserSession.getInstance().setLastUserSearchQuery(null);
+        }
     }
 
     private void refreshData() {

@@ -1,6 +1,6 @@
 package com.example.soundtribe.controller;
 
-import com.example.soundtribe.manager.SceneManager;
+import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.entita.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -14,6 +14,8 @@ import java.net.URL;
 public class UserProfileViewController {
 
     @FXML public Button backButton;
+    @FXML public Button homeBtn;
+    @FXML public Button exitBtn;
     @FXML public Circle profileCircle;
     @FXML public Label fullNameLabel;
     @FXML public Label roleLabel;
@@ -23,7 +25,9 @@ public class UserProfileViewController {
     @FXML public Label idLabel;
 
     public void initialize() {
-        backButton.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
+        NavigationManager.updateNavigationButtons(backButton, null);
+        NavigationManager.home(homeBtn);
+        NavigationManager.exit(exitBtn);
     }
 
     // METODO RICEVENTE: Chiamato dinamicamente da UsersController

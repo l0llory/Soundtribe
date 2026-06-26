@@ -47,6 +47,9 @@ public class ConcertDAO {
             stmt.execute(sql);
             stmt.execute(sqlTracks);
             stmt.execute(sqlTrackInst);
+            try {
+                stmt.execute("ALTER TABLE concerts ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()");
+            } catch (SQLException ignore) {}
         } catch (SQLException e) {
             e.printStackTrace();
         }

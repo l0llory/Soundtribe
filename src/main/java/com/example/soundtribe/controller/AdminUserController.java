@@ -5,7 +5,6 @@ import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.manager.NavigationManager;
-import com.example.soundtribe.manager.SceneManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -29,9 +28,9 @@ public class AdminUserController {
     public void initialize() {
         commentDAO = new CommentDAO();
 
+        NavigationManager.updateNavigationButtons(precP_AdminUser, null);
         NavigationManager.home(backHome_AdminUser);
         NavigationManager.exit(Exit_AdminUser);
-        precP_AdminUser.setOnAction(event -> SceneManager.changeScene(event, "Home.fxml", true));
 
         // Carica la struttura: Pubblicazioni -> Commenti associati
         loadModerationView();

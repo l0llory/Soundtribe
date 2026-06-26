@@ -13,12 +13,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser; // Import necessario
 
@@ -31,7 +33,6 @@ public class ExploreSongController {
     @FXML public Button precP_Riproduci, nextP_Riproduci, backHome_Riproduci, Exit_Riproduci;
     @FXML public Label titoloBranoLabel, autoreBranoLabel, genereBranoLabel, annoBranoLabel, uploaderLabel, descrizioneLabel;
     @FXML public VBox coverContainer;
-    @FXML public ImageView songCoverImageView;
     @FXML public Label defaultIconLabel;
     @FXML public VBox filesContainer;
     @FXML public Label noFilesLabel;
@@ -45,8 +46,6 @@ public class ExploreSongController {
 
     @FXML
     public void initialize() {
-        NavigationManager.navBack(precP_Riproduci);
-        NavigationManager.navForward(nextP_Riproduci);
         NavigationManager.updateNavigationButtons(precP_Riproduci, nextP_Riproduci);
         NavigationManager.home(backHome_Riproduci);
         NavigationManager.exit(Exit_Riproduci);
@@ -72,26 +71,57 @@ public class ExploreSongController {
     }
 
     private void loadCover(Song song) {
-        if (song.getCoverPath() != null && !song.getCoverPath().isEmpty()) {
-            try {
-                Image img = new Image(song.getCoverPath());
-                if (!img.isError()) {
-                    songCoverImageView.setImage(img);
-                    songCoverImageView.setVisible(true);
-                    songCoverImageView.setManaged(true);
-                    defaultIconLabel.setVisible(false);
-                    defaultIconLabel.setManaged(false);
-                    Rectangle clip = new Rectangle(100, 100);
-                    clip.setArcWidth(10); clip.setArcHeight(10);
-                    songCoverImageView.setClip(clip);
-                } else showDefaultIcon();
-            } catch (Exception e) { showDefaultIcon(); }
-        } else showDefaultIcon();
+        // Rimuovi eventuale copertina precedente
+        coverContainer.getChildren().removeIf(n -> "cover".equals(n.getUserData()));
+
+        if (song.getCoverPath() == null || song.getCoverPath().isEmpty()) {
+            showDefaultIcon();
+            return;
+        }
+
+        try {
+            String raw = song.getCoverPath();
+            // Converti percorso filesystem in URL valido per JavaFX
+            String url = (raw.startsWith("http") || raw.startsWith("file:"))
+                    ? raw
+                    : new File(raw).toURI().toString();
+
+            Image img = new Image(url);
+            if (img.isError() || img.getWidth() == 0) {
+                showDefaultIcon();
+                return;
+            }
+
+            // Center-crop: ritaglia il quadrato centrale (equivalente CSS object-fit:cover)
+            double w = img.getWidth(), h = img.getHeight();
+            double side = Math.min(w, h);
+            ImagePattern pattern = new ImagePattern(img,
+                    (w - side) / 2.0 / w,
+                    (h - side) / 2.0 / h,
+                    side / w,
+                    side / h,
+                    true);
+
+            Rectangle cover = new Rectangle(120, 120);
+            cover.setArcWidth(36);
+            cover.setArcHeight(36);
+            cover.setFill(pattern);
+            cover.setEffect(new DropShadow(14, Color.rgb(0, 0, 0, 0.65)));
+            cover.setUserData("cover");
+
+            defaultIconLabel.setVisible(false);
+            defaultIconLabel.setManaged(false);
+            coverContainer.getChildren().add(cover);
+
+        } catch (Exception e) {
+            showDefaultIcon();
+        }
     }
 
     private void showDefaultIcon() {
-        songCoverImageView.setVisible(false); songCoverImageView.setManaged(false);
-        defaultIconLabel.setVisible(true); defaultIconLabel.setManaged(true);
+        coverContainer.getChildren().removeIf(n -> "cover".equals(n.getUserData()));
+        defaultIconLabel.setVisible(true);
+        defaultIconLabel.setManaged(true);
     }
 
     private void loadAttachedFiles() {

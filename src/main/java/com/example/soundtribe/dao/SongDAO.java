@@ -44,6 +44,7 @@ public class SongDAO {
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS cover_path TEXT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS uploader_id INT");
                 stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS description TEXT");
+                stmt.execute("ALTER TABLE songs ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()");
             } catch (SQLException ignore) {}
 
         } catch (SQLException e) {

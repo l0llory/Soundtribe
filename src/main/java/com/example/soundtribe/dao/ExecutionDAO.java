@@ -69,7 +69,11 @@ public class ExecutionDAO {
             stmt.execute(sqlMedia);
             stmt.execute(sqlInstruments);
             stmt.execute(sqlExecInst);
-            stmt.execute(sqlSegments); // Creazione tabella segmenti
+            stmt.execute(sqlSegments);
+
+            try {
+                stmt.execute("ALTER TABLE media_files ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()");
+            } catch (SQLException ignore) {}
 
             // Popola il dizionario di base
             for (String inst : PRESET_STRUMENTI) {

@@ -7,8 +7,6 @@ import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.entita.Execution;
 import com.example.soundtribe.entita.Song;
 import com.example.soundtribe.entita.User;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -18,14 +16,18 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class HomeController {
@@ -42,13 +44,12 @@ public class HomeController {
 
     // Bottoni Top Bar
     @FXML public Button profileButton;
-    @FXML public Button handleMyComments; // <-- Ora è nella top bar
+    @FXML public Button handleMyComments;
 
-    @FXML public ListView<RecentActivity> lastActivities;
+    @FXML public VBox activitiesContainer;
 
     public void initialize(){
         NavigationManager.updateNavigationButtons(precP, nextP);
-        NavigationManager.navBack(precP);
 
         setupProfileButton();
         profileButton.setOnAction(event -> SceneManager.changeScene(event, "GestioneProfilo.fxml", true));
@@ -59,166 +60,166 @@ public class HomeController {
         handleBraniMusicali.setOnAction(event -> SceneManager.changeScene(event, "braniMusicali.fxml", true));
         handleUtenti.setOnAction(event -> SceneManager.changeScene(event, "gestioneUtenti.fxml", true));
         handleCaricaMateriale.setOnAction(event -> SceneManager.changeScene(event, "caricaMateriale.fxml", true));
-        handleAmministrazione.setOnAction( e-> {
-
-            if(UserSession.getInstance().isAdmin()){
+        handleAmministrazione.setOnAction(e -> {
+            if (UserSession.getInstance().isAdmin()) {
                 SceneManager.changeScene(e, "Amministrazione.fxml", true);
-            }else{
+            } else {
                 SceneManager.changeScene(e, "AmministrazioneUtente.fxml", true);
             }
         });
 
-        // AZIONE: Naviga ai brani commentati
         handleMyComments.setOnAction(event -> {
-            // Impostiamo il filtro speciale nella sessione
             UserSession.getInstance().setLastSearchQuery("filter:commented_by_me");
             SceneManager.changeScene(event, "braniMusicali.fxml", true);
         });
 
-        setupActivityList();
         loadRecentActivities();
     }
 
-    private void setupActivityList() {
-        lastActivities.setCellFactory(param -> new ListCell<RecentActivity>() {
-            @Override
-            protected void updateItem(RecentActivity item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null) {
-                    setGraphic(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
-                    HBox badge = new HBox(15);
-                    badge.setAlignment(Pos.CENTER_LEFT);
-                    badge.setPadding(new Insets(10));
-                    badge.setStyle("-fx-background-color: -st-dark-secondary; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #333;");
-
-                    Label iconLabel = new Label();
-                    iconLabel.setStyle("-fx-font-size: 24px;");
-                    switch (item.getType()) {
-                        case NEW_SONG:      iconLabel.setText("🎵"); break;
-                        case NEW_EXECUTION: iconLabel.setText("🎤"); break;
-                        case NEW_USER:      iconLabel.setText("👋"); break;
-                    }
-
-                    VBox textContainer = new VBox(3);
-                    Label titleLbl = new Label(item.getTitle());
-                    titleLbl.getStyleClass().add("st-label-blue");
-                    titleLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-
-                    Label detailLbl = new Label(item.getDetail());
-                    detailLbl.getStyleClass().add("st-label-subtitle");
-                    detailLbl.setStyle("-fx-font-size: 12px;");
-
-                    textContainer.getChildren().addAll(titleLbl, detailLbl);
-
-                    Region spacer = new Region();
-                    HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                    Label typeTag = new Label(item.getTypeName());
-                    typeTag.setStyle("-fx-text-fill: #666; -fx-font-size: 10px; -fx-border-color: #444; -fx-border-radius: 4; -fx-padding: 2 6;");
-
-                    badge.getChildren().addAll(iconLabel, textContainer, spacer, typeTag);
-
-                    setGraphic(badge);
-                    setStyle("-fx-background-color: transparent; -fx-padding: 5 0 5 0;");
-                }
-            }
-        });
-    }
-
     private void loadRecentActivities() {
-        SongDAO songDAO = new SongDAO();
-        ExecutionDAO execDAO = new ExecutionDAO();
-        UserDAO userDAO = new UserDAO();
+        // Query UNION ordinata per created_at DESC: garantisce ordine cronologico reale
+        // tra tabelle con sequenze ID indipendenti
+        String sql =
+            "SELECT 'NEW_SONG' AS type, s.id, " +
+            "('Nuovo Brano: ' || s.title) AS title, " +
+            "('Artista: ' || COALESCE(s.artist, 'Sconosciuto')) AS detail, " +
+            "s.created_at FROM songs s " +
+            "UNION ALL " +
+            "SELECT 'NEW_EXECUTION' AS type, m.id, " +
+            "COALESCE(NULLIF(m.title, ''), 'Esecuzione senza titolo') AS title, " +
+            "CASE WHEN m.song_id IS NULL OR m.song_id = 0 " +
+            "     THEN 'Inedito da: ' || COALESCE(u.name || ' ' || u.surname, 'Sconosciuto') " +
+            "     ELSE 'Cover da: ' || COALESCE(u.name || ' ' || u.surname, 'Sconosciuto') " +
+            "END AS detail, " +
+            "m.created_at FROM media_files m LEFT JOIN users u ON m.uploader_id = u.id " +
+            "UNION ALL " +
+            "SELECT 'NEW_USER' AS type, u.id, " +
+            "('Benvenuto ' || u.name || '!') AS title, " +
+            "'Nuovo membro della community' AS detail, " +
+            "u.created_at FROM users u WHERE u.status = 'Verified' " +
+            "UNION ALL " +
+            "SELECT 'NEW_CONCERT' AS type, c.id, " +
+            "('Concerto: ' || c.title) AS title, " +
+            "('Artista: ' || COALESCE(c.artist, 'Sconosciuto')) AS detail, " +
+            "c.created_at FROM concerts c " +
+            "ORDER BY created_at DESC NULLS LAST " +
+            "LIMIT 20";
 
-        List<RecentActivity> allActivities = new ArrayList<>();
+        activitiesContainer.getChildren().clear();
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-        // 1. CARICA ESECUZIONI
-        List<Execution> executions = execDAO.getAllExecutions();
-        for (Execution e : executions) {
-            String title = (e.getTitle() != null && !e.getTitle().isEmpty()) ? e.getTitle() : "Esecuzione senza titolo";
-            String detail;
+            while (rs.next()) {
+                RecentActivity.Type type = RecentActivity.Type.valueOf(rs.getString("type"));
+                Timestamp ts = rs.getTimestamp("created_at");
+                LocalDateTime createdAt = (ts != null) ? ts.toLocalDateTime() : null;
 
-            if (e.getSongId() == 0) {
-                detail = "Inedito caricato da: " + getUploaderName(e.getUploaderId(), userDAO);
-            } else {
-                Song linkedSong = songDAO.getSongById(e.getSongId());
-                String songTitle = (linkedSong != null) ? linkedSong.getTitle() : "Brano sconosciuto";
-                detail = "Cover di: " + songTitle + " | Di: " + getUploaderName(e.getUploaderId(), userDAO);
+                RecentActivity activity = new RecentActivity(
+                    type,
+                    rs.getString("title"),
+                    rs.getString("detail"),
+                    rs.getInt("id"),
+                    createdAt
+                );
+                activitiesContainer.getChildren().add(buildActivityCard(activity));
             }
-
-            allActivities.add(new RecentActivity(
-                    RecentActivity.Type.NEW_EXECUTION,
-                    title,
-                    detail,
-                    e.getId()
-            ));
+        } catch (Exception e) {
+            System.err.println("Errore caricamento attività recenti: " + e.getMessage());
         }
-
-        // 2. CARICA CANZONI
-        List<Song> songs = songDAO.getAllSongs();
-        for (Song s : songs) {
-            allActivities.add(new RecentActivity(
-                    RecentActivity.Type.NEW_SONG,
-                    "Nuovo Brano: " + s.getTitle(),
-                    "Artista: " + s.getArtist(),
-                    s.getId()
-            ));
-        }
-
-        // 3. CARICA UTENTI
-        List<User> users = userDAO.getAllUsers();
-        for (User u : users) {
-            allActivities.add(new RecentActivity(
-                    RecentActivity.Type.NEW_USER,
-                    "Benvenuto " + u.getName() + "!",
-                    "Nuovo membro della community",
-                    u.getId()
-            ));
-        }
-
-        // Ordinamento inverso per ID (mostra i più recenti in alto)
-        allActivities.sort(Comparator.comparingInt(RecentActivity::getId).reversed());
-
-        int limit = Math.min(allActivities.size(), 20);
-        ObservableList<RecentActivity> items = FXCollections.observableArrayList(allActivities.subList(0, limit));
-        lastActivities.setItems(items);
     }
 
-    private String getUploaderName(int userId, UserDAO dao) {
-        if (userId == 0) return "Sconosciuto";
-        User u = dao.getUserById(userId);
-        return (u != null) ? u.getName() + " " + u.getSurname() : "Utente " + userId;
+    private HBox buildActivityCard(RecentActivity item) {
+        HBox card = new HBox(12);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(10, 14, 10, 14));
+        card.setStyle(
+            "-fx-background-color: #252525;" +
+            "-fx-background-radius: 8;" +
+            "-fx-border-radius: 8;" +
+            "-fx-border-color: #333;" +
+            "-fx-border-width: 1;"
+        );
+
+        Label iconLabel = new Label();
+        iconLabel.setStyle("-fx-font-size: 22px;");
+        switch (item.getType()) {
+            case NEW_SONG:      iconLabel.setText("🎵"); break;
+            case NEW_EXECUTION: iconLabel.setText("🎤"); break;
+            case NEW_USER:      iconLabel.setText("👋"); break;
+            case NEW_CONCERT:   iconLabel.setText("🎭"); break;
+        }
+
+        VBox textBox = new VBox(2);
+        Label titleLbl = new Label(item.getTitle());
+        titleLbl.setStyle("-fx-text-fill: #3b82f6; -fx-font-weight: bold; -fx-font-size: 13px;");
+        Label detailLbl = new Label(item.getDetail());
+        detailLbl.setStyle("-fx-text-fill: #9ca3af; -fx-font-size: 11px;");
+        textBox.getChildren().addAll(titleLbl, detailLbl);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        VBox rightBox = new VBox(3);
+        rightBox.setAlignment(Pos.CENTER_RIGHT);
+        Label typeTag = new Label(item.getTypeName());
+        typeTag.setStyle(
+            "-fx-text-fill: #666;" +
+            "-fx-font-size: 9px;" +
+            "-fx-border-color: #444;" +
+            "-fx-border-radius: 4;" +
+            "-fx-padding: 2 5 2 5;"
+        );
+        Label timeLbl = new Label(formatRelativeTime(item.getCreatedAt()));
+        timeLbl.setStyle("-fx-text-fill: #555; -fx-font-size: 10px;");
+        rightBox.getChildren().addAll(typeTag, timeLbl);
+
+        card.getChildren().addAll(iconLabel, textBox, rightBox);
+        return card;
+    }
+
+    private String formatRelativeTime(LocalDateTime createdAt) {
+        if (createdAt == null) return "";
+        LocalDateTime now = LocalDateTime.now();
+        long minutes = ChronoUnit.MINUTES.between(createdAt, now);
+        if (minutes < 1) return "Adesso";
+        if (minutes < 60) return minutes + " min fa";
+        long hours = ChronoUnit.HOURS.between(createdAt, now);
+        if (hours < 24) return hours + " h fa";
+        long days = ChronoUnit.DAYS.between(createdAt, now);
+        if (days == 1) return "Ieri";
+        if (days < 7) return days + " giorni fa";
+        return createdAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
     public static class RecentActivity {
-        public enum Type { NEW_SONG, NEW_EXECUTION, NEW_USER }
+        public enum Type { NEW_SONG, NEW_EXECUTION, NEW_USER, NEW_CONCERT }
 
         private final Type type;
         private final String title;
         private final String detail;
         private final int id;
+        private final LocalDateTime createdAt;
 
-        public RecentActivity(Type type, String title, String detail, int id) {
+        public RecentActivity(Type type, String title, String detail, int id, LocalDateTime createdAt) {
             this.type = type;
             this.title = title;
             this.detail = detail;
             this.id = id;
+            this.createdAt = createdAt;
         }
 
         public Type getType() { return type; }
         public String getTitle() { return title; }
         public String getDetail() { return detail; }
         public int getId() { return id; }
+        public LocalDateTime getCreatedAt() { return createdAt; }
 
         public String getTypeName() {
             switch (type) {
-                case NEW_SONG: return "BRANO";
+                case NEW_SONG:     return "BRANO";
                 case NEW_EXECUTION: return "ESECUZIONE";
-                case NEW_USER: return "UTENTE";
-                default: return "";
+                case NEW_USER:     return "UTENTE";
+                case NEW_CONCERT:  return "CONCERTO";
+                default:           return "";
             }
         }
     }
@@ -240,6 +241,7 @@ public class HomeController {
         if (!foundSongs.isEmpty() || !foundExecutions.isEmpty()) {
             goToScene(event, "braniMusicali.fxml");
         } else if (!foundUsers.isEmpty()) {
+            UserSession.getInstance().setLastUserSearchQuery(query);
             goToScene(event, "gestioneUtenti.fxml");
         } else {
             goToScene(event, "braniMusicali.fxml");

@@ -77,8 +77,6 @@ public class SongsController {
         }
 
         // Setup Navigazione
-        NavigationManager.navBack(precP_Songs);
-        NavigationManager.navForward(nextP_Songs);
         NavigationManager.updateNavigationButtons(precP_Songs, nextP_Songs);
         NavigationManager.home(backHome_Songs);
         NavigationManager.exit(Exit_Songs);
