@@ -250,7 +250,7 @@ public class DizionariController {
                 setMouseTransparent(true);
             }
             else {
-                // DISEGNA L'ELEMENTO NORMALE CON IL BOTTONE (Testo bianco forzato)
+
                 HBox box = createRowContainer(item.text);
                 box.getStyleClass().add("st-card-clickable"); // Aggiunta per l'effetto hover
                 Button btn = createActionButton(btnText);

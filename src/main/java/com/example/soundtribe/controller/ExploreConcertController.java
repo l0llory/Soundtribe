@@ -173,7 +173,7 @@ public class ExploreConcertController {
         return l;
     }
 
-    // --- ALTRI METODI ---
+
 
     private void openUrl() {
         if (currentConcert != null && currentConcert.getYoutubeUrl() != null) {

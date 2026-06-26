@@ -1,5 +1,6 @@
 package com.example.soundtribe.controller;
 
+import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.manager.NavigationManager;
 import com.example.soundtribe.item.AlertUtil;
 import com.example.soundtribe.dao.*;
@@ -51,6 +52,17 @@ public class AdminController {
 
     @FXML
     public void initialize() {
+
+        if (!UserSession.getInstance().isAdmin()) {
+            AlertUtil.mostra("Accesso Negato", "Sezione Protetta",
+                    "Devi essere un amministratore per visualizzare questa pagina.",
+                    Alert.AlertType.ERROR);
+
+            // Reindirizza l'utente non autorizzato alla Home
+            // (Uso backHome_Admin come nodo di riferimento per cambiare scena)
+            NavigationManager.home(backHome_Admin);
+            return; // Interrompe l'inizializzazione del controller
+        }
         NavigationManager.updateNavigationButtons(precP_Admin, nextP_Admin);
         NavigationManager.home(backHome_Admin);
         NavigationManager.exit(Exit_Admin);
