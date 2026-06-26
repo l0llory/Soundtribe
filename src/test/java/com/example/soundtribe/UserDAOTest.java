@@ -1,10 +1,17 @@
 package com.example.soundtribe;
 
+import com.example.soundtribe.dao.CommentDAO;
+import com.example.soundtribe.dao.CredDAO;
+import com.example.soundtribe.dao.SongDAO;
 import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,19 +19,32 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserDAOTest {
 
     private UserDAO userDAO;
-    private static final String TEST_EMAIL = "testuser_" + System.currentTimeMillis() + "@test.com";
-    private static final String TEST_PASSWORD = "TestPassword123";
+    private static final String PASSWORD = "soundtribe123";
 
     @BeforeEach
     public void setUp() {
+        resetDatabase();
         userDAO = new UserDAO();
+        // Popola il DB con 10 utenti fittizi, ognuno con una canzone e un commento
+        TestDataSeeder.seed(userDAO, new SongDAO(), new CommentDAO());
+    }
+
+    private static void resetDatabase() {
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("TRUNCATE comment_likes, comments, songs, users RESTART IDENTITY CASCADE");
+            stmt.execute("INSERT INTO users (name, surname, email, password, is_admin, status) " +
+                         "VALUES ('Admin', 'SoundTribe', 'admin@soundtribe.it', 'admin', TRUE, 'Verified')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
     @DisplayName("Registrazione utente con successo")
     public void testRegisterUserSuccess() {
-        User newUser = new User("Marco", "Rossi", TEST_EMAIL, TEST_PASSWORD, "Rock");
-        newUser.setMotivation("Voglio caricare i miei brani musicali");
+        User newUser = new User("Marco", "Rossi", "marco.rossi@gmail.com", PASSWORD, "Rock");
+        newUser.setMotivation("Suono la chitarra da 5 anni e voglio condividere le mie composizioni");
 
         boolean success = userDAO.registerUser(newUser);
 
@@ -34,38 +54,34 @@ public class UserDAOTest {
     @Test
     @DisplayName("Email duplicata - registrazione fallisce")
     public void testRegisterUserDuplicateEmail() {
-        User user1 = new User("Mario", "Bianchi", TEST_EMAIL + "_dup", TEST_PASSWORD, "Jazz");
-        User user2 = new User("Luigi", "Verdi", TEST_EMAIL + "_dup", TEST_PASSWORD, "Pop");
+        User user1 = new User("Mario", "Bianchi", "mario.bianchi@gmail.com", PASSWORD, "Jazz");
+        User user2 = new User("Luigi", "Verdi",   "mario.bianchi@gmail.com", PASSWORD, "Pop");
 
         boolean success1 = userDAO.registerUser(user1);
         boolean success2 = userDAO.registerUser(user2);
 
-        assertTrue(success1, "Primo utente dovrebbe registrarsi");
+        assertTrue(success1,  "Primo utente dovrebbe registrarsi");
         assertFalse(success2, "Secondo utente con email duplicata dovrebbe fallire");
     }
 
     @Test
     @DisplayName("Login con credenziali corrette")
     public void testLoginSuccess() {
-        // Setup: registra prima un utente
-        User testUser = new User("Anna", "Neri", TEST_EMAIL + "_login", TEST_PASSWORD, "Blues");
-        userDAO.registerUser(testUser);
+        userDAO.registerUser(new User("Anna", "Ferretti", "anna.ferretti@gmail.com", PASSWORD, "Blues"));
 
-        // Test: login
-        User loggedUser = userDAO.login(TEST_EMAIL + "_login", TEST_PASSWORD);
+        User loggedUser = userDAO.login("anna.ferretti@gmail.com", PASSWORD);
 
         assertNotNull(loggedUser, "Login dovrebbe ritornare un utente");
         assertEquals("Anna", loggedUser.getName());
-        assertEquals(TEST_EMAIL + "_login", loggedUser.getEmail());
+        assertEquals("anna.ferretti@gmail.com", loggedUser.getEmail());
     }
 
     @Test
     @DisplayName("Login con password errata")
     public void testLoginFailPassword() {
-        User testUser = new User("Giovanni", "Russo", TEST_EMAIL + "_fail", TEST_PASSWORD, "Rock");
-        userDAO.registerUser(testUser);
+        userDAO.registerUser(new User("Giovanni", "Russo", "giovanni.russo@gmail.com", PASSWORD, "Rock"));
 
-        User loggedUser = userDAO.login(TEST_EMAIL + "_fail", "WrongPassword");
+        User loggedUser = userDAO.login("giovanni.russo@gmail.com", "passwordsbagliata");
 
         assertNull(loggedUser, "Login con password errata dovrebbe ritornare null");
     }
@@ -73,7 +89,7 @@ public class UserDAOTest {
     @Test
     @DisplayName("Login con email non esistente")
     public void testLoginFailEmail() {
-        User loggedUser = userDAO.login("nonexistent@test.com", TEST_PASSWORD);
+        User loggedUser = userDAO.login("utente.inesistente@gmail.com", PASSWORD);
 
         assertNull(loggedUser, "Login con email inesistente dovrebbe ritornare null");
     }
@@ -81,64 +97,60 @@ public class UserDAOTest {
     @Test
     @DisplayName("Recupero utente per ID")
     public void testGetUserById() {
-        User newUser = new User("Lucia", "Ferrari", TEST_EMAIL + "_getid", TEST_PASSWORD, "Pop");
-        userDAO.registerUser(newUser);
+        userDAO.registerUser(new User("Lucia", "Marino", "lucia.marino@gmail.com", PASSWORD, "Pop"));
 
-        User foundUser = userDAO.login(TEST_EMAIL + "_getid", TEST_PASSWORD);
-        assertNotNull(foundUser, "Utente dovrebbe essere trovato");
+        User found = userDAO.login("lucia.marino@gmail.com", PASSWORD);
+        assertNotNull(found);
 
-        User retrievedUser = userDAO.getUserById(foundUser.getId());
-        assertNotNull(retrievedUser, "Recupero per ID dovrebbe trovare l'utente");
-        assertEquals("Lucia", retrievedUser.getName());
+        User byId = userDAO.getUserById(found.getId());
+        assertNotNull(byId, "Recupero per ID dovrebbe trovare l'utente");
+        assertEquals("Lucia", byId.getName());
     }
 
     @Test
-    @DisplayName("Aggiornamento status utente a Verified")
+    @DisplayName("Approvazione utente - status diventa Verified")
     public void testUpdateUserStatus() {
-        User newUser = new User("Paolo", "Gallo", TEST_EMAIL + "_status", TEST_PASSWORD, "Indie");
-        userDAO.registerUser(newUser);
+        userDAO.registerUser(new User("Paolo", "Gallo", "paolo.gallo@gmail.com", PASSWORD, "Indie"));
 
-        User user = userDAO.login(TEST_EMAIL + "_status", TEST_PASSWORD);
+        User user = userDAO.login("paolo.gallo@gmail.com", PASSWORD);
         userDAO.updateUserStatus(user.getId(), "Verified");
 
-        User updatedUser = userDAO.getUserById(user.getId());
-        assertEquals("Verified", updatedUser.getStatus(), "Status dovrebbe essere Verified");
+        User updated = userDAO.getUserById(user.getId());
+        assertEquals("Verified", updated.getStatus(), "Status dovrebbe essere Verified");
     }
 
     @Test
-    @DisplayName("Bannaggio utente con motivo")
+    @DisplayName("Ban utente con motivazione salvata")
     public void testBanUser() {
-        User newUser = new User("Filippo", "Costa", TEST_EMAIL + "_ban", TEST_PASSWORD, "Metal");
-        userDAO.registerUser(newUser);
+        userDAO.registerUser(new User("Filippo", "Costa", "filippo.costa@gmail.com", PASSWORD, "Metal"));
 
-        User user = userDAO.login(TEST_EMAIL + "_ban", TEST_PASSWORD);
-        String banReason = "Violazione dei termini di servizio";
-        userDAO.updateUserStatus(user.getId(), "Banned", banReason);
+        User user = userDAO.login("filippo.costa@gmail.com", PASSWORD);
+        String motivo = "Commenti offensivi ripetuti verso altri utenti";
+        userDAO.updateUserStatus(user.getId(), "Banned", motivo);
 
         User bannedUser = userDAO.getUserById(user.getId());
-        assertEquals("Banned", bannedUser.getStatus(), "Status dovrebbe essere Banned");
-        assertEquals(banReason, bannedUser.getMotivation(), "Motivo del ban dovrebbe essere salvato");
+        assertEquals("Banned", bannedUser.getStatus());
+        assertEquals(motivo, bannedUser.getMotivation(), "Motivo del ban dovrebbe essere salvato");
     }
 
     @Test
     @DisplayName("getAllUsers ritorna solo utenti Verified")
     public void testGetAllUsersFiltered() {
-        // La lista dovrebbe contenere solo utenti con status "Verified"
         java.util.List<User> verifiedUsers = userDAO.getAllUsers();
 
-        assertNotNull(verifiedUsers, "La lista non dovrebbe essere null");
-        // Verifica che non ci siano utenti Pending o Banned
+        assertNotNull(verifiedUsers);
         for (User u : verifiedUsers) {
             assertEquals("Verified", u.getStatus(), "Tutti gli utenti dovrebbero essere Verified");
         }
     }
 
     @Test
-    @DisplayName("getPendingUsers ritorna solo utenti Pending")
+    @DisplayName("getPendingUsers ritorna solo utenti in attesa di approvazione")
     public void testGetPendingUsers() {
         java.util.List<User> pendingUsers = userDAO.getPendingUsers();
 
-        assertNotNull(pendingUsers, "La lista non dovrebbe essere null");
+        assertNotNull(pendingUsers);
+        assertFalse(pendingUsers.isEmpty(), "Dovrebbero esserci utenti in attesa (i 10 utenti fittizi)");
         for (User u : pendingUsers) {
             assertEquals("Pending", u.getStatus(), "Tutti gli utenti dovrebbero essere Pending");
         }

@@ -9,6 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,240 +27,220 @@ public class CommentDAOTest {
 
     @BeforeEach
     public void setUp() {
+        resetDatabase();
         commentDAO = new CommentDAO();
-        songDAO = new SongDAO();
-        userDAO = new UserDAO();
+        songDAO    = new SongDAO();
+        userDAO    = new UserDAO();
 
-        // Setup: crea un utente di test
-        String testEmail = "commenttest_" + System.currentTimeMillis() + "@test.com";
-        User testUser = new User("Tester", "Commenti", testEmail, "password123", "Rock");
-        userDAO.registerUser(testUser);
-        User registeredUser = userDAO.login(testEmail, "password123");
-        testUserId = registeredUser.getId();
+        // Popola il DB con 10 utenti fittizi, ognuno con una canzone e un commento
+        int[] userIds = TestDataSeeder.seed(userDAO, songDAO, commentDAO);
+        testUserId = userIds[0]; // Luca Ricci (ID=2)
 
-        // Setup: crea un brano di test
-        Song testSong = new Song(
-                0, "Brano Test", "Artista Test", "Rock", "", "", "", "",
-                testUserId, "Tester", "Commenti", "Descrizione test"
+        // Canzone fresca senza commenti preesistenti: usata dai test sulle asserzioni
+        // precise su commenti (get(0), size, ecc.)
+        Song freshSong = new Song(
+                0, "Wish You Were Here", "Pink Floyd", "Rock", "", "", "", "",
+                testUserId, "Luca", "Ricci", "Canzone di test senza commenti preesistenti"
         );
-        songDAO.addSong(testSong);
+        songDAO.addSong(freshSong);
         List<Song> songs = songDAO.getAllSongs();
-        testSongId = songs.get(songs.size() - 1).getId();
+        testSongId = songs.get(songs.size() - 1).getId(); // ultima inserita, sicuramente senza commenti
+    }
+
+    private static void resetDatabase() {
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("TRUNCATE comment_likes, comments, songs, users RESTART IDENTITY CASCADE");
+            stmt.execute("INSERT INTO users (name, surname, email, password, is_admin, status) " +
+                         "VALUES ('Admin', 'SoundTribe', 'admin@soundtribe.it', 'admin', TRUE, 'Verified')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
     @DisplayName("Aggiunta di un commento principale")
     public void testAddRootComment() {
-        Comment rootComment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Questo è un commento principale", 0, null, "Pending"
+                testUserId,
+                "Che arrangiamento bellissimo, non conoscevo questo artista", 0, null, "Pending"
         );
 
-        commentDAO.addComment(rootComment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        assertFalse(comments.isEmpty(), "Dovrebbe esserci almeno un commento");
-        assertEquals("Questo è un commento principale", comments.get(0).getContent());
+        assertFalse(comments.isEmpty());
+        assertEquals("Che arrangiamento bellissimo, non conoscevo questo artista", comments.get(0).getContent());
     }
 
     @Test
     @DisplayName("Sistema ricorsivo di risposte (replies)")
     public void testRecursiveReplies() {
-        // Crea commento principale
-        Comment rootComment = new Comment(
+        Comment root = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Commento padre", 0, null, "Pending"
+                testUserId,
+                "L'intro è fantastica, chi ha trascritto lo spartito?", 0, null, "Pending"
         );
-        commentDAO.addComment(rootComment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(root, CommentManager.ResourceType.SONG, testSongId);
 
-        List<Comment> rootComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        assertFalse(rootComments.isEmpty(), "Dovrebbe esserci il commento padre");
+        List<Comment> roots = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertFalse(roots.isEmpty());
+        int parentId = roots.get(0).getId();
 
-        int parentId = rootComments.get(0).getId();
-
-        // Crea risposta (reply)
         Comment reply = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Questo è una risposta", 0, parentId, "Pending"
+                testUserId,
+                "Ho caricato io lo spartito, grazie mille!", 0, parentId, "Pending"
         );
         commentDAO.addComment(reply, CommentManager.ResourceType.SONG, testSongId);
 
-        // Verifica che la risposta sia stata aggiunta alle replies del padre
-        List<Comment> reloadedComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        Comment reloadedParent = reloadedComments.get(0);
-        assertFalse(reloadedParent.getReplies().isEmpty(), "Il commento padre dovrebbe avere almeno una risposta");
-        assertEquals("Questo è una risposta", reloadedParent.getReplies().get(0).getContent());
+        List<Comment> reloaded = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertFalse(reloaded.get(0).getReplies().isEmpty());
+        assertEquals("Ho caricato io lo spartito, grazie mille!", reloaded.get(0).getReplies().get(0).getContent());
     }
 
     @Test
     @DisplayName("Profondità ricorsiva multipla (nested replies)")
     public void testMultipleNestedLevels() {
-        // Livello 0: Commento principale
-        Comment level0 = new Comment(
+        Comment lvl0 = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "User0",
-                "Livello 0", 0, null, "Pending"
+                testUserId,
+                "Qualcuno sa il bpm esatto di questo pezzo?", 0, null, "Pending"
         );
-        commentDAO.addComment(level0, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(lvl0, CommentManager.ResourceType.SONG, testSongId);
 
-        List<Comment> level0List = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        int level0Id = level0List.get(0).getId();
+        List<Comment> lvl0List = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        int lvl0Id = lvl0List.get(0).getId();
 
-        // Livello 1: Risposta al commento principale
-        Comment level1 = new Comment(
+        Comment lvl1 = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "User1",
-                "Livello 1", 0, level0Id, "Pending"
+                testUserId,
+                "Dovrebbe essere intorno ai 120, almeno nella versione originale", 0, lvl0Id, "Pending"
         );
-        commentDAO.addComment(level1, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(lvl1, CommentManager.ResourceType.SONG, testSongId);
 
-        // Livello 2: Risposta alla risposta
-        List<Comment> reloadedLevel0 = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        int level1Id = reloadedLevel0.get(0).getReplies().get(0).getId();
+        List<Comment> reloaded = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        int lvl1Id = reloaded.get(0).getReplies().get(0).getId();
 
-        Comment level2 = new Comment(
+        Comment lvl2 = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "User2",
-                "Livello 2", 0, level1Id, "Pending"
+                testUserId,
+                "Sì esatto, io ho suonato a 118 e stava bene lo stesso", 0, lvl1Id, "Pending"
         );
-        commentDAO.addComment(level2, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(lvl2, CommentManager.ResourceType.SONG, testSongId);
 
-        // Verifica la struttura completa
-        List<Comment> finalComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        Comment finalLevel0 = finalComments.get(0);
+        List<Comment> final0 = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        Comment c0 = final0.get(0);
+        assertEquals("Qualcuno sa il bpm esatto di questo pezzo?", c0.getContent());
+        assertEquals(1, c0.getReplies().size());
 
-        assertEquals("Livello 0", finalLevel0.getContent());
-        assertEquals(1, finalLevel0.getReplies().size());
+        Comment c1 = c0.getReplies().get(0);
+        assertEquals("Dovrebbe essere intorno ai 120, almeno nella versione originale", c1.getContent());
+        assertEquals(1, c1.getReplies().size());
 
-        Comment finalLevel1 = finalLevel0.getReplies().get(0);
-        assertEquals("Livello 1", finalLevel1.getContent());
-        assertEquals(1, finalLevel1.getReplies().size());
-
-        Comment finalLevel2 = finalLevel1.getReplies().get(0);
-        assertEquals("Livello 2", finalLevel2.getContent());
+        Comment c2 = c1.getReplies().get(0);
+        assertEquals("Sì esatto, io ho suonato a 118 e stava bene lo stesso", c2.getContent());
     }
 
     @Test
     @DisplayName("Toggle Like su un commento")
     public void testToggleLike() {
-        Comment comment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Commento da likeare", 0, null, "Pending"
+                testUserId,
+                "Finalmente qualcuno che ha caricato questo pezzo!", 0, null, "Pending"
         );
-        commentDAO.addComment(comment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
         int commentId = comments.get(0).getId();
-        int initialLikes = comments.get(0).getLikes();
+        int likesBefore = comments.get(0).getLikes();
 
-        // Aggiungi un like
         commentDAO.toggleLike(testUserId, commentId);
-        List<Comment> reloadedComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        int likesAfterToggle = reloadedComments.get(0).getLikes();
 
-        assertEquals(initialLikes + 1, likesAfterToggle, "I like dovrebbero aumentare di 1");
+        List<Comment> reloaded = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertEquals(likesBefore + 1, reloaded.get(0).getLikes());
     }
 
     @Test
-    @DisplayName("Controllo se utente ha messo like")
+    @DisplayName("Controllo se utente ha già messo like")
     public void testHasUserLiked() {
-        Comment comment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Commento per hasUserLiked", 0, null, "Pending"
+                testUserId,
+                "Bellissima versione acustica, meglio dell'originale", 0, null, "Pending"
         );
-        commentDAO.addComment(comment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
         int commentId = comments.get(0).getId();
 
-        boolean hasLikedBefore = commentDAO.hasUserLiked(testUserId, commentId);
-        assertFalse(hasLikedBefore, "Utente non dovrebbe aver messo like prima");
+        assertFalse(commentDAO.hasUserLiked(testUserId, commentId));
 
         commentDAO.toggleLike(testUserId, commentId);
-        boolean hasLikedAfter = commentDAO.hasUserLiked(testUserId, commentId);
-        assertTrue(hasLikedAfter, "Utente dovrebbe aver messo like dopo toggleLike");
+
+        assertTrue(commentDAO.hasUserLiked(testUserId, commentId));
     }
 
     @Test
     @DisplayName("Eliminazione di un commento")
     public void testDeleteComment() {
-        Comment comment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Commento da eliminare", 0, null, "Pending"
+                testUserId,
+                "ops ho scritto nel brano sbagliato", 0, null, "Pending"
         );
-        commentDAO.addComment(comment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
-        List<Comment> beforeDelete = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        int commentId = beforeDelete.get(0).getId();
-        int sizeBefore = beforeDelete.size();
+        List<Comment> before = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        int commentId = before.get(0).getId();
+        int sizeBefore = before.size();
 
         commentDAO.deleteComment(commentId);
 
-        List<Comment> afterDelete = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        int sizeAfter = afterDelete.size();
-
-        assertEquals(sizeBefore - 1, sizeAfter, "Dopo eliminazione dovrebbe avere un commento in meno");
+        List<Comment> after = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertEquals(sizeBefore - 1, after.size());
     }
 
     @Test
-    @DisplayName("Controllo permessi - canDeleteComment")
+    @DisplayName("Solo l'autore può eliminare il proprio commento")
     public void testCanDeleteComment() {
-        Comment comment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "TesterName",
-                "Commento del tester", 0, null, "Pending"
+                testUserId,
+                "Questo brano lo suono da anni, grazie per lo spartito", 0, null, "Pending"
         );
-        commentDAO.addComment(comment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
         int commentId = comments.get(0).getId();
 
-        boolean canDelete = commentDAO.canDeleteComment(commentId, testUserId);
-        assertTrue(canDelete, "L'autore dovrebbe poter eliminare il proprio commento");
-
-        boolean canDeleteOther = commentDAO.canDeleteComment(commentId, 99999);
-        assertFalse(canDeleteOther, "Un altro utente non dovrebbe poter eliminare il commento");
+        assertTrue(commentDAO.canDeleteComment(commentId, testUserId), "L'autore dovrebbe poter eliminare il proprio commento");
+        assertFalse(commentDAO.canDeleteComment(commentId, 99999), "Un altro utente non dovrebbe poter eliminare il commento");
     }
 
     @Test
-    @DisplayName("Commenti su diverse risorse (SONG, EXECUTION, CONCERT)")
+    @DisplayName("Commenti su risorse diverse (SONG, EXECUTION, CONCERT) non si mescolano")
     public void testCommentsOnDifferentResources() {
-        // Commento su SONG
         Comment songComment = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "User",
-                "Commento su brano", 0, null, "Pending"
+                testUserId,
+                "Commento sul brano", 0, null, "Pending"
         );
         commentDAO.addComment(songComment, CommentManager.ResourceType.SONG, testSongId);
 
-        // Commento su EXECUTION (con ID fittizio)
         Comment execComment = new Comment(
                 0, 0, 1, 0,
-                testUserId, "User",
-                "Commento su esecuzione", 0, null, "Pending"
+                testUserId,
+                "Commento sull'esecuzione", 0, null, "Pending"
         );
         commentDAO.addComment(execComment, CommentManager.ResourceType.EXECUTION, 1);
 
-        // Commento su CONCERT (con ID fittizio)
-        Comment concertComment = new Comment(
-                0, 0, 0, 1,
-                testUserId, "User",
-                "Commento su concerto", 0, null, "Pending"
-        );
-        commentDAO.addComment(concertComment, CommentManager.ResourceType.CONCERT, 1);
-
         List<Comment> songComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
-        List<Comment> execComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.EXECUTION, 1);
-        List<Comment> concertComments = commentDAO.getCommentsByResource(CommentManager.ResourceType.CONCERT, 1);
 
-        assertFalse(songComments.isEmpty(), "Dovrebbe esserci commento su SONG");
-        // execComments potrebbe essere vuota se l'execution non esiste nel DB
-        // Non facciamo assert su esecuzione e concerto poiché gli ID sono fittizi
+        assertFalse(songComments.isEmpty(), "Dovrebbe esserci il commento sul brano");
+        assertTrue(songComments.stream().noneMatch(c -> "Commento sull'esecuzione".equals(c.getContent())),
+                "I commenti di risorse diverse non devono mescolarsi");
     }
 }

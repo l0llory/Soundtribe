@@ -23,6 +23,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>21.0.6</version>
@@ -63,8 +69,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <!-- Test disattivati durante lo sviluppo per evitare che partano ad ogni avvio.
-                         Ricordarsi di rimuovere o impostare a false prima della consegna del progetto. -->
+                    <!-- Impostare a false per eseguire i test con mvn test -->
                     <skipTests>true</skipTests>
                 </configuration>
             </plugin>

@@ -37,14 +37,29 @@ public class UserDAO {
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic_path TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_genre TEXT");
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS motivation TEXT");
-                // Aggiunge la colonna status se non esiste già
                 stmt.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Pending'");
-            } catch (SQLException ignore) {
-                // Colonne già presenti
-            }
+            } catch (SQLException ignore) {}
 
         } catch (SQLException e) {
             System.err.println("Errore creazione/aggiornamento tabella users: " + e.getMessage());
+        }
+
+        seedAdminIfAbsent();
+    }
+
+    private void seedAdminIfAbsent() {
+        String check = "SELECT COUNT(*) FROM users WHERE is_admin = TRUE";
+        String insert = "INSERT INTO users (name, surname, email, password, is_admin, status) " +
+                        "VALUES ('Admin', 'SoundTribe', 'admin@soundtribe.it', 'admin', TRUE, 'Verified')";
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery(check);
+            if (rs.next() && rs.getInt(1) == 0) {
+                stmt.execute(insert);
+                System.out.println("Admin di default creato — email: admin@soundtribe.it  password: admin");
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore seed admin: " + e.getMessage());
         }
     }
 

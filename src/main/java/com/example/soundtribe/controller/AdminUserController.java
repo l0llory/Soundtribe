@@ -84,7 +84,7 @@ public class AdminUserController {
                 commentLbl.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
                 commentLbl.setWrapText(true);
 
-                Label infoLbl = new Label("Scritto da: " + comment.getUsername());
+                Label infoLbl = new Label("Scritto da: " + comment.getAuthorName());
                 infoLbl.setStyle("-fx-text-fill: #aaa; -fx-font-size: 12px;");
 
                 textDetails.getChildren().addAll(commentLbl, infoLbl);

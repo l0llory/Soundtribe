@@ -1,7 +1,7 @@
 package com.example.soundtribe.dao;
 
 import com.example.soundtribe.entita.Comment;
-import com.example.soundtribe.manager.CommentManager; // Corretto l'import
+import com.example.soundtribe.manager.CommentManager;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,7 +19,6 @@ public class CommentDAO {
         String sql = "CREATE TABLE IF NOT EXISTS comments (" +
                 "id SERIAL PRIMARY KEY, " +
                 "user_id INT NOT NULL, " +
-                "username TEXT, " +
                 "content TEXT NOT NULL, " +
                 "likes INT DEFAULT 0, " +
                 "parent_id INT, " +
@@ -45,6 +44,8 @@ public class CommentDAO {
                 stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS concert_id INT");
                 stmt.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pending'");
                 stmt.execute("ALTER TABLE comments ALTER COLUMN song_id DROP NOT NULL");
+                // Rimuove la colonna username ridondante se ancora presente
+                stmt.execute("ALTER TABLE comments DROP COLUMN IF EXISTS username");
             } catch (SQLException ignore) {}
         } catch (SQLException e) {
             e.printStackTrace();
@@ -52,41 +53,40 @@ public class CommentDAO {
     }
 
     public void addComment(Comment comment, CommentManager.ResourceType type, int resourceId) {
-        String sql = "INSERT INTO comments (user_id, username, content, parent_id, likes, song_id, execution_id, concert_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO comments (user_id, content, parent_id, likes, song_id, execution_id, concert_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, comment.getUserId());
-            pstmt.setString(2, comment.getUsername());
-            pstmt.setString(3, comment.getContent());
-            if (comment.getParentId() != null && comment.getParentId() > 0) pstmt.setInt(4, comment.getParentId());
-            else pstmt.setNull(4, Types.INTEGER);
-
-            pstmt.setInt(5, 0); // Likes
+            pstmt.setString(2, comment.getContent());
+            if (comment.getParentId() != null && comment.getParentId() > 0) pstmt.setInt(3, comment.getParentId());
+            else pstmt.setNull(3, Types.INTEGER);
+            pstmt.setInt(4, 0);
             switch (type) {
-                case SONG -> { pstmt.setInt(6, resourceId); pstmt.setNull(7, Types.INTEGER); pstmt.setNull(8, Types.INTEGER); }
-                case EXECUTION -> { pstmt.setNull(6, Types.INTEGER); pstmt.setInt(7, resourceId); pstmt.setNull(8, Types.INTEGER); }
-                case CONCERT -> { pstmt.setNull(6, Types.INTEGER); pstmt.setNull(7, Types.INTEGER); pstmt.setInt(8, resourceId); }
+                case SONG     -> { pstmt.setInt(5, resourceId);    pstmt.setNull(6, Types.INTEGER); pstmt.setNull(7, Types.INTEGER); }
+                case EXECUTION -> { pstmt.setNull(5, Types.INTEGER); pstmt.setInt(6, resourceId);    pstmt.setNull(7, Types.INTEGER); }
+                case CONCERT   -> { pstmt.setNull(5, Types.INTEGER); pstmt.setNull(6, Types.INTEGER); pstmt.setInt(7, resourceId);    }
             }
-            pstmt.setString(9, comment.getStatus());
+            pstmt.setString(8, comment.getStatus());
             pstmt.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
     public void addComment(Comment comment) {
-        if (comment.getSongId() > 0) addComment(comment, CommentManager.ResourceType.SONG, comment.getSongId());
+        if (comment.getSongId() > 0)       addComment(comment, CommentManager.ResourceType.SONG,      comment.getSongId());
         else if (comment.getExecutionId() > 0) addComment(comment, CommentManager.ResourceType.EXECUTION, comment.getExecutionId());
-        else if (comment.getConcertId() > 0) addComment(comment, CommentManager.ResourceType.CONCERT, comment.getConcertId());
+        else if (comment.getConcertId() > 0)   addComment(comment, CommentManager.ResourceType.CONCERT,   comment.getConcertId());
     }
 
     public List<Comment> getCommentsByResource(CommentManager.ResourceType type, int resourceId) {
         List<Comment> comments = new ArrayList<>();
         String column = switch (type) {
-            case SONG -> "song_id";
+            case SONG      -> "song_id";
             case EXECUTION -> "execution_id";
-            case CONCERT -> "concert_id";
+            case CONCERT   -> "concert_id";
         };
-        // Rimosso il filtro status != 'Banned' per recuperare tutti i commenti
-        String sql = "SELECT * FROM comments WHERE parent_id IS NULL AND " + column + " = ? ORDER BY id ASC";
+        String sql = "SELECT c.*, u.name AS author_name " +
+                     "FROM comments c LEFT JOIN users u ON c.user_id = u.id " +
+                     "WHERE c.parent_id IS NULL AND c." + column + " = ? ORDER BY c.id ASC";
         try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, resourceId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -102,8 +102,9 @@ public class CommentDAO {
 
     private List<Comment> getReplies(int parentId) {
         List<Comment> replies = new ArrayList<>();
-        // Rimosso il filtro status != 'Banned' per recuperare tutte le risposte
-        String sql = "SELECT * FROM comments WHERE parent_id = ? ORDER BY id ASC";
+        String sql = "SELECT c.*, u.name AS author_name " +
+                     "FROM comments c LEFT JOIN users u ON c.user_id = u.id " +
+                     "WHERE c.parent_id = ? ORDER BY c.id ASC";
         try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, parentId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -117,33 +118,36 @@ public class CommentDAO {
         return replies;
     }
 
-    private PreparedStatement prepareStatement(String sql, Connection conn) throws SQLException {
-        return conn.prepareStatement(sql);
-    }
+    // --- METODI PER LA MODERAZIONE UTENTE ---
 
-    // --- METODI PER LA MODERAZIONE UTENTE (AdminUserController) ---
     public Map<String, List<Comment>> getCommentsToModerate(int uploaderId) {
         Map<String, List<Comment>> moderationMap = new LinkedHashMap<>();
 
-        String sqlSongs = "SELECT c.*, s.title AS resource_title FROM comments c " +
+        String sqlSongs = "SELECT c.*, s.title AS resource_title, u.name AS author_name " +
+                "FROM comments c " +
                 "JOIN songs s ON c.song_id = s.id " +
+                "LEFT JOIN users u ON c.user_id = u.id " +
                 "WHERE s.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
 
-        String sqlExecutions = "SELECT c.*, m.title AS resource_title FROM comments c " +
+        String sqlExecutions = "SELECT c.*, m.title AS resource_title, u.name AS author_name " +
+                "FROM comments c " +
                 "JOIN media_files m ON c.execution_id = m.id " +
+                "LEFT JOIN users u ON c.user_id = u.id " +
                 "WHERE m.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
 
-        String sqlConcerts = "SELECT c.*, con.title AS resource_title FROM comments c " +
+        String sqlConcerts = "SELECT c.*, con.title AS resource_title, u.name AS author_name " +
+                "FROM comments c " +
                 "JOIN concerts con ON c.concert_id = con.id " +
+                "LEFT JOIN users u ON c.user_id = u.id " +
                 "WHERE con.uploader_id = ? AND c.user_id != ? AND c.status != 'Banned' AND c.status != 'Verified' AND c.status != 'Reported' ORDER BY c.id DESC";
+
         try (Connection conn = CredDAO.getConnection()) {
-            fetchAndMapComments(conn, sqlSongs, uploaderId, "Brano: ", moderationMap);
+            fetchAndMapComments(conn, sqlSongs,     uploaderId, "Brano: ",      moderationMap);
             fetchAndMapComments(conn, sqlExecutions, uploaderId, "Esecuzione: ", moderationMap);
-            fetchAndMapComments(conn, sqlConcerts, uploaderId, "Concerto: ", moderationMap);
+            fetchAndMapComments(conn, sqlConcerts,   uploaderId, "Concerto: ",   moderationMap);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return moderationMap;
     }
 
@@ -162,7 +166,7 @@ public class CommentDAO {
         }
     }
 
-    // --- GESTIONE LIKES E RIMOZIONE ---
+    // --- GESTIONE LIKES ---
 
     public boolean hasUserLiked(int userId, int commentId) {
         String sql = "SELECT 1 FROM comment_likes WHERE user_id = ? AND comment_id = ?";
@@ -199,7 +203,6 @@ public class CommentDAO {
     }
 
     public void deleteComment(int commentId) {
-        // Modificato per eliminare solo il commento specificato, non i suoi figli
         String sql = "DELETE FROM comments WHERE id = ?";
         try (Connection conn = CredDAO.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, commentId);
@@ -207,55 +210,38 @@ public class CommentDAO {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    // --- GESTIONE PERMESSI E PROPRIETA' (RICHIESTI DA CommentManager) ---
+    // --- PERMESSI ---
 
     public boolean isResourceOwner(CommentManager.ResourceType type, int resourceId, int userId) {
-        String table = "";
-        String idColumn = "id";
-
-        switch (type) {
-            case SONG -> table = "songs";
-            case EXECUTION -> table = "media_files";
-            case CONCERT -> table = "concerts";
-        }
-
-        String sql = "SELECT uploader_id FROM " + table + " WHERE " + idColumn + " = ?";
+        String table = switch (type) {
+            case SONG      -> "songs";
+            case EXECUTION -> "media_files";
+            case CONCERT   -> "concerts";
+        };
+        String sql = "SELECT uploader_id FROM " + table + " WHERE id = ?";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, resourceId);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    int uploaderId = rs.getInt("uploader_id");
-                    return uploaderId == userId;
-                }
+                if (rs.next()) return rs.getInt("uploader_id") == userId;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
 
     public boolean canDeleteComment(int commentId, int userId) {
-        String sql = "SELECT user_id, song_id, execution_id, concert_id FROM comments WHERE id = ?";
+        String sql = "SELECT user_id FROM comments WHERE id = ?";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, commentId);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    int commentAuthorId = rs.getInt("user_id");
-
-                    // L'utente è l'autore del commento?
-                    if (commentAuthorId == userId) return true;
-
-                }
+                if (rs.next()) return rs.getInt("user_id") == userId;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
 
-    // --- ALTRI METODI AMMINISTRATIVI E UTILITIES ---
+    // --- METODI AMMINISTRATIVI ---
 
     public int getTotalComments() {
         String sql = "SELECT COUNT(*) FROM comments";
@@ -281,21 +267,20 @@ public class CommentDAO {
 
     public List<Comment> getCommentsListByStatus(String status) {
         List<Comment> comments = new ArrayList<>();
-        String sql = "SELECT * FROM comments WHERE status = ? ORDER BY id ASC";
+        String sql = "SELECT c.*, u.name AS author_name " +
+                     "FROM comments c LEFT JOIN users u ON c.user_id = u.id " +
+                     "WHERE c.status = ? ORDER BY c.id ASC";
         try (Connection conn = CredDAO.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, status);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Comment c = mapRow(rs);
-                    // getReplies dovrebbe già escludere Banned, ma ora non lo fa più
                     c.setReplies(getReplies(c.getId()));
                     comments.add(c);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         return comments;
     }
 
@@ -311,20 +296,23 @@ public class CommentDAO {
 
     private Comment mapRow(ResultSet rs) throws SQLException {
         Integer parentId = rs.getObject("parent_id") != null ? rs.getInt("parent_id") : null;
-        int sId = rs.getObject("song_id") != null ? rs.getInt("song_id") : 0;
-        int eId = 0, cId = 0;
+        int sId  = rs.getObject("song_id")      != null ? rs.getInt("song_id")      : 0;
+        int eId  = 0, cId = 0;
         String status = "Pending";
+        String authorName = null;
 
-        try { eId = rs.getInt("execution_id"); } catch (SQLException ignore) {}
-        try { cId = rs.getInt("concert_id"); } catch (SQLException ignore) {}
-        try { status = rs.getString("status"); } catch (SQLException ignore) {}
+        try { eId      = rs.getInt("execution_id"); } catch (SQLException ignore) {}
+        try { cId      = rs.getInt("concert_id");   } catch (SQLException ignore) {}
+        try { status   = rs.getString("status");     } catch (SQLException ignore) {}
+        try { authorName = rs.getString("author_name"); } catch (SQLException ignore) {}
 
-        return new Comment(
+        Comment c = new Comment(
                 rs.getInt("id"), sId, eId, cId,
-                rs.getInt("user_id"), rs.getString("username"),
+                rs.getInt("user_id"),
                 rs.getString("content"), rs.getInt("likes"),
                 parentId, status
         );
-
+        c.setAuthorName(authorName);
+        return c;
     }
 }

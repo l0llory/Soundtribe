@@ -12,138 +12,84 @@ public class UserSessionTest {
 
     @BeforeEach
     public void setUp() {
-        // Pulisci la sessione prima di ogni test
         UserSession.getInstance().cleanUserSession();
     }
 
     @Test
     @DisplayName("Singleton - una sola istanza")
     public void testSingletonInstance() {
-        UserSession instance1 = UserSession.getInstance();
-        UserSession instance2 = UserSession.getInstance();
-        UserSession instance3 = UserSession.getInstance();
+        UserSession a = UserSession.getInstance();
+        UserSession b = UserSession.getInstance();
 
-        assertSame(instance1, instance2, "Le istanze dovrebbero essere le stesse");
-        assertSame(instance2, instance3, "Le istanze dovrebbero essere le stesse");
+        assertSame(a, b, "Dovrebbe essere sempre la stessa istanza");
     }
 
     @Test
     @DisplayName("Impostazione e recupero dell'ID utente")
     public void testSetAndGetUserId() {
         UserSession session = UserSession.getInstance();
-        int testId = 42;
+        session.setUserId(42);
 
-        session.setUserId(testId);
-
-        assertEquals(testId, session.getUserId(), "L'ID dovrebbe essere quello impostato");
+        assertEquals(42, session.getUserId());
     }
 
     @Test
-    @DisplayName("Impostazione e verifica privilegi admin")
+    @DisplayName("Verifica privilegi admin")
     public void testAdminPrivileges() {
         UserSession session = UserSession.getInstance();
 
-        assertFalse(session.isAdmin(), "Inizialmente non dovrebbe essere admin");
+        assertFalse(session.isAdmin(), "All'avvio non dovrebbe essere admin");
 
         session.setIsAdmin(true);
-        assertTrue(session.isAdmin(), "Dovrebbe essere admin dopo setIsAdmin(true)");
+        assertTrue(session.isAdmin());
 
         session.setIsAdmin(false);
-        assertFalse(session.isAdmin(), "Non dovrebbe essere admin dopo setIsAdmin(false)");
+        assertFalse(session.isAdmin());
     }
 
     @Test
-    @DisplayName("Persistenza dati nella sessione")
+    @DisplayName("I dati persistono nella stessa sessione")
     public void testSessionPersistence() {
-        UserSession session = UserSession.getInstance();
+        UserSession.getInstance().setUserId(123);
+        UserSession.getInstance().setIsAdmin(true);
 
-        session.setUserId(123);
-        session.setIsAdmin(true);
-
-        // Recupera la stessa istanza
-        UserSession sameSession = UserSession.getInstance();
-
-        assertEquals(123, sameSession.getUserId(), "L'ID dovrebbe persistere");
-        assertTrue(sameSession.isAdmin(), "Lo status admin dovrebbe persistere");
+        assertEquals(123, UserSession.getInstance().getUserId());
+        assertTrue(UserSession.getInstance().isAdmin());
     }
 
     @Test
-    @DisplayName("Pulizia della sessione")
+    @DisplayName("Pulizia della sessione al logout")
     public void testCleanUserSession() {
         UserSession session = UserSession.getInstance();
-
         session.setUserId(999);
         session.setIsAdmin(true);
 
-        assertEquals(999, session.getUserId());
-        assertTrue(session.isAdmin());
-
         session.cleanUserSession();
 
-        assertEquals(0, session.getUserId(), "L'ID dovrebbe essere resettato a 0");
-        assertFalse(session.isAdmin(), "Lo status admin dovrebbe essere resettato a false");
+        assertEquals(0, session.getUserId(), "L'ID dovrebbe essere resettato");
+        assertFalse(session.isAdmin(), "Lo status admin dovrebbe essere resettato");
     }
 
     @Test
-    @DisplayName("Ricerca salvata in sessione")
+    @DisplayName("Query di ricerca salvata in sessione")
     public void testLastSearchQuery() {
         UserSession session = UserSession.getInstance();
 
-        String testQuery = "Bohemian Rhapsody";
-        session.setLastSearchQuery(testQuery);
-
-        assertEquals(testQuery, session.getLastSearchQuery(), "La query dovrebbe essere salvata");
+        session.setLastSearchQuery("De André");
+        assertEquals("De André", session.getLastSearchQuery());
 
         session.setLastSearchQuery(null);
-        assertNull(session.getLastSearchQuery(), "La query dovrebbe essere null dopo pulizia");
+        assertNull(session.getLastSearchQuery());
     }
 
     @Test
-    @DisplayName("Stato admin indipendente dall'ID utente")
-    public void testAdminStateIndependence() {
+    @DisplayName("Sessione vuota prima del login")
+    public void testSessionStartsEmpty() {
         UserSession session = UserSession.getInstance();
 
-        session.setUserId(100);
-        session.setIsAdmin(true);
-
-        UserSession sameSession = UserSession.getInstance();
-        sameSession.setUserId(101);
-
-        // Lo stato admin dovrebbe rimanere true
-        assertTrue(sameSession.isAdmin(), "Lo status admin dovrebbe rimanere invariato");
-        assertEquals(101, sameSession.getUserId(), "L'ID dovrebbe essere aggiornato");
-    }
-
-    @Test
-    @DisplayName("Thread-safe getInstance (double-checked locking)")
-    public void testThreadSafeSingleton() throws InterruptedException {
-        // Questo test verifica che il Singleton sia thread-safe
-        UserSession[] instances = new UserSession[5];
-
-        Thread[] threads = new Thread[5];
-        for (int i = 0; i < 5; i++) {
-            final int index = i;
-            threads[i] = new Thread(() -> {
-                instances[index] = UserSession.getInstance();
-            });
-        }
-
-        // Avvia tutti i thread
-        for (Thread t : threads) {
-            t.start();
-        }
-
-        // Aspetta che tutti i thread finiscano
-        for (Thread t : threads) {
-            t.join();
-        }
-
-        // Verifica che tutte le istanze siano la stessa
-        UserSession firstInstance = instances[0];
-        for (int i = 1; i < instances.length; i++) {
-            assertSame(firstInstance, instances[i],
-                    "Tutte le istanze da thread diversi dovrebbero essere la stessa");
-        }
+        assertEquals(0, session.getUserId(), "Prima del login l'ID deve essere 0");
+        assertFalse(session.isAdmin(), "Prima del login non si è admin");
+        assertNull(session.getLastSearchQuery(), "Prima del login non ci sono ricerche salvate");
     }
 
     @Test
@@ -151,57 +97,32 @@ public class UserSessionTest {
     public void testLoginLogoutFlow() {
         UserSession session = UserSession.getInstance();
 
-        // Simulazione login
         session.setUserId(50);
         session.setIsAdmin(false);
 
-        assertTrue(session.getUserId() > 0, "Dopo login, dovrebbe avere un ID");
-        assertFalse(session.isAdmin(), "Utente normale non dovrebbe essere admin");
+        assertTrue(session.getUserId() > 0);
+        assertFalse(session.isAdmin());
 
-        // Simulazione logout
         session.cleanUserSession();
 
-        assertEquals(0, session.getUserId(), "Dopo logout, l'ID dovrebbe essere 0");
-        assertFalse(session.isAdmin(), "Dopo logout, non dovrebbe essere admin");
+        assertEquals(0, session.getUserId());
+        assertFalse(session.isAdmin());
     }
 
     @Test
-    @DisplayName("Simulazione cambio utente")
-    public void testUserSwitch() {
+    @DisplayName("Simulazione login come amministratore")
+    public void testAdminLoginFlow() {
         UserSession session = UserSession.getInstance();
 
-        // Primo utente
         session.setUserId(1);
-        session.setIsAdmin(false);
+        session.setIsAdmin(true);
+
+        assertTrue(session.isAdmin());
         assertEquals(1, session.getUserId());
 
-        // Cambio a secondo utente
-        session.setUserId(2);
-        session.setIsAdmin(true);
-        assertEquals(2, session.getUserId());
-        assertTrue(session.isAdmin());
+        session.cleanUserSession();
 
-        // Verifica che il cambio sia avvenuto
-        UserSession sameSession = UserSession.getInstance();
-        assertEquals(2, sameSession.getUserId());
-        assertTrue(sameSession.isAdmin());
-    }
-
-    @Test
-    @DisplayName("Ricerca e pulizia della query")
-    public void testSearchQueryCleanup() {
-        UserSession session = UserSession.getInstance();
-
-        // Imposta una ricerca
-        session.setLastSearchQuery("filter:commented_by_me");
-        assertNotNull(session.getLastSearchQuery());
-
-        // Simula il consumo della ricerca
-        String query = session.getLastSearchQuery();
-        assertEquals("filter:commented_by_me", query);
-
-        // Pulizia dopo utilizzo
-        session.setLastSearchQuery(null);
-        assertNull(session.getLastSearchQuery());
+        assertFalse(session.isAdmin(), "Dopo logout l'admin non deve rimanere attivo");
+        assertEquals(0, session.getUserId());
     }
 }

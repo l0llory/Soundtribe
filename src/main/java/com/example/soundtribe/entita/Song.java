@@ -19,7 +19,7 @@ public class Song {
 
     public Song(int id, String title, String artist, String genre, String pdfSheetPath,
                 String audioPath, String youtubeUrl, String coverPath,
-                int uploade_id, String uploaderName, String uploaderSurname, String description) {
+                int uploader_id, String uploaderName, String uploaderSurname, String description) {
         this.id = id;
         this.title = title;
         this.artist = artist;

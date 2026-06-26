@@ -2,7 +2,6 @@ package com.example.soundtribe.manager;
 
 import com.example.soundtribe.item.UserSession;
 import com.example.soundtribe.entita.Comment;
-import com.example.soundtribe.entita.User;
 import com.example.soundtribe.dao.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -29,7 +28,6 @@ public class CommentManager {
     private final ResourceType resourceType;
 
     private final CommentDAO commentDAO;
-    private final UserDAO userDAO;
     private final int currentUserId;
 
     public CommentManager(VBox commentsContainer, TextArea newCommentArea, Button btnPostComment,
@@ -41,7 +39,6 @@ public class CommentManager {
         this.resourceType = resourceType;
 
         this.commentDAO = new CommentDAO();
-        this.userDAO = new UserDAO();
         this.currentUserId = UserSession.getInstance().getUserId();
 
         init();
@@ -81,7 +78,7 @@ public class CommentManager {
         // Header
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
-        Label userLbl = new Label(c.getUsername());
+        Label userLbl = new Label(c.getAuthorName());
         userLbl.getStyleClass().add("st-label-blue");
 
         Region spacer = new Region();
@@ -175,7 +172,7 @@ public class CommentManager {
         replyArea.setManaged(false);
 
         TextArea replyInput = new TextArea();
-        replyInput.setPromptText("Rispondi a " + c.getUsername() + "...");
+        replyInput.setPromptText("Rispondi a " + c.getAuthorName() + "...");
         replyInput.setPrefRowCount(2);
         replyInput.setWrapText(true);
         replyInput.getStyleClass().add("st-text-area");
@@ -237,15 +234,11 @@ public class CommentManager {
     }
 
     private void saveComment(String content, Integer parentId) {
-        User me = userDAO.getUserById(currentUserId);
-        String username = (me != null) ? me.getName() : "Utente";
-
-        int songId = (resourceType == ResourceType.SONG) ? resourceId : 0;
+        int songId = (resourceType == ResourceType.SONG)      ? resourceId : 0;
         int execId = (resourceType == ResourceType.EXECUTION) ? resourceId : 0;
-        int concId = (resourceType == ResourceType.CONCERT) ? resourceId : 0;
+        int concId = (resourceType == ResourceType.CONCERT)   ? resourceId : 0;
 
-        Comment newC = new Comment(0, songId, execId, concId, currentUserId, username, content, 0, parentId, "Pending");
-
+        Comment newC = new Comment(0, songId, execId, concId, currentUserId, content, 0, parentId, "Pending");
         commentDAO.addComment(newC, resourceType, resourceId);
     }
 }

@@ -124,7 +124,7 @@ public class AdminController {
         row.setPrefHeight(80);
 
         VBox commentInfo = new VBox(5);
-        Label usernameLabel = new Label("👤 " + comment.getUsername());
+        Label usernameLabel = new Label("👤 " + comment.getAuthorName());
         usernameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #60a5fa;");
 
         Label contentLabel = new Label(comment.getContent());

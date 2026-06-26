@@ -3,6 +3,7 @@ module com.example.soundtribe {
     requires javafx.fxml;
     requires java.sql;
     requires java.desktop;
+    requires com.zaxxer.hikari;
 
 
     opens com.example.soundtribe to javafx.fxml;

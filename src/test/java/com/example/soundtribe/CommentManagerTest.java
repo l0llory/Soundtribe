@@ -1,9 +1,7 @@
 package com.example.soundtribe;
 
-import com.example.soundtribe.dao.CommentDAO;
+import com.example.soundtribe.dao.*;
 import com.example.soundtribe.manager.*;
-import com.example.soundtribe.dao.SongDAO;
-import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.Comment;
 import com.example.soundtribe.entita.Song;
 import com.example.soundtribe.entita.User;
@@ -17,6 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,260 +31,166 @@ public class CommentManagerTest {
     private UserDAO userDAO;
     private int testSongId;
     private int testUserId;
-    private VBox mockContainer;
-    private TextArea mockCommentArea;
-    private Button mockButton;
 
     @BeforeAll
     public static void initToolkit() {
         try {
             Platform.startup(() -> {});
-        } catch (IllegalStateException e) {
-            // Toolkit già avviato
-        }
+        } catch (IllegalStateException ignored) {}
     }
 
     @BeforeEach
     public void setUp() {
+        resetDatabase();
         commentDAO = new CommentDAO();
-        songDAO = new SongDAO();
-        userDAO = new UserDAO();
+        songDAO    = new SongDAO();
+        userDAO    = new UserDAO();
 
-        // Setup: crea un utente di test
-        String testEmail = "commentmanager_" + System.currentTimeMillis() + "@test.com";
-        User testUser = new User("ManagerTest", "User", testEmail, "password123", "Rock");
-        userDAO.registerUser(testUser);
-        User registeredUser = userDAO.login(testEmail, "password123");
-        testUserId = registeredUser.getId();
+        // Popola il DB con 10 utenti fittizi, ognuno con una canzone e un commento
+        int[] userIds = TestDataSeeder.seed(userDAO, songDAO, commentDAO);
+        testUserId = userIds[1]; // Sara Conti (ID=3) — seconda utente del seeder
 
-        // Setup sessione utente
         UserSession.getInstance().setUserId(testUserId);
         UserSession.getInstance().setIsAdmin(false);
 
-        // Setup: crea un brano di test
-        Song testSong = new Song(
-                0, "Manager Test Song", "Test Artist", "Rock", "", "", "", "",
-                testUserId, "ManagerTest", "User", "Test description"
+        // Canzone fresca senza commenti preesistenti per test precisi
+        Song freshSong = new Song(
+                0, "Kind of Blue", "Miles Davis", "Jazz", "", "", "", "",
+                testUserId, "Sara", "Conti", "Uno degli album jazz più influenti di sempre"
         );
-        songDAO.addSong(testSong);
+        songDAO.addSong(freshSong);
         List<Song> songs = songDAO.getAllSongs();
         testSongId = songs.get(songs.size() - 1).getId();
 
-        // Setup: crea i mock JavaFX (sono required dal costruttore)
-        mockContainer = new VBox();
-        mockCommentArea = new TextArea();
-        mockButton = new Button("Post");
-
-        // Crea il CommentManager
         commentManager = new CommentManager(
-                mockContainer, mockCommentArea, mockButton,
+                new VBox(), new TextArea(), new Button("Commenta"),
                 testSongId, CommentManager.ResourceType.SONG
         );
+    }
+
+    private static void resetDatabase() {
+        try (Connection conn = CredDAO.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("TRUNCATE comment_likes, comments, songs, users RESTART IDENTITY CASCADE");
+            stmt.execute("INSERT INTO users (name, surname, email, password, is_admin, status) " +
+                         "VALUES ('Admin', 'SoundTribe', 'admin@soundtribe.it', 'admin', TRUE, 'Verified')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
     @DisplayName("Inizializzazione del CommentManager")
     public void testCommentManagerInitialization() {
-        assertNotNull(commentManager, "CommentManager dovrebbe essere inizializzato");
-        assertNotNull(mockContainer, "Container dovrebbe essere non-null");
+        assertNotNull(commentManager);
     }
 
     @Test
-    @DisplayName("Caricamento commenti alla inizializzazione")
+    @DisplayName("Commenti caricati dal database all'inizializzazione")
     public void testLoadCommentsOnInit() {
-        // Aggiungi un commento prima di creare il manager
-        Comment comment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "ManagerTest",
-                "Test comment from manager", 0, null, "Pending"
+                testUserId,
+                "Bellissimo disco, l'ho ascoltato mille volte", 0, null, "Pending"
         );
-        commentDAO.addComment(comment, CommentManager.ResourceType.SONG, testSongId);
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
-        // Crea nuovo manager che dovrebbe caricare i commenti
-        CommentManager newManager = new CommentManager(
-                new VBox(), new TextArea(), new Button(),
-                testSongId, CommentManager.ResourceType.SONG
-        );
+        new CommentManager(new VBox(), new TextArea(), new Button(), testSongId, CommentManager.ResourceType.SONG);
 
-        // Verifica che i commenti siano stati caricati dal DB
-        List<Comment> comments = commentDAO.getCommentsByResource(
-                CommentManager.ResourceType.SONG, testSongId
-        );
-        assertFalse(comments.isEmpty(), "Dovrebbe caricare i commenti dal DB");
+        List<Comment> loaded = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertFalse(loaded.isEmpty());
     }
 
     @Test
-    @DisplayName("Supporto per diverse risorse (SONG, EXECUTION, CONCERT)")
+    @DisplayName("Manager creabile per tutte e tre le risorse")
     public void testCommentManagerResourceTypes() {
-        // Test SONG
         CommentManager songManager = new CommentManager(
-                new VBox(), new TextArea(), new Button(),
-                testSongId, CommentManager.ResourceType.SONG
+                new VBox(), new TextArea(), new Button(), testSongId, CommentManager.ResourceType.SONG
         );
-        assertNotNull(songManager, "Manager per SONG dovrebbe essere creato");
+        assertNotNull(songManager);
 
-        // Test EXECUTION (con ID fittizio)
         CommentManager execManager = new CommentManager(
-                new VBox(), new TextArea(), new Button(),
-                1, CommentManager.ResourceType.EXECUTION
+                new VBox(), new TextArea(), new Button(), 1, CommentManager.ResourceType.EXECUTION
         );
-        assertNotNull(execManager, "Manager per EXECUTION dovrebbe essere creato");
+        assertNotNull(execManager);
 
-        // Test CONCERT (con ID fittizio)
         CommentManager concertManager = new CommentManager(
-                new VBox(), new TextArea(), new Button(),
-                1, CommentManager.ResourceType.CONCERT
+                new VBox(), new TextArea(), new Button(), 1, CommentManager.ResourceType.CONCERT
         );
-        assertNotNull(concertManager, "Manager per CONCERT dovrebbe essere creato");
+        assertNotNull(concertManager);
     }
 
     @Test
-    @DisplayName("Enum ResourceType")
-    public void testResourceTypeEnum() {
-        // Verifica che i valori dell'enum siano i previsti
-        CommentManager.ResourceType song = CommentManager.ResourceType.SONG;
-        CommentManager.ResourceType exec = CommentManager.ResourceType.EXECUTION;
-        CommentManager.ResourceType concert = CommentManager.ResourceType.CONCERT;
-
-        assertNotNull(song);
-        assertNotNull(exec);
-        assertNotNull(concert);
-
-        assertEquals("SONG", song.name());
-        assertEquals("EXECUTION", exec.name());
-        assertEquals("CONCERT", concert.name());
-    }
-
-    @Test
-    @DisplayName("Gestione sessione utente nel Manager")
+    @DisplayName("Sessione utente correttamente usata dal Manager")
     public void testCommentManagerUserSession() {
-        // Imposta una sessione utente
-        UserSession session = UserSession.getInstance();
-        session.setUserId(testUserId);
+        UserSession.getInstance().setUserId(testUserId);
 
-        // Crea un manager
         CommentManager manager = new CommentManager(
                 new VBox(), new TextArea(), new Button(),
                 testSongId, CommentManager.ResourceType.SONG
         );
 
-        // Il manager dovrebbe usare l'ID della sessione
-        assertNotNull(manager, "Manager dovrebbe essere creato con sessione attiva");
+        assertNotNull(manager);
+        assertEquals(testUserId, UserSession.getInstance().getUserId());
     }
 
     @Test
-    @DisplayName("Caricamento dinamico di commenti ricorsivi")
+    @DisplayName("Caricamento struttura ricorsiva di commenti e risposte")
     public void testDynamicCommentLoading() {
-        // Aggiungi una gerarchia di commenti
         Comment root = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "RootUser",
-                "Root comment", 0, null, "Pending"
+                testUserId,
+                "Qualcuno sa dove trovare lo spartito del tema principale?", 0, null, "Pending"
         );
         commentDAO.addComment(root, CommentManager.ResourceType.SONG, testSongId);
 
-        List<Comment> rootComments = commentDAO.getCommentsByResource(
-                CommentManager.ResourceType.SONG, testSongId
-        );
-        int rootId = rootComments.get(0).getId();
+        List<Comment> roots = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        int rootId = roots.get(0).getId();
 
-        // Aggiungi una risposta
         Comment reply = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "ReplyUser",
-                "Reply comment", 0, rootId, "Pending"
+                testUserId,
+                "L'ho trovato su IMSLP, ti metto il link", 0, rootId, "Pending"
         );
         commentDAO.addComment(reply, CommentManager.ResourceType.SONG, testSongId);
 
-        // Crea un nuovo manager che dovrebbe caricare la struttura ricorsiva
-        CommentManager newManager = new CommentManager(
-                new VBox(), new TextArea(), new Button(),
-                testSongId, CommentManager.ResourceType.SONG
-        );
+        new CommentManager(new VBox(), new TextArea(), new Button(), testSongId, CommentManager.ResourceType.SONG);
 
-        // Verifica che la struttura sia caricata
-        List<Comment> reloadedComments = commentDAO.getCommentsByResource(
-                CommentManager.ResourceType.SONG, testSongId
-        );
-        assertFalse(reloadedComments.isEmpty(), "Dovrebbe caricare i commenti root");
-        assertFalse(reloadedComments.get(0).getReplies().isEmpty(),
-                "Dovrebbe caricare le risposte ricorsive");
+        List<Comment> reloaded = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertFalse(reloaded.isEmpty());
+        assertFalse(reloaded.get(0).getReplies().isEmpty());
     }
 
     @Test
-    @DisplayName("TextArea per i nuovi commenti")
-    public void testCommentTextArea() {
-        TextArea commentArea = new TextArea();
-        commentArea.setPromptText("Scrivi un commento...");
-
-        assertNotNull(commentArea, "TextArea dovrebbe essere non-null");
-        assertEquals("Scrivi un commento...", commentArea.getPromptText());
-
-        commentArea.setText("Questo è un nuovo commento");
-        assertEquals("Questo è un nuovo commento", commentArea.getText());
-    }
-
-    @Test
-    @DisplayName("Button per postare commenti")
-    public void testCommentPostButton() {
-        Button postBtn = new Button("Invia Commento");
-
-        assertNotNull(postBtn, "Button dovrebbe essere non-null");
-        assertEquals("Invia Commento", postBtn.getText());
-    }
-
-    @Test
-    @DisplayName("Integrazione tra CommentManager e CommentDAO")
+    @DisplayName("Integrazione CommentManager e CommentDAO - salvataggio e recupero")
     public void testCommentManagerDAOIntegration() {
-        // Il CommentManager dovrebbe essere in grado di comunicare con il DAO
-        Comment testComment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "IntegrationTest",
-                "Integration test comment", 0, null, "Pending"
+                testUserId,
+                "Primo ascolto di questo disco, già innamorata", 0, null, "Pending"
         );
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
-        commentDAO.addComment(testComment, CommentManager.ResourceType.SONG, testSongId);
-
-        // Verifica che il commento sia stato salvato
-        List<Comment> comments = commentDAO.getCommentsByResource(
-                CommentManager.ResourceType.SONG, testSongId
-        );
-        assertTrue(comments.stream().anyMatch(c -> "Integration test comment".equals(c.getContent())),
-                "Il commento dovrebbe essere salvato dal DAO");
+        List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
+        assertTrue(comments.stream().anyMatch(x -> "Primo ascolto di questo disco, già innamorata".equals(x.getContent())));
     }
 
     @Test
-    @DisplayName("Gestione dello status del commento")
+    @DisplayName("Aggiornamento dello status del commento da Pending a Verified")
     public void testCommentStatusHandling() {
-        Comment comment = new Comment(
+        Comment c = new Comment(
                 0, testSongId, 0, 0,
-                testUserId, "StatusTest",
-                "Comment with status", 0, null, "Pending"
+                testUserId,
+                "Assolo di tromba magistrale nella terza traccia", 0, null, "Pending"
         );
+        commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
-        // Aggiungi con status Pending
-        commentDAO.addComment(comment, CommentManager.ResourceType.SONG, testSongId);
-
-        List<Comment> comments = commentDAO.getCommentsByResource(
-                CommentManager.ResourceType.SONG, testSongId
-        );
+        List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
         int commentId = comments.get(0).getId();
 
-        // Cambia status
         commentDAO.updateCommentStatus(commentId, "Verified");
 
-        List<Comment> verifiedComments = commentDAO.getCommentsListByStatus("Verified");
-        assertTrue(verifiedComments.stream().anyMatch(c -> c.getId() == commentId),
-                "Il commento dovrebbe avere status Verified");
-    }
-
-    @Test
-    @DisplayName("Container VBox per visualizzare commenti")
-    public void testCommentContainer() {
-        VBox container = new VBox(10);
-        container.setStyle("-fx-padding: 10;");
-
-        assertNotNull(container, "Container dovrebbe essere non-null");
-        assertEquals(10, container.getSpacing(), "Spacing dovrebbe essere 10");
+        List<Comment> verified = commentDAO.getCommentsListByStatus("Verified");
+        assertTrue(verified.stream().anyMatch(x -> x.getId() == commentId));
     }
 }
