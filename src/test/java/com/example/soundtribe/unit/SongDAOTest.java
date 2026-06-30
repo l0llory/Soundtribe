@@ -1,11 +1,15 @@
-package com.example.soundtribe;
+package com.example.soundtribe.unit;
 
+import com.example.soundtribe.TestDataSeeder;
+import com.example.soundtribe.dao.CommentDAO;
+import com.example.soundtribe.dao.CredDAO;
+import com.example.soundtribe.dao.SongDAO;
+import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.Song;
-import com.example.soundtribe.entita.User;
-import com.example.soundtribe.dao.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -14,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("unit")
 @DisplayName("Test SongDAO - Ricerca Avanzata e Filtri")
 public class SongDAOTest {
 
@@ -28,9 +33,7 @@ public class SongDAOTest {
         userDAO = new UserDAO();
         CommentDAO commentDAO = new CommentDAO();
 
-        // Popola il DB con 10 utenti fittizi, ognuno con una canzone e un commento
         int[] userIds = TestDataSeeder.seed(userDAO, songDAO, commentDAO);
-        // testUserId è il primo utente del seeder (ID=2, Luca Ricci)
         testUserId = userIds[0];
     }
 
@@ -76,9 +79,7 @@ public class SongDAOTest {
 
         List<Song> all = songDAO.getAllSongs();
         assertNotNull(all);
-        // Ci sono già 10 canzoni seed + 2 aggiunte = almeno 12
         assertTrue(all.size() >= 12);
-        // Verifica che ogni canzone abbia un uploader esistente o null
         for (Song s : all) {
             assertTrue(s.getUploader_id() >= 0, "uploader_id deve essere un valore valido");
         }
@@ -101,8 +102,7 @@ public class SongDAOTest {
 
     @Test
     @DisplayName("Ricerca brani per artista")
-    public void
-    testSearchSongsByArtist() {
+    public void testSearchSongsByArtist() {
         Song song = new Song(
                 0, "Imagine", "John Lennon", "Rock",
                 "", "", "", "",
@@ -189,7 +189,6 @@ public class SongDAOTest {
     public void testGetDistinctAuthors() {
         List<String> authors = songDAO.getDistinctAuthors();
         assertNotNull(authors);
-        // Il seed ha caricato 10 canzoni → ci sono artisti nel DB
         assertFalse(authors.isEmpty(), "Dovrebbero esserci artisti dal seed");
     }
 
@@ -198,14 +197,12 @@ public class SongDAOTest {
     public void testGetDistinctTitles() {
         List<String> titles = songDAO.getDistinctTitles();
         assertNotNull(titles);
-        // Il seed ha caricato 10 canzoni → ci sono titoli nel DB
         assertFalse(titles.isEmpty(), "Dovrebbero esserci titoli dal seed");
     }
 
     @Test
     @DisplayName("Brani commentati dall'utente")
     public void testGetSongsCommentedByUser() {
-        // testUserId (utente[0]) ha già commentato la canzone di utente[1] nel seed
         List<Song> commentedSongs = songDAO.getSongsCommentedByUser(testUserId);
         assertNotNull(commentedSongs);
         assertFalse(commentedSongs.isEmpty(), "L'utente ha già commentato una canzone nel seed");

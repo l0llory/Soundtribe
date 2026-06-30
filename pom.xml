@@ -12,6 +12,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.12.1</junit.version>
+        <!-- Vuota = esegue tutti i test. Sovrascritta dai profili. -->
+        <test.groups></test.groups>
     </properties>
 
     <dependencies>
@@ -20,6 +22,27 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>4.0.16-alpha</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.16-alpha</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.24.1</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -51,10 +74,18 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.12.1</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -64,22 +95,23 @@
                     <target>21</target>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <!-- Impostare a false per eseguire i test con mvn test -->
-                    <skipTests>true</skipTests>
+                    <groups>${test.groups}</groups>
+                    <argLine>--add-modules javafx.controls,javafx.fxml</argLine>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <executions>
                     <execution>
-                        <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>com.example.soundtribe/com.example.soundtribe.Launcher</mainClass>
@@ -93,6 +125,28 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
+
+    <profiles>
+
+        <!-- mvn test -P unit-tests  →  esegue solo i test @Tag("unit") -->
+        <profile>
+            <id>unit-tests</id>
+            <properties>
+                <test.groups>unit</test.groups>
+            </properties>
+        </profile>
+
+        <!-- mvn test -P system-tests  →  esegue solo i test @Tag("system") -->
+        <profile>
+            <id>system-tests</id>
+            <properties>
+                <test.groups>system</test.groups>
+            </properties>
+        </profile>
+
+    </profiles>
+
 </project>

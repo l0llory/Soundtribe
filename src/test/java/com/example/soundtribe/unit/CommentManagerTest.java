@@ -1,19 +1,23 @@
-package com.example.soundtribe;
+package com.example.soundtribe.unit;
 
-import com.example.soundtribe.dao.*;
-import com.example.soundtribe.manager.*;
+import com.example.soundtribe.TestDataSeeder;
+import com.example.soundtribe.dao.CommentDAO;
+import com.example.soundtribe.dao.CredDAO;
+import com.example.soundtribe.dao.SongDAO;
+import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.Comment;
 import com.example.soundtribe.entita.Song;
-import com.example.soundtribe.entita.User;
 import com.example.soundtribe.item.UserSession;
+import com.example.soundtribe.manager.CommentManager;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,6 +26,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("unit")
 @DisplayName("Test CommentManager - Manager Pattern")
 public class CommentManagerTest {
 
@@ -46,14 +51,12 @@ public class CommentManagerTest {
         songDAO    = new SongDAO();
         userDAO    = new UserDAO();
 
-        // Popola il DB con 10 utenti fittizi, ognuno con una canzone e un commento
         int[] userIds = TestDataSeeder.seed(userDAO, songDAO, commentDAO);
-        testUserId = userIds[1]; // Sara Conti (ID=3) — seconda utente del seeder
+        testUserId = userIds[1];
 
         UserSession.getInstance().setUserId(testUserId);
         UserSession.getInstance().setIsAdmin(false);
 
-        // Canzone fresca senza commenti preesistenti per test precisi
         Song freshSong = new Song(
                 0, "Kind of Blue", "Miles Davis", "Jazz", "", "", "", "",
                 testUserId, "Sara", "Conti", "Uno degli album jazz più influenti di sempre"
@@ -88,11 +91,8 @@ public class CommentManagerTest {
     @Test
     @DisplayName("Commenti caricati dal database all'inizializzazione")
     public void testLoadCommentsOnInit() {
-        Comment c = new Comment(
-                0, testSongId, 0, 0,
-                testUserId,
-                "Bellissimo disco, l'ho ascoltato mille volte", 0, null, "Pending"
-        );
+        Comment c = new Comment(0, testSongId, 0, 0, testUserId,
+                "Bellissimo disco, l'ho ascoltato mille volte", 0, null, "Pending");
         commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         new CommentManager(new VBox(), new TextArea(), new Button(), testSongId, CommentManager.ResourceType.SONG);
@@ -137,21 +137,15 @@ public class CommentManagerTest {
     @Test
     @DisplayName("Caricamento struttura ricorsiva di commenti e risposte")
     public void testDynamicCommentLoading() {
-        Comment root = new Comment(
-                0, testSongId, 0, 0,
-                testUserId,
-                "Qualcuno sa dove trovare lo spartito del tema principale?", 0, null, "Pending"
-        );
+        Comment root = new Comment(0, testSongId, 0, 0, testUserId,
+                "Qualcuno sa dove trovare lo spartito del tema principale?", 0, null, "Pending");
         commentDAO.addComment(root, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> roots = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
         int rootId = roots.get(0).getId();
 
-        Comment reply = new Comment(
-                0, testSongId, 0, 0,
-                testUserId,
-                "L'ho trovato su IMSLP, ti metto il link", 0, rootId, "Pending"
-        );
+        Comment reply = new Comment(0, testSongId, 0, 0, testUserId,
+                "L'ho trovato su IMSLP, ti metto il link", 0, rootId, "Pending");
         commentDAO.addComment(reply, CommentManager.ResourceType.SONG, testSongId);
 
         new CommentManager(new VBox(), new TextArea(), new Button(), testSongId, CommentManager.ResourceType.SONG);
@@ -164,11 +158,8 @@ public class CommentManagerTest {
     @Test
     @DisplayName("Integrazione CommentManager e CommentDAO - salvataggio e recupero")
     public void testCommentManagerDAOIntegration() {
-        Comment c = new Comment(
-                0, testSongId, 0, 0,
-                testUserId,
-                "Primo ascolto di questo disco, già innamorata", 0, null, "Pending"
-        );
+        Comment c = new Comment(0, testSongId, 0, 0, testUserId,
+                "Primo ascolto di questo disco, già innamorata", 0, null, "Pending");
         commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);
@@ -178,11 +169,8 @@ public class CommentManagerTest {
     @Test
     @DisplayName("Aggiornamento dello status del commento da Pending a Verified")
     public void testCommentStatusHandling() {
-        Comment c = new Comment(
-                0, testSongId, 0, 0,
-                testUserId,
-                "Assolo di tromba magistrale nella terza traccia", 0, null, "Pending"
-        );
+        Comment c = new Comment(0, testSongId, 0, 0, testUserId,
+                "Assolo di tromba magistrale nella terza traccia", 0, null, "Pending");
         commentDAO.addComment(c, CommentManager.ResourceType.SONG, testSongId);
 
         List<Comment> comments = commentDAO.getCommentsByResource(CommentManager.ResourceType.SONG, testSongId);

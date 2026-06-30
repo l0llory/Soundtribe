@@ -1,13 +1,15 @@
-package com.example.soundtribe;
+package com.example.soundtribe.unit;
 
+import com.example.soundtribe.TestDataSeeder;
 import com.example.soundtribe.dao.CommentDAO;
 import com.example.soundtribe.dao.CredDAO;
 import com.example.soundtribe.dao.SongDAO;
 import com.example.soundtribe.dao.UserDAO;
 import com.example.soundtribe.entita.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,6 +17,7 @@ import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("unit")
 @DisplayName("Test UserDAO - Autenticazione e Registrazione")
 public class UserDAOTest {
 
@@ -25,7 +28,6 @@ public class UserDAOTest {
     public void setUp() {
         resetDatabase();
         userDAO = new UserDAO();
-        // Popola il DB con 10 utenti fittizi, ognuno con una canzone e un commento
         TestDataSeeder.seed(userDAO, new SongDAO(), new CommentDAO());
     }
 
